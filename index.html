@@ -352,14 +352,14 @@
 
   /* HERO */
   .hero{padding:5rem 1.1rem 2.5rem;min-height:100svh;background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772642827/ideogram-v3.0_A_candid_lifestyle_photo_of_a_woman_doing_gentle_yoga_at_home._Side_view_profile-0.jpg_nlntru.png');background-position:center center;background-size:cover;}
-  .hero::before{background:linear-gradient(180deg,rgba(253,248,245,.0) 0%,rgba(253,248,245,.0) 30%,rgba(253,248,245,.6) 65%,rgba(253,248,245,.88) 100%);}
+  .hero::before{background:linear-gradient(180deg,rgba(58,50,45,.35) 0%,rgba(58,50,45,.2) 35%,rgba(58,50,45,.45) 70%,rgba(58,50,45,.75) 100%);}
   /* Sin overlay blanco — imagen predomina */
 
   /* Texto con fondo pill semitransparente para legibilidad */
   .hero-text{background:none;}
-  .hero-label{background:rgba(253,248,245,.75);backdrop-filter:blur(6px);}
-  .hero h1{text-shadow:0 1px 4px rgba(253,248,245,.6);}
-  .hero-desc{text-shadow:0 1px 4px rgba(253,248,245,.6);}
+  .hero-label{background:rgba(253,248,245,.2);backdrop-filter:blur(6px);color:var(--cream);}
+  .hero h1{color:var(--cream);text-shadow:0 2px 8px rgba(0,0,0,.2);}
+  .hero-desc{color:rgba(253,248,245,.9);text-shadow:0 1px 6px rgba(0,0,0,.15);}
 
   .hero-label{font-size:.55rem;padding:.3rem .8rem;letter-spacing:.18em;}
   .hero h1{font-size:1.55rem;line-height:1.28;}
@@ -368,12 +368,8 @@
   .hero-text{text-align:center;}
   .hero-label{margin:0 auto 1.2rem;}
   .hero-desc{margin:0 auto 0;max-width:100%;}
-  /* Burbujas visibles en móvil, inline debajo del texto */
-  .hero-bubbles{display:flex !important;position:relative !important;inset:auto !important;flex-direction:column;align-items:center;gap:.5rem;margin:1.2rem auto 0;pointer-events:none;width:100%;}
-  .hb{position:relative !important;top:auto !important;right:auto !important;bottom:auto !important;left:auto !important;opacity:1 !important;animation:float 5s ease-in-out infinite !important;font-size:.78rem;padding:.5rem 1.1rem;}
-  .hb:nth-child(1){animation-delay:0s !important;}
-  .hb:nth-child(2){animation-delay:1.6s !important;}
-  .hb:nth-child(3){animation-delay:3.2s !important;}
+  /* Ocultar burbujas flotantes en móvil */
+  .hero-bubbles{display:none !important;}
   .hero-ctas .btn{width:100%;text-align:center;padding:.85rem 1.2rem;font-size:.75rem;}
 
   /* MARQUEE */
