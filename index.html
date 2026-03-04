@@ -306,6 +306,7 @@
   .cre-frame{width:260px;height:340px;margin:0 auto;}
   .cre-quote{text-align:left;}
   .cre-text .sect-t,.cre-text p,.cre-text .sect-d{text-align:left;}
+  .cre-text{padding:1rem 0;}
 
   /* PRICING */
   .price-card{padding:2.2rem 1.8rem;}
@@ -397,7 +398,17 @@
   .tr-quote p{font-size:.82rem;text-align:left;}
 
   /* CREADORA */
-  .cre-frame{width:220px;height:290px;}
+  /* Creadora — rediseño móvil */
+  .cre-sect{background:linear-gradient(180deg,var(--cream) 0%,var(--blush-xl) 100%);}
+  .cre-layout{gap:0;}
+  .cre-photo{margin-bottom:0;}
+  .cre-frame{width:180px;height:220px;margin:0 auto;}
+  .cre-frame::before{display:none;}
+  .cre-frame::after{display:none;}
+  .cre-frame-img{border-radius:50%;box-shadow:0 8px 30px rgba(160,123,111,.25);}
+  .cre-text{background:var(--white);border-radius:24px 24px 0 0;padding:2rem 1.4rem 2.5rem;margin-top:-1.5rem;position:relative;z-index:2;box-shadow:0 -4px 20px rgba(160,123,111,.08);}
+  .cre-text .sect-t{font-size:1.4rem;margin-bottom:.2rem;}
+  .cre-quote{font-size:.95rem;border-left:3px solid var(--rose);padding-left:1rem;margin-top:1.2rem;color:var(--rose);}
 
   /* PRICING */
   .price-card{padding:1.5rem 1.1rem;border-radius:18px;}
@@ -498,7 +509,7 @@
 
 <section class="sect trans-sect" style="background:linear-gradient(160deg,var(--earth-dd) 0%,var(--rose-d) 100%);color:var(--cream);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" style="background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
 
-<section class="sect" style="background:var(--cream);" id="sec-parati"><div class="sect-in"><div class="trans-grid" style="direction:rtl;"><div style="direction:ltr;"><p class="sect-lab rv">¿Es para ti?</p><h2 class="sect-t rv rd1" style="text-align:left;">HOGAR es para ti si…</h2><div class="rv rd2" style="max-width:550px;margin:1.5rem 0 0;text-align:left;"><div class="tr-i"><div class="tr-ck">✓</div><h4>Quieres entrenar con estructura, pero sin rigidez extrema</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Buscas constancia real, no motivación pasajera</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Deseas sentir fuerza sin desconectarte de tu cuerpo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás lista para comprometerte contigo desde la calma</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás cansada de "trabajar en ti misma" y necesitas descanso interno</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Has probado muchos métodos y sientes saturación</h4></div></div></div><div class="trans-img rv rd1"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png" alt="HOGAR para ti"><div class="tr-quote" style="direction:ltr;text-align:left;"><p>"El cuerpo no necesita presión para responder, necesita dirección."</p></div></div></div></div></section>
+<section class="sect" style="background:var(--cream);" id="sec-parati"><div class="sect-in"><div class="trans-grid" style="direction:rtl;"><div style="direction:ltr;"><p class="sect-lab rv">¿Es para ti?</p><h2 class="sect-t rv rd1" style="text-align:left;">HOGAR es para ti si…</h2><div class="rv rd2" style="max-width:550px;margin:1.5rem 0 0;text-align:left;"><div class="tr-i"><div class="tr-ck">✓</div><h4>Quieres entrenar con estructura, pero sin rigidez extrema</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Buscas constancia real, no motivación pasajera</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Deseas sentir fuerza sin desconectarte de tu cuerpo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás lista para comprometerte contigo desde la calma</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás cansada de "trabajar en ti misma" y necesitas descanso interno</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Has probado muchos métodos y sientes saturación</h4></div></div></div><div class="trans-img rv rd1"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566689/ideogram-v3.0_Cozy_minimalist_home_wellness_corner_inside_a_serene_modern_house_empty_peaceful-1.jpg_avnn4e.png" alt="HOGAR para ti"><div class="tr-quote" style="direction:ltr;text-align:left;"><p>"El cuerpo no necesita presión para responder, necesita dirección."</p></div></div></div></div></section>
 <section class="sect price-sect" id="sec-price"><div class="sect-in"><p class="sect-lab rv">Tu espacio</p><h2 class="sect-t rv rd1" style="text-align:center;">Empieza a construir tu HOGAR</h2><div class="price-card rv rd2"><div class="pc-badge">Acceso completo</div><div class="pc-price">$499 <span>MXN</span></div><p class="pc-per">pago único · acceso inmediato</p><ul class="pc-feats"><li><span class="ck">✓</span>Check-in diario en 30 segundos</li><li><span class="ck">✓</span>15 caminos de práctica según tu estado</li><li><span class="ck">✓</span>Sesiones en video de 5 a 45 minutos</li><li><span class="ck">✓</span>Lectura de integración post-práctica</li><li><span class="ck">✓</span>Cuestionario personal por emoción</li><li><span class="ck">✓</span>Registro privado y sin juicio</li><li><span class="ck">✓</span>Dashboard con tu progreso</li></ul><button class="btn btn-r btn-full" onclick="go('payment')">Unirme a HOGAR</button><p class="pc-note">Pago único · Acceso de por vida · Sin sorpresas</p><div class="pc-guar"><span>🔒</span> Pago seguro</div></div></div></section>
 <section class="cierre">
   <div class="cierre-in">
