@@ -8,7 +8,12 @@
 <style>
 :root{--rose:#9b6e62;--rose-l:#b8948a;--rose-d:#845a50;--blush:#e8b5a4;--blush-l:#f0cfc4;--blush-xl:#f5e0d8;--blush-bg:#fdf5f2;--earth:#6B5E56;--earth-l:#8A7D75;--earth-d:#574B44;--earth-dd:#3A322D;--cream:#FDF8F5;--cream-m:#F5ECE7;--cream-d:#EDDDD5;--white:#FFFFFF;--text:#3A322D;--muted:#7a6e67;--sage:#A8B5A0;--sage-l:#C8D4C2;}
 *{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}body{font-family:'Montserrat',sans-serif;background:var(--cream);color:var(--text);line-height:1.7;overflow-x:hidden;}h1,h2,h3,h4{font-family:'Montserrat',sans-serif;font-weight:700;}img{max-width:100%;display:block;}
-.scr{display:none;min-height:100vh;}.scr.on{display:block;animation:scrIn .5s ease;}
+.scr{display:none;}
+.scr.on{display:block;animation:scrIn .5s ease;}
+/* Todas las screens que NO son landing se fijan al viewport */
+#s-payment.on,#s-signup.on,#s-login.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-postprac.on,#s-done.on,#s-profile.on{
+  position:fixed;top:0;left:0;width:100%;height:100%;overflow-y:auto;z-index:200;background:var(--cream);
+}
 @keyframes scrIn{from{opacity:0}to{opacity:1}}@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(232,193,180,.3)}50%{box-shadow:0 0 40px rgba(232,193,180,.5)}}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.95rem 2.4rem;border-radius:50px;border:none;font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .35s;text-decoration:none;}
 .btn-r{background:var(--rose);color:var(--cream);}.btn-r:hover{background:var(--rose-d);transform:translateY(-2px);box-shadow:0 8px 25px rgba(160,123,111,.3);}
@@ -529,7 +534,25 @@ const QUESTS=[
 [{t:"Tensión/enojo ahora",type:"scale",lo:"Leve",hi:"Al límite"},{t:"¿Dónde se siente más?",type:"radio",opts:["Mandíbula","Pecho","Estómago","Hombros","Manos","Todo"]},{t:"¿Qué límite fue cruzado (o percibido)?",type:"radio",opts:["Mi tiempo","Mi respeto","Mi espacio","Mi esfuerzo","Mi palabra","Mi calma"]},{t:"¿Qué estoy a punto de hacer por impulso?",type:"radio",opts:["Responder fuerte","Cortar","Probar que tengo razón","Castigar","Callarme y tragar","Explotar"]},{t:"¿Qué quiero proteger realmente?",type:"text"},{t:"Límite claro (una línea):",type:"text",placeholder:"\"Hoy no acepto ___.\"" },{t:"Una frase honesta:",type:"text",placeholder:"\"Puedo descargar sin romperme. Hoy elijo ___.\""}]
 ];
 
-function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');window.scrollTo(0,0);if(id==='dash'){uD();document.getElementById('dashPhrase').textContent=PH[Math.floor(Math.random()*PH.length)];}if(id==='profile')uP();if(id==='done')document.getElementById('donePhrase').textContent=PH[Math.floor(Math.random()*PH.length)];uA();}
+function go(id){
+  // Scroll to absolute top FIRST, before switching screens
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  // Switch screens
+  document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  // Force top again after paint
+  requestAnimationFrame(()=>{
+    window.scrollTo({top:0,left:0,behavior:'instant'});
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+  });
+  if(id==='dash'){uD();document.getElementById('dashPhrase').textContent=PH[Math.floor(Math.random()*PH.length)];}
+  if(id==='profile')uP();
+  if(id==='done')document.getElementById('donePhrase').textContent=PH[Math.floor(Math.random()*PH.length)];
+  uA();
+}
 
 // NAV
 window.addEventListener('scroll',()=>{const n=document.getElementById('lnav');if(n)n.classList.toggle('stuck',window.scrollY>50);});
@@ -537,7 +560,7 @@ document.getElementById('mobTog').addEventListener('click',()=>document.getEleme
 document.querySelectorAll('#navLinks a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
 const ob=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:.08,rootMargin:'0px 0px -30px 0px'});
 document.querySelectorAll('.rv').forEach(el=>ob.observe(el));
-document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const h=this.getAttribute('href');if(h==='#')return;const t=document.querySelector(h);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}});});
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const h=this.getAttribute('href');if(h==='#'||h===null)return;const t=document.querySelector(h);if(t&&document.getElementById('s-landing').classList.contains('on')){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}});});
 function tF(b){const i=b.parentElement;const w=i.classList.contains('open');document.querySelectorAll('.faq-i').forEach(x=>x.classList.remove('open'));if(!w)i.classList.add('open');}
 function fC(i){let v=i.value.replace(/\D/g,'').substring(0,16);i.value=v.replace(/(.{4})/g,'$1 ').trim();}
 function fEi(i){let v=i.value.replace(/\D/g,'').substring(0,4);if(v.length>=2)v=v.substring(0,2)+'/'+v.substring(2);i.value=v;}
