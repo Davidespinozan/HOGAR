@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HOGAR — Regulación a través del movimiento</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&family=Caveat:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--rose:#9b6e62;--rose-l:#b8948a;--rose-d:#845a50;--blush:#e8b5a4;--blush-l:#f0cfc4;--blush-xl:#f5e0d8;--blush-bg:#fdf5f2;--earth:#6B5E56;--earth-l:#8A7D75;--earth-d:#574B44;--earth-dd:#3A322D;--cream:#FDF8F5;--cream-m:#F5ECE7;--cream-d:#EDDDD5;--white:#FFFFFF;--text:#3A322D;--muted:#7a6e67;--sage:#A8B5A0;--sage-l:#C8D4C2;}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}body{font-family:'Montserrat',sans-serif;background:var(--cream);color:var(--text);line-height:1.7;overflow-x:hidden;}h1,h2,h3,h4{font-family:'Montserrat',sans-serif;font-weight:700;}img{max-width:100%;display:block;}
+.scr{display:none;min-height:100vh;}.scr.on{display:block;animation:scrIn .5s ease;}
+@keyframes scrIn{from{opacity:0}to{opacity:1}}@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(232,193,180,.3)}50%{box-shadow:0 0 40px rgba(232,193,180,.5)}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:.95rem 2.4rem;border-radius:50px;border:none;font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .35s;text-decoration:none;}
+.btn-r{background:var(--rose);color:var(--cream);}.btn-r:hover{background:var(--rose-d);transform:translateY(-2px);box-shadow:0 8px 25px rgba(160,123,111,.3);}
+.btn-b{background:var(--blush);color:var(--earth-dd);}.btn-b:hover{background:var(--blush-l);transform:translateY(-1px);}
+.btn-o{background:transparent;border:1.5px solid var(--rose-l);color:var(--rose);}.btn-o:hover{background:var(--rose);color:var(--cream);border-color:var(--rose);}
+.btn-w{background:var(--cream);color:var(--rose);}.btn-w:hover{background:var(--white);transform:translateY(-2px);box-shadow:0 8px 25px rgba(0,0,0,.1);}
+.btn-full{width:100%;}
+.fg{margin-bottom:1rem;text-align:left;width:100%;max-width:420px;}
+.fg label{display:block;font-size:.73rem;font-weight:500;color:var(--muted);margin-bottom:.3rem;letter-spacing:.04em;text-transform:uppercase;}
+.fg input,.fg textarea{width:100%;padding:.85rem 1.1rem;border:1.5px solid var(--cream-d);border-radius:12px;background:var(--white);font-family:'Montserrat',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:all .3s;}
+.fg input:focus,.fg textarea:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(232,193,180,.25);}
+.fg textarea{resize:vertical;min-height:70px;}
+.IMG1{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566689/ideogram-v3.0_Cozy_minimalist_home_wellness_corner_inside_a_serene_modern_house_empty_peaceful-1.jpg_avnn4e.png');}
+.IMG2{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png');}
+.IMG3{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png');}
+.IMG4{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772497400/4_zgnxw3.webp');}
+.IMG5{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772497400/5_qlsvxi.webp');}
+
+/* NAV */
+.lnav{position:fixed;top:0;width:100%;z-index:100;padding:1rem 3rem;display:flex;align-items:center;transition:all .4s;}
+.lnav.stuck{background:rgba(250,246,243,.97);backdrop-filter:blur(20px);box-shadow:0 1px 20px rgba(160,123,111,.08);padding:.7rem 3rem;}
+.lnav-logo img{height:56px;transition:height .4s;}.lnav.stuck .lnav-logo img{height:42px;}
+.lnav-links{display:flex;align-items:center;gap:2.2rem;list-style:none;flex:1;padding-left:3rem;}.lnav-cta-wrap{flex-shrink:0;}
+.lnav-links a{text-decoration:none;color:var(--earth);font-size:.76rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;transition:all .3s;}.lnav-links a:hover{color:var(--rose);}
+.lnav-cta{background:var(--rose)!important;color:var(--cream)!important;padding:.55rem 1.5rem!important;border-radius:50px!important;font-size:.72rem!important;}.lnav-cta:hover{background:var(--rose-d)!important;}
+.mob-tog{display:none;flex-direction:column;gap:5px;cursor:pointer;z-index:101;}.mob-tog span{width:22px;height:1.5px;background:var(--earth);transition:all .3s;}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:6rem 3rem 4rem;position:relative;overflow:hidden;background:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566992/Imagen_03-03-26_a_las_8.41_p.m._hqxgc6.jpg') center/cover no-repeat;}
+.hero::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(253,248,245,.75) 0%,rgba(253,248,245,.45) 35%,rgba(253,248,245,.1) 55%,transparent 70%);pointer-events:none;}
+.hero-text{position:relative;z-index:2;max-width:540px;}
+.hero-label{font-size:.65rem;letter-spacing:.3em;text-transform:uppercase;color:var(--rose);font-weight:600;margin-bottom:1.2rem;opacity:0;animation:fadeUp .8s ease .2s forwards;background:rgba(232,193,180,.25);display:inline-block;padding:.4rem 1rem;border-radius:50px;backdrop-filter:blur(8px);}
+.hero h1{font-size:clamp(2rem,4.2vw,3rem);line-height:1.2;margin-bottom:1.2rem;opacity:0;animation:fadeUp .8s ease .35s forwards;}
+.hero h1 em{font-style:italic;color:var(--rose-d);}
+.hero-desc{font-size:.9rem;font-weight:400;color:var(--earth-d);line-height:1.9;margin-bottom:2rem;max-width:440px;opacity:0;animation:fadeUp .8s ease .5s forwards;}
+.hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s ease .65s forwards;}
+
+/* PHRASES */
+.phrases-bar{display:none;}
+/* HERO BUBBLES */
+.hero-bubbles{position:absolute;inset:0;z-index:2;pointer-events:none;}
+.hb{position:absolute;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);padding:.65rem 1.4rem;border-radius:50px;font-family:'Montserrat',sans-serif;font-size:.85rem;font-style:italic;color:var(--rose);box-shadow:0 8px 30px rgba(160,123,111,.18);opacity:0;animation:fadeUp .8s ease forwards,float 5s ease-in-out infinite;pointer-events:auto;}
+.hb:nth-child(1){top:22%;right:20%;animation-delay:.5s,.5s;}
+.hb:nth-child(2){top:42%;right:22%;animation-delay:.8s,.8s;animation-duration:.8s,6s;}
+.hb:nth-child(3){bottom:28%;right:18%;animation-delay:1.1s,1.1s;animation-duration:.8s,4.5s;}
+/* MARQUEE */
+.marquee-bar{background:var(--blush);padding:.7rem 0;overflow:hidden;white-space:nowrap;}
+.marquee-track{display:inline-flex;gap:2rem;animation:marquee 20s linear infinite;align-items:center;}
+.marquee-track span{font-family:'Montserrat',sans-serif;font-size:1.1rem;font-weight:400;color:var(--earth-dd);letter-spacing:.06em;font-style:italic;}
+.mq-dot{font-size:.5rem;opacity:.5;font-style:normal!important;}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-33.33%)}}
+
+/* PROOF */
+.proof{background:linear-gradient(135deg,var(--rose),var(--rose-d));padding:1.4rem 3rem;display:flex;justify-content:center;gap:3rem;flex-wrap:wrap;}
+.proof-i{text-align:center;color:var(--cream);}.proof-i strong{font-family:'Montserrat',sans-serif;font-size:1.4rem;display:block;color:var(--white);}.proof-i span{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7;}
+
+/* SECTIONS */
+.sect{padding:6rem 3rem;}.sect-in{max-width:1100px;margin:0 auto;}
+.sect-lab{font-size:.63rem;letter-spacing:.35em;text-transform:uppercase;color:var(--rose);font-weight:600;background:var(--blush-xl);display:inline-block;padding:.3rem .8rem;border-radius:50px;}
+.sect-t{font-size:clamp(1.5rem,3vw,2.4rem);line-height:1.3;margin:.8rem 0;}
+.sect-d{font-size:.9rem;font-weight:300;color:var(--muted);line-height:1.9;max-width:500px;}
+
+/* PREVIEW */
+.prev-sect{background:var(--white);position:relative;overflow:hidden;}
+.prev-sect::after{content:'';position:absolute;inset:0;background:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772553454/ideogram-v3.0_Cozy_girly_home_workout_space_with_clean_aesthetics_soft_neutral_colors_and_femi-0.jpg_qnmvgk.png') center/cover;opacity:.15;pointer-events:none;}
+.prev-sect .sect-in{position:relative;z-index:1;}
+.prev-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;margin-top:2.5rem;}
+.prev-phone{background:#1a1a1a;border-radius:44px;padding:10px;max-width:300px;margin:0 auto;box-shadow:0 30px 80px rgba(0,0,0,.28),0 0 0 1px rgba(255,255,255,.08) inset;position:relative;}
+.prev-phone-in{background:var(--white);border-radius:36px;overflow:hidden;min-height:500px;position:relative;}.prev-phone-in::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:100px;height:24px;background:#1a1a1a;border-radius:0 0 16px 16px;z-index:5;}
+.pp-head{background:var(--earth-d);padding:1.8rem 1.2rem 1rem;text-align:center;}.pp-head img{height:20px;margin:0 auto;filter:brightness(2);}
+.pp-body{padding:1.2rem;}
+.pp-greet{font-family:'Montserrat',sans-serif;font-size:1rem;margin-bottom:.2rem;}.pp-sub{font-size:.75rem;color:var(--muted);font-weight:300;margin-bottom:1rem;}
+.pp-card{background:var(--cream);border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem;border-left:3px solid var(--blush);transition:all .3s;cursor:default;}.pp-card:hover{border-left-color:var(--rose);transform:translateX(3px);}
+.pp-card-t{font-size:.7rem;font-weight:500;color:var(--rose);}.pp-card-p{font-size:.73rem;color:var(--muted);font-weight:300;}
+.pp-btn-m{background:var(--rose);color:var(--cream);padding:.65rem;border-radius:10px;text-align:center;font-size:.72rem;font-weight:500;letter-spacing:.06em;margin-top:.6rem;text-transform:uppercase;}
+.prev-feats-card{background:rgba(255,255,255,.95);border-radius:16px;padding:2rem;box-shadow:0 8px 40px rgba(160,123,111,.1);border:1px solid rgba(232,193,180,.12);}.prev-feats{display:flex;flex-direction:column;gap:1.3rem;}
+.pf-i{display:flex;gap:1rem;align-items:flex-start;}
+.pf-ico{width:44px;height:44px;border-radius:12px;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;color:var(--white);}
+.pf-txt h4{font-size:.92rem;margin-bottom:.15rem;}.pf-txt p{font-size:.8rem;font-weight:300;color:var(--muted);line-height:1.7;}
+
+/* HOW */
+.how-sect{background:linear-gradient(160deg,var(--earth-dd) 0%,var(--rose-d) 100%);color:var(--cream);}
+.how-sect .sect-lab{color:var(--blush);background:rgba(232,193,180,.15);}.how-sect .sect-t{color:var(--cream);}.how-sect .sect-d{color:rgba(250,246,243,.6);}
+.how-steps{display:flex;flex-direction:column;gap:2.5rem;margin-top:3rem;}
+.how-row{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;padding:2.5rem 0;border-top:1px solid rgba(232,193,180,.15);}
+.how-row:nth-child(even){direction:rtl;}.how-row:nth-child(even)>*{direction:ltr;}
+.how-mockup{display:flex;justify-content:center;}
+.how-laptop{background:#1a1a1a;border-radius:10px 10px 0 0;padding:8px 8px 0;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+.how-laptop-frame{position:relative;}
+.how-laptop-frame::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#333;z-index:2;}
+.how-laptop-screen{background:var(--cream);border-radius:4px 4px 0 0;overflow:hidden;aspect-ratio:16/10;}
+.how-laptop-screen img{width:100%;height:100%;object-fit:cover;}
+.how-laptop-base{height:14px;background:linear-gradient(180deg,#2a2a2a,#1a1a1a);border-radius:0 0 10px 10px;margin:0 -8px;position:relative;}
+.how-laptop-base::before{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);width:50px;height:4px;background:#333;border-radius:2px;}
+
+.hs-n{font-family:'Montserrat',sans-serif;font-size:2.5rem;color:rgba(232,193,180,.3);line-height:1;margin-bottom:.8rem;}
+.how-info{text-align:left;}.how-info .how-num{font-family:'Montserrat',sans-serif;font-size:2.5rem;font-style:italic;color:var(--blush);opacity:.6;margin-bottom:.5rem;}.how-info h3{font-size:1.3rem;color:var(--cream);margin-bottom:.6rem;}.how-desc{font-size:.85rem;color:rgba(250,246,243,.55);line-height:1.8;}
+
+/* TRANSFORM */
+.trans-sect{background:var(--cream);}
+.trans-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;margin-top:2rem;}
+.tr-i{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--cream-d);}
+.tr-ck{width:28px;height:28px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;color:var(--white);font-size:.65rem;font-weight:700;flex-shrink:0;}
+.tr-i h4{font-size:.92rem;font-weight:400;}
+.trans-img-box{width:100%;height:420px;background-size:cover;background-position:center;border-radius:20px 80px 20px 20px;box-shadow:0 20px 60px rgba(160,123,111,.15);}
+.tr-quote{position:absolute;bottom:-15px;right:-10px;background:var(--white);border-radius:14px;padding:1.2rem 1.5rem;max-width:260px;box-shadow:0 10px 35px rgba(160,123,111,.12);}
+.tr-quote p{font-family:'Montserrat',sans-serif;font-size:.88rem;font-style:italic;color:var(--blush);line-height:1.6;}
+
+/* CREADORA */
+.cre-sect{background:var(--white);}
+.cre-layout{display:grid;grid-template-columns:400px 1fr;gap:3.5rem;align-items:center;}
+.cre-photo{position:relative;display:flex;justify-content:center;}
+.cre-frame{position:relative;width:320px;height:420px;}
+.cre-frame::before{content:'';position:absolute;inset:-8px;background:var(--blush);border-radius:8px;transform:rotate(-3deg);z-index:0;opacity:.5;}
+.cre-frame::after{content:'';position:absolute;inset:-4px;background:var(--rose-l);border-radius:6px;transform:rotate(1.5deg);z-index:0;opacity:.3;}
+.cre-frame-img{position:relative;z-index:1;width:100%;height:100%;border-radius:6px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.25);}
+.cre-frame-img img{width:100%;height:100%;object-fit:cover;}
+.cre-text{}
+.cre-quote{margin-top:1.5rem;padding:1.2rem 0 1.2rem 1.5rem;border-left:3px solid var(--blush);font-family:'Montserrat',sans-serif;font-size:1.15rem;font-style:italic;color:var(--blush);line-height:1.8;}
+
+/* PRICING */
+.price-sect{background:linear-gradient(180deg,var(--cream) 0%,var(--blush-xl) 100%);text-align:center;}
+.price-card{max-width:480px;margin:2.5rem auto 0;background:var(--white);border-radius:24px;padding:3rem 2.5rem;box-shadow:0 20px 60px rgba(160,123,111,.12);position:relative;overflow:hidden;}
+.price-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--rose),var(--blush),var(--rose));}
+.pc-badge{display:inline-block;background:var(--blush);color:var(--earth-dd);padding:.3rem 1rem;border-radius:50px;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1rem;}
+.pc-price{font-family:'Montserrat',sans-serif;font-size:3.2rem;color:var(--text);}.pc-price span{font-size:1rem;color:var(--muted);}
+.pc-per{font-size:.82rem;color:var(--muted);font-weight:300;margin-bottom:2rem;}
+.pc-feats{list-style:none;text-align:left;margin-bottom:2rem;}
+.pc-feats li{padding:.6rem 0;font-size:.85rem;font-weight:300;color:var(--text);display:flex;align-items:center;gap:.8rem;border-bottom:1px solid var(--cream-m);}
+.pc-feats li .ck{width:20px;height:20px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--white);font-weight:700;flex-shrink:0;}
+.pc-note{font-size:.74rem;color:var(--muted);margin-top:.8rem;}.pc-guar{display:flex;align-items:center;gap:.5rem;justify-content:center;margin-top:1rem;font-size:.72rem;color:var(--muted);}
+
+/* CIERRE */
+.cierre{background:linear-gradient(160deg,var(--earth-dd) 0%,var(--rose-d) 100%);padding:7rem 3rem;text-align:center;position:relative;overflow:hidden;}
+.cierre::before{content:'';position:absolute;inset:0;background:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png') center/cover;opacity:.12;mix-blend-mode:luminosity;}
+.cierre::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(232,193,180,.1),transparent 70%);animation:pulse 8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.1)}}
+.cierre-in{position:relative;z-index:1;max-width:600px;margin:0 auto;}
+.cierre-in h2{font-size:clamp(1.5rem,3vw,2.2rem);color:var(--cream);line-height:1.4;margin-bottom:1.5rem;}
+
+/* FAQ */
+.faq-w{max-width:650px;margin:2rem auto 0;}.faq-i{border-bottom:1px solid var(--cream-d);}
+.faq-q{width:100%;background:none;border:none;padding:1.2rem 0;display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.86rem;font-weight:400;color:var(--text);text-align:left;transition:color .3s;}.faq-q:hover{color:var(--rose);}
+.faq-q span{color:var(--rose);font-size:1.1rem;transition:transform .3s;}.faq-i.open .faq-q span{transform:rotate(45deg);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .35s;}.faq-i.open .faq-a{max-height:200px;padding-bottom:1rem;}
+.faq-a p{font-size:.83rem;font-weight:300;color:var(--muted);line-height:1.85;}
+
+/* FOOTER */
+.lft{background:linear-gradient(135deg,var(--earth-dd),var(--rose-d));padding:2.5rem 3rem;display:flex;justify-content:space-between;align-items:center;}
+.lft img{height:26px;opacity:.4;}.lft p{font-size:.68rem;color:rgba(250,246,243,.25);}
+.lft-links{display:flex;gap:1.5rem;}.lft-links a{font-size:.68rem;color:rgba(250,246,243,.25);text-decoration:none;}.lft-links a:hover{color:rgba(250,246,243,.5);}
+
+/* APP */
+.topbar{position:sticky;top:0;z-index:100;background:rgba(253,248,245,.97);backdrop-filter:blur(20px);padding:.8rem 1.5rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(232,193,180,.15);}
+.topbar img{height:30px;}
+.tb-r{display:flex;align-items:center;gap:.8rem;}
+.tb-lk{background:none;border:none;color:var(--muted);cursor:pointer;font-family:'Montserrat',sans-serif;font-size:.72rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:.4rem .8rem;border-radius:8px;transition:all .3s;}.tb-lk:hover{background:var(--blush-xl);color:var(--rose);}
+.av{width:30px;height:30px;border-radius:50%;background:var(--rose);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:600;cursor:pointer;}
+.app-c{max-width:700px;margin:0 auto;padding:1.5rem;}
+
+/* DASHBOARD */
+.d-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:1.5rem 0;}
+.ds{background:var(--white);border-radius:14px;padding:1.2rem;text-align:center;border:1px solid var(--blush-l);}
+.ds .n{font-family:'Montserrat',sans-serif;font-size:1.8rem;color:var(--rose);}.ds .l{font-size:.65rem;color:var(--rose-l);letter-spacing:.05em;text-transform:uppercase;margin-top:.2rem;}
+.d-start{background:linear-gradient(135deg,var(--blush-xl),var(--blush-l));border-radius:18px;padding:2rem;text-align:center;border:none;margin:1.5rem 0;box-shadow:0 8px 30px rgba(232,193,180,.2);}
+.d-start h3{font-size:1.2rem;margin-bottom:.3rem;}.d-start p{font-size:.85rem;color:var(--muted);font-weight:300;margin-bottom:1.2rem;}
+.dh-i{display:flex;justify-content:space-between;align-items:center;padding:.8rem 0;border-bottom:1px solid var(--cream-d);}
+.dh-tag{background:var(--rose);color:var(--white);padding:.25rem .7rem;border-radius:50px;font-size:.65rem;font-weight:500;}
+
+/* CHECK-IN */
+.ci-t{text-align:center;margin:1.5rem 0 .5rem;}.ci-t h2{font-size:1.4rem;}.ci-t p{font-size:.85rem;color:var(--muted);font-weight:300;}
+.ci-img{width:100%;max-width:440px;height:260px;border-radius:16px;object-fit:cover;margin:1rem auto;}
+.ci-opts{display:flex;flex-direction:column;gap:.6rem;max-width:420px;margin:1rem auto;width:100%;}
+.ci-o{padding:1rem 1.2rem;border:1.5px solid var(--blush-l);border-radius:14px;background:var(--white);cursor:pointer;transition:all .3s;display:flex;align-items:center;gap:1rem;}
+.ci-o:hover{border-color:var(--rose);transform:translateX(4px);box-shadow:0 4px 15px rgba(232,193,180,.2);background:var(--blush-xl);}
+.ci-o .ico{width:38px;height:38px;border-radius:50%;background:var(--blush);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;color:var(--white);}
+.ci-o h4{font-size:.88rem;font-family:'Montserrat',sans-serif;font-weight:500;}.ci-o p{font-size:.73rem;color:var(--muted);font-weight:300;margin-top:.1rem;}
+.ci-tms{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;max-width:420px;margin:1.2rem auto;width:100%;}
+.ci-tm{padding:1.2rem .5rem;border:1.5px solid var(--blush-l);border-radius:14px;background:var(--white);cursor:pointer;transition:all .3s;text-align:center;}
+.ci-tm:hover{border-color:var(--rose);transform:translateY(-3px);box-shadow:0 6px 20px rgba(232,193,180,.25);background:var(--blush-xl);}
+.ci-tm .big{font-family:'Montserrat',sans-serif;font-size:1.4rem;color:var(--rose);}.ci-tm .sm{font-size:.68rem;color:var(--rose-l);margin-top:.2rem;}
+
+/* QUESTIONNAIRE */
+.q-wrap{max-width:500px;margin:0 auto;padding:1.5rem;}
+@keyframes qSlide{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.q-card{background:var(--white);border-radius:16px;padding:1.8rem;margin-bottom:1.2rem;border:1px solid var(--blush-l);animation:qSlide .35s ease;box-shadow:0 4px 15px rgba(232,193,180,.1);}
+.q-card h3{font-size:1rem;margin-bottom:1rem;text-align:left;color:var(--earth-d);}
+.q-card .q-sub{font-size:.78rem;color:var(--muted);font-weight:300;margin-bottom:1rem;}
+.q-scale{display:flex;justify-content:space-between;align-items:center;gap:.3rem;}
+.q-scale-labels{display:flex;justify-content:space-between;margin-bottom:.5rem;}
+.q-scale-labels span{font-size:.72rem;color:var(--rose-l);}
+.q-scale-dots{display:flex;gap:.5rem;justify-content:center;margin:.5rem 0;}
+.q-dot{width:42px;height:42px;border-radius:50%;border:2px solid var(--blush);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.82rem;font-weight:500;color:var(--rose-l);transition:all .3s;}
+.q-dot:hover{border-color:var(--rose);background:var(--blush-xl);color:var(--rose);}
+.q-dot.sel{border-color:var(--rose);background:var(--rose);color:var(--white);}
+.q-opts{display:flex;flex-direction:column;gap:.5rem;}
+.q-opt{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;border-radius:10px;cursor:pointer;transition:all .25s;border:1.5px solid var(--blush-l);}
+.q-opt:hover{background:var(--blush-xl);border-color:var(--blush);}
+.q-opt.sel{background:var(--blush-xl);border-color:var(--rose);}
+.q-opt .q-radio{width:20px;height:20px;border-radius:50%;border:2px solid var(--blush);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .25s;}
+.q-opt.sel .q-radio{border-color:var(--rose);background:var(--rose);}
+.q-opt.sel .q-radio::after{content:'';width:6px;height:6px;border-radius:50%;background:var(--white);}
+.q-opt span{font-size:.86rem;font-weight:300;color:var(--text);}
+.q-input{width:100%;padding:.8rem 1rem;border:1.5px solid var(--blush-l);border-radius:12px;background:var(--blush-xl);font-family:'Montserrat',sans-serif;font-size:.88rem;color:var(--text);outline:none;transition:all .3s;}
+.q-input:focus{border-color:var(--rose);background:var(--white);box-shadow:0 0 0 3px rgba(232,193,180,.2);}
+.q-progress{display:flex;gap:4px;margin-bottom:1.5rem;justify-content:center;}
+.q-pip{width:28px;height:3px;border-radius:2px;background:var(--blush-l);transition:all .3s;}.q-pip.done{background:var(--rose);}.q-pip.cur{background:var(--blush);width:40px;}
+
+/* PRACTICE */
+.pr-w{max-width:700px;margin:0 auto;padding:1.5rem;}
+.pr-video{width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;position:relative;background:var(--earth-dd);margin:1rem 0;}
+.pr-video img{width:100%;height:100%;object-fit:cover;opacity:.4;}
+.pr-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:rgba(232,193,180,.9);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--earth-dd);transition:all .3s;}.pr-play:hover{transform:translate(-50%,-50%) scale(1.1);background:var(--blush);}
+.pr-timer{font-family:'Montserrat',sans-serif;font-size:2.2rem;color:var(--rose);text-align:center;margin:.5rem 0;}
+.pr-read{background:var(--white);border-radius:16px;padding:2rem;margin:1.5rem 0;border:1px solid var(--blush-l);border-left:4px solid var(--rose);box-shadow:0 4px 15px rgba(232,193,180,.08);}
+.pr-read-lab{font-size:.63rem;letter-spacing:.25em;text-transform:uppercase;color:var(--rose);font-weight:600;margin-bottom:.8rem;}
+.pr-read h3{font-size:1.1rem;margin-bottom:.8rem;}.pr-read p{font-size:.88rem;font-weight:300;color:var(--muted);line-height:1.9;}
+
+/* INTEGRATION */
+.ph-card{background:linear-gradient(135deg,var(--blush-xl),var(--blush-l));border-radius:18px;padding:2.5rem 2rem;margin:1.5rem 0;border:none;box-shadow:0 8px 30px rgba(232,193,180,.2);}
+.ph-card p{font-family:'Montserrat',sans-serif;font-size:1.2rem;font-style:italic;color:var(--rose-d);line-height:1.8;text-align:center;}
+
+/* PROFILE */
+.pf-w{max-width:500px;margin:0 auto;padding:2rem 1.5rem;text-align:center;}
+.pf-av{width:72px;height:72px;border-radius:50%;background:var(--rose);color:var(--cream);display:flex;align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;font-size:1.6rem;margin:0 auto 1rem;}
+.pf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin:1.5rem 0;}
+.pf-s{background:var(--white);border-radius:14px;padding:1rem;text-align:center;border:1px solid var(--blush-l);}
+.pf-s .n{font-family:'Montserrat',sans-serif;font-size:1.6rem;color:var(--rose);}.pf-s .l{font-size:.63rem;color:var(--rose-l);letter-spacing:.05em;text-transform:uppercase;}
+
+/* REVEAL */
+.rv{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.16,1,.3,1);}.rv.vis{opacity:1;transform:translateY(0);}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}
+
+/* ============================================
+   TABLET (≤900px)
+   ============================================ */
+@media(max-width:900px){
+  /* NAV — hamburguesa izq | logo centro | Unirme der */
+  .lnav{padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:relative;}
+  .lnav.stuck{padding:.6rem 1.2rem;}
+  .mob-tog{display:flex;flex-shrink:0;}
+  .lnav-logo{position:absolute;left:50%;transform:translateX(-50%);}
+  .lnav-cta-wrap{flex-shrink:0;display:flex;align-items:center;}
+  .lnav-links{
+    position:fixed;top:0;left:-100%;width:75%;max-width:300px;height:100vh;
+    background:var(--cream);flex-direction:column;justify-content:center;
+    padding:2rem;transition:left .4s;
+    box-shadow:8px 0 30px rgba(0,0,0,.08);z-index:100;list-style:none;
+  }
+  .lnav-links.open{left:0;}
+
+  /* HERO */
+  .hero{padding:5.5rem 1.5rem 3rem;background-position:70% center;}
+  .hero::before{background:linear-gradient(180deg,rgba(253,248,245,.93) 0%,rgba(253,248,245,.82) 45%,rgba(253,248,245,.45) 75%,rgba(253,248,245,.1) 100%);}
+  .hero h1{font-size:1.9rem;line-height:1.3;}
+  .hero-desc{font-size:.85rem;}
+  .hero-ctas{flex-direction:column;gap:.7rem;width:100%;max-width:320px;}
+  .hero-ctas .btn{width:100%;text-align:center;padding:.9rem 1.5rem;}
+  .hero-bubbles{display:none;}
+
+  /* LAYOUT */
+  .sect{padding:4rem 1.5rem;}
+  .sect-t{font-size:1.6rem;}
+  .prev-grid{grid-template-columns:1fr;gap:2.5rem;}
+  .prev-phone{max-width:280px;}
+  .prev-feats-card{padding:1.5rem;}
+  .trans-grid{grid-template-columns:1fr;gap:2rem;}
+  .trans-img-box{height:300px;border-radius:16px 40px 16px 16px;}
+  .tr-quote{position:relative;bottom:auto;right:auto;margin-top:-1.5rem;margin-left:1rem;margin-right:1rem;}
+  .how-row{grid-template-columns:1fr;gap:1.5rem;text-align:center;}
+  .how-row:nth-child(even){direction:ltr;}
+  .how-laptop{max-width:320px;margin:0 auto;}
+  .how-info{text-align:center;}
+  .cre-layout{grid-template-columns:1fr;gap:2rem;text-align:center;}
+  .cre-frame{width:260px;height:340px;margin:0 auto;}
+  .cre-quote{text-align:left;}
+  .cre-text .sect-t,.cre-text p,.cre-text .sect-d{text-align:left;}
+
+  /* PRICING */
+  .price-card{padding:2.2rem 1.8rem;}
+
+  /* FOOTER */
+  .lft{flex-direction:column;gap:1rem;text-align:center;padding:2rem 1.5rem;}
+
+  /* PROOF */
+  .proof{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;padding:1.5rem;}
+  .proof-i strong{font-size:1.3rem;}
+  .proof-i span{font-size:.6rem;}
+
+  /* APP */
+  .ci-tms{grid-template-columns:1fr;}
+  .d-stats{grid-template-columns:repeat(3,1fr);gap:.5rem;}
+  .pf-stats{gap:.5rem;}
+  .q-wrap{padding:1rem;}
+  .q-card{padding:1.4rem;}
+  .q-scale-dots{gap:.35rem;}
+  .q-dot{width:38px;height:38px;font-size:.78rem;}
+}
+
+/* ============================================
+   MOBILE (≤480px)
+   ============================================ */
+@media(max-width:480px){
+  /* NAV */
+  .lnav{padding:.7rem 1rem;position:relative;}
+  .lnav.stuck{padding:.55rem 1rem;}
+  .lnav-logo img{height:38px;}
+  .lnav.stuck .lnav-logo img{height:30px;}
+  .lnav-cta{padding:.45rem 1rem!important;font-size:.65rem!important;}
+
+  /* HERO */
+  .hero{padding:5rem 1.1rem 2.5rem;min-height:100svh;background-position:72% center;}
+  .hero::before{background:linear-gradient(180deg,rgba(253,248,245,.96) 0%,rgba(253,248,245,.88) 40%,rgba(253,248,245,.55) 70%,rgba(253,248,245,.1) 100%);}
+  .hero-label{font-size:.55rem;padding:.3rem .8rem;letter-spacing:.18em;}
+  .hero h1{font-size:1.55rem;line-height:1.28;}
+  .hero-desc{font-size:.82rem;line-height:1.75;max-width:100%;}
+  .hero-ctas{flex-direction:column;gap:.65rem;width:100%;}
+  .hero-ctas .btn{width:100%;text-align:center;padding:.85rem 1.2rem;font-size:.75rem;}
+
+  /* MARQUEE */
+  .marquee-track span{font-size:.9rem;}
+
+  /* PROOF */
+  .proof{padding:1.2rem 1rem;gap:.6rem;grid-template-columns:1fr 1fr;}
+  .proof-i strong{font-size:1.05rem;}
+  .proof-i span{font-size:.55rem;letter-spacing:.04em;}
+
+  /* SECTIONS */
+  .sect{padding:3rem 1rem;}
+  .sect-t{font-size:1.3rem;line-height:1.35;}
+  .sect-d{font-size:.83rem;max-width:100%;}
+
+  /* PREVIEW / PHONE MOCKUP */
+  .prev-phone{max-width:240px;}
+  .prev-phone-in{min-height:420px;}
+  .pp-body{padding:.9rem;}
+  .pp-greet{font-size:.9rem;}
+  .pp-sub{font-size:.7rem;}
+  .prev-feats-card{padding:1.2rem;}
+  .pf-ico{width:38px;height:38px;font-size:.95rem;}
+  .pf-txt h4{font-size:.85rem;}
+  .pf-txt p{font-size:.75rem;}
+
+  /* HOW */
+  .how-row{gap:1.2rem;}
+  .how-laptop{max-width:100%;}
+  .hs-n{font-size:2rem;}
+  .how-info h3{font-size:.95rem;}
+  .how-desc{font-size:.8rem;}
+
+  /* TRANS / PARATI */
+  .trans-img-box{height:240px;}
+  .tr-i h4{font-size:.85rem;}
+  .tr-quote p{font-size:.82rem;}
+
+  /* CREADORA */
+  .cre-frame{width:220px;height:290px;}
+
+  /* PRICING */
+  .price-card{padding:1.5rem 1.1rem;border-radius:18px;}
+  .pc-badge{font-size:.62rem;}
+  .pc-price{font-size:2.6rem;}
+  .pc-per{font-size:.78rem;}
+  .pc-feats li{font-size:.82rem;padding:.5rem 0;}
+  .pc-note{font-size:.7rem;}
+
+  /* CIERRE */
+  .cierre{padding:3.5rem 1.1rem;}
+  .cierre-in h2{font-size:1.25rem;}
+
+  /* FAQ */
+  .faq-q{font-size:.82rem;padding:1rem 0;}
+  .faq-a p{font-size:.8rem;}
+
+  /* FOOTER */
+  .lft{padding:1.8rem 1rem;gap:.8rem;}
+  .lft p,.lft-links a{font-size:.65rem;}
+  .lft-links{gap:1rem;}
+
+  /* BUTTONS */
+  .btn{padding:.8rem 1.6rem;font-size:.75rem;}
+
+  /* APP — TOPBAR */
+  .topbar{padding:.65rem .9rem;}
+  .topbar img{height:26px;}
+  .tb-lk{font-size:.68rem;padding:.3rem .6rem;}
+
+  /* APP — GENERAL */
+  .app-c{padding:.9rem;}
+  .ph-card{padding:1.4rem 1.1rem;}
+  .ph-card p{font-size:.95rem;line-height:1.75;}
+
+  /* APP — DASHBOARD */
+  .d-stats{gap:.4rem;}
+  .ds{padding:.9rem .5rem;border-radius:12px;}
+  .ds .n{font-size:1.5rem;}
+  .ds .l{font-size:.58rem;}
+  .d-start{padding:1.5rem 1.2rem;border-radius:14px;}
+  .d-start h3{font-size:1rem;}
+  .d-start p{font-size:.8rem;}
+
+  /* APP — CHECK-IN */
+  .ci-t h2{font-size:1.2rem;}
+  .ci-t p{font-size:.8rem;}
+  .ci-img{height:180px;}
+  .ci-opts{gap:.5rem;}
+  .ci-o{padding:.85rem .9rem;border-radius:12px;}
+  .ci-o .ico{width:34px;height:34px;font-size:.88rem;}
+  .ci-o h4{font-size:.82rem;}
+  .ci-o p{font-size:.7rem;}
+  .ci-tms{gap:.6rem;}
+  .ci-tm{padding:1rem .5rem;}
+  .ci-tm .big{font-size:1.2rem;}
+  .ci-tm .sm{font-size:.63rem;}
+
+  /* APP — QUESTIONNAIRE */
+  .q-wrap{padding:.8rem;}
+  .q-card{padding:1.2rem;border-radius:14px;}
+  .q-card h3{font-size:.9rem;}
+  .q-dot{width:36px;height:36px;font-size:.75rem;}
+  .q-opt span{font-size:.82rem;}
+
+  /* APP — PRACTICE */
+  .pr-w{padding:.9rem;}
+  .pr-timer{font-size:1.9rem;}
+  .pr-read{padding:1.3rem;border-radius:14px;}
+  .pr-read h3{font-size:.95rem;}
+  .pr-read p{font-size:.82rem;}
+  .pr-play{width:54px;height:54px;font-size:1.1rem;}
+
+  /* APP — PROFILE */
+  .pf-w{padding:1.5rem 1rem;}
+  .pf-av{width:60px;height:60px;font-size:1.3rem;}
+  .pf-stats{gap:.4rem;}
+  .pf-s{padding:.9rem .5rem;border-radius:12px;}
+  .pf-s .n{font-size:1.4rem;}
+  .pf-s .l{font-size:.58rem;}
+
+  /* FORMS (payment/login/signup) */
+  .fg{max-width:100%;}
+  .fg input,.fg textarea{font-size:.85rem;padding:.8rem 1rem;}
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div id="s-landing" class="scr on">
+<nav class="lnav" id="lnav"><div class="mob-tog" id="mobTog"><span></span><span></span><span></span></div><div class="lnav-logo"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt="HOGAR"></div><ul class="lnav-links" id="navLinks"><li><a href="#sec-prev">Producto</a></li><li><a href="#sec-how">Método</a></li><li><a href="#sec-parati">Para ti</a></li><li><a href="#sec-price">Precio</a></li><li><a href="javascript:void(0)" onclick="go('login')">Iniciar sesión</a></li></ul><div class="lnav-cta-wrap"><a href="#sec-price" class="lnav-cta">Unirme</a></div></nav>
+<section class="hero"><div class="hero-text"><p class="hero-label">Regulación a través del movimiento</p><h1>El ejercicio está dejando de ser sólo una herramienta para <em>cambiar el cuerpo.</em></h1><p class="hero-desc">Está volviendo a ser una forma de reconectar con él.</p><div class="hero-ctas"><a href="#sec-price" class="btn btn-r">Comenzar mi práctica</a><a href="#sec-prev" class="btn btn-o">Ver cómo funciona</a></div></div><div class="hero-bubbles"><div class="hb" style="animation-delay:0s;">Fortalece tu energía.</div><div class="hb" style="animation-delay:.3s;">Reconoce tu propio ritmo.</div><div class="hb" style="animation-delay:.6s;">Constancia desde adentro.</div></div></section>
+<div class="marquee-bar"><div class="marquee-track"><span>15 caminos de práctica</span><span class="mq-dot">◇</span><span>5–45 minutos por sesión</span><span class="mq-dot">◇</span><span>100% desde casa</span><span class="mq-dot">◇</span><span>A tu ritmo</span><span class="mq-dot">◇</span><span>15 caminos de práctica</span><span class="mq-dot">◇</span><span>5–45 minutos por sesión</span><span class="mq-dot">◇</span><span>100% desde casa</span><span class="mq-dot">◇</span><span>A tu ritmo</span><span class="mq-dot">◇</span></div></div>
+<section class="sect prev-sect" id="sec-prev"><div class="sect-in"><p class="sect-lab rv">¿Qué es HOGAR?</p><h2 class="sect-t rv rd1">Un espacio para entrenar con estructura, claridad y fuerza en calma.</h2><p class="sect-d rv rd2">Aquí no vienes a exigir ni a corregirte, sino a escuchar tu cuerpo y acompañarlo con movimiento y presencia. 15 caminos posibles según cómo estés hoy.</p><div class="prev-grid"><div class="prev-phone rv"><div class="prev-phone-in"><div class="pp-head"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""></div><div class="pp-body"><p class="pp-greet">Hola, Andrea</p><p class="pp-sub">¿Cómo se siente tu cuerpo hoy?</p><div class="pp-card"><div class="pp-card-t">☽ En calma</div><div class="pp-card-p">Práctica de Ritmo Suave</div></div><div class="pp-card"><div class="pp-card-t">♡ Sensible</div><div class="pp-card-p">Práctica de Contención</div></div><div class="pp-card"><div class="pp-card-t">⚡ Tensa</div><div class="pp-card-p">Práctica de Descarga Segura</div></div><div class="pp-btn-m">COMENZAR PRÁCTICA</div></div></div></div><div class="prev-feats rv rd2"><div class="pf-i"><div class="pf-ico">☽</div><div class="pf-txt"><h4>Check-in en 30 segundos</h4><p>¿Cómo se siente tu cuerpo? ¿Cuánto tiempo tienes? HOGAR te sugiere una práctica. No necesitas decidir demasiado.</p></div></div><div class="pf-i"><div class="pf-ico">△</div><div class="pf-txt"><h4>Movimiento consciente</h4><p>Funcional y amable. A veces suave, a veces más activo, siempre respetuoso del cuerpo. De 5 a 45 min.</p></div></div><div class="pf-i"><div class="pf-ico">✎</div><div class="pf-txt"><h4>Integrando lo que viviste</h4><p>Lectura breve al terminar. No se analiza. Es para habitar lo vivido.</p></div></div><div class="pf-i"><div class="pf-ico">◯</div><div class="pf-txt"><h4>Cuestionario + registro</h4><p>Cuestionario diseñado para tu emoción + registro breve. Privado, sin juicio ni evaluación.</p></div></div></div></div></div></div></section>
+
+<section class="sect trans-sect" style="background:linear-gradient(160deg,var(--earth-dd) 0%,var(--rose-d) 100%);color:var(--cream);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" style="background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
+
+<section class="sect" style="background:var(--cream);" id="sec-parati"><div class="sect-in"><div class="trans-grid" style="direction:rtl;"><div style="direction:ltr;"><p class="sect-lab rv">¿Es para ti?</p><h2 class="sect-t rv rd1" style="text-align:left;">HOGAR es para ti si…</h2><div class="rv rd2" style="max-width:550px;margin:1.5rem 0 0;text-align:left;"><div class="tr-i"><div class="tr-ck">✓</div><h4>Quieres entrenar con estructura, pero sin rigidez extrema</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Buscas constancia real, no motivación pasajera</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Deseas sentir fuerza sin desconectarte de tu cuerpo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás lista para comprometerte contigo desde la calma</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás cansada de "trabajar en ti misma" y necesitas descanso interno</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Has probado muchos métodos y sientes saturación</h4></div></div></div><div class="trans-img rv rd1"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png" alt="HOGAR para ti"><div class="tr-quote"><p>"El cuerpo no necesita presión para responder.<br>Necesita dirección."</p></div></div></div></div></section>
+<section class="sect price-sect" id="sec-price"><div class="sect-in"><p class="sect-lab rv">Tu espacio</p><h2 class="sect-t rv rd1" style="text-align:center;">Empieza a construir tu HOGAR</h2><div class="price-card rv rd2"><div class="pc-badge">Acceso completo</div><div class="pc-price">$499 <span>MXN</span></div><p class="pc-per">pago único · acceso inmediato</p><ul class="pc-feats"><li><span class="ck">✓</span>Check-in diario en 30 segundos</li><li><span class="ck">✓</span>15 caminos de práctica según tu estado</li><li><span class="ck">✓</span>Sesiones en video de 5 a 45 minutos</li><li><span class="ck">✓</span>Lectura de integración post-práctica</li><li><span class="ck">✓</span>Cuestionario personal por emoción</li><li><span class="ck">✓</span>Registro privado y sin juicio</li><li><span class="ck">✓</span>Dashboard con tu progreso</li></ul><button class="btn btn-r btn-full" onclick="go('payment')">Unirme a HOGAR</button><p class="pc-note">Pago único · Acceso de por vida · Sin sorpresas</p><div class="pc-guar"><span>🔒</span> Pago seguro</div></div></div></section>
+<section class="cierre"><div class="cierre-in"><h2 class="rv">Es momento de volver al cuerpo.<br>Es momento de construir un HOGAR adentro.</h2><div class="rv rd1" style="font-family:'Montserrat',sans-serif;font-size:1.05rem;font-style:italic;color:rgba(232,193,180,.5);line-height:2.2;margin-bottom:2.5rem;">El ejercicio puede ser disciplina.<br>Puede ser fuerza. Puede ser transformación.<br>Pero también puede ser raíz.</div><button class="btn btn-w rv rd2" onclick="go('payment')">Comenzar mi práctica</button></div></section>
+<section class="sect cre-sect"><div class="sect-in"><div class="cre-layout"><div class="cre-photo rv"><div class="cre-frame"><div class="cre-frame-img"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772494203/IMG_9251_wrlvvu.jpg" alt="Andrea"></div></div></div><div class="cre-text"><p class="sect-lab rv">Detrás de HOGAR</p><h2 class="sect-t rv rd1" style="text-align:left;">Andrea Labrada</h2><p class="rv rd1" style="font-size:1.1rem;color:var(--earth);margin-bottom:1rem;text-align:left;">Creado desde la experiencia propia</p><p class="sect-d rv rd2" style="max-width:none;">HOGAR nace de la necesidad de entrenar distinto. De soltar la autoexigencia y encontrar una forma de movimiento que se sienta como cuidado, no como castigo. Un espacio donde la fuerza se entrena en calma y la constancia se construye desde adentro.</p><div class="cre-quote rv rd3" style="border-left-color:var(--rose);color:var(--rose);">El cuerpo no necesita presión para responder. Necesita dirección.</div></div></div></div></section>
+<section class="sect" style="background:var(--cream);" id="sec-faq"><div class="sect-in" style="text-align:center;"><h2 class="sect-t rv">Preguntas frecuentes</h2><div class="faq-w"><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Qué incluye cada sesión? <span>+</span></button><div class="faq-a"><p>Cada sesión incluye un check-in emocional, una práctica de movimiento guiada (de 5 a 45 min), una lectura breve de integración y un cuestionario de registro personal.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Necesito experiencia previa? <span>+</span></button><div class="faq-a"><p>No. Las prácticas van de 5 a 45 minutos y están pensadas para distintos estados del cuerpo. Puedes empezar donde estás hoy.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Esto reemplaza terapia? <span>+</span></button><div class="faq-a"><p>No. Es un complemento de autocuidado corporal y emocional. No sustituye procesos terapéuticos ni atención médica.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Qué pasa si un día no tengo ganas? <span>+</span></button><div class="faq-a"><p>Nada está mal. También hay espacio para la pausa y el descanso. Escuchar eso también es práctica.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Es pago único? <span>+</span></button><div class="faq-a"><p>Sí. Pagas una vez y tienes acceso completo. Sin renovaciones ni cargos recurrentes.</p></div></div></div></div></section>
+<footer class="lft"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><p>HOGAR — Regulación a través del movimiento © 2025</p><div class="lft-links"><a href="#">Términos</a><a href="#">Privacidad</a></div></footer>
+</div>
+
+<!-- PAYMENT -->
+<div id="s-payment" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:460px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(160,123,111,.1);"><div style="text-align:center;"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""></div><h2 style="font-size:1.3rem;text-align:center;">Completa tu compra</h2><div style="background:var(--blush-xl);border-radius:14px;padding:1rem 1.2rem;margin:1.2rem 0;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:.82rem;color:var(--muted);">Pago único</span><span style="font-family:'Montserrat',sans-serif;font-size:1.4rem;">$499 <span style="font-size:.7rem;color:var(--muted);">MXN</span></span></div><div class="fg"><label>Nombre en la tarjeta</label><input type="text" id="cN" placeholder="Nombre completo"></div><div class="fg"><label>Número de tarjeta</label><input type="text" id="cNu" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fC(this)"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;"><div class="fg"><label>Vencimiento</label><input type="text" id="cE" placeholder="MM/AA" maxlength="5" oninput="fEi(this)"></div><div class="fg"><label>CVC</label><input type="text" id="cV" placeholder="123" maxlength="3"></div></div><button class="btn btn-r btn-full" id="payB" onclick="doPay()">Pagar $499 MXN</button><p style="text-align:center;font-size:.7rem;color:var(--muted);margin-top:.8rem;">🔒 Pago seguro</p><p style="text-align:center;margin-top:1rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--muted);text-decoration:none;">← Volver</a></p></div></div></div>
+
+<!-- SIGNUP -->
+<div id="s-signup" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:440px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(160,123,111,.1);text-align:center;"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">¡Bienvenida a HOGAR!</h2><p style="font-size:.88rem;color:var(--muted);font-weight:300;margin-bottom:1.5rem;">Pago exitoso. Crea tu cuenta.</p><div style="text-align:left;"><div class="fg"><label>Tu nombre</label><input type="text" id="sN" placeholder="¿Cómo te llamas?"></div><div class="fg"><label>Email</label><input type="email" id="sE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="sP" placeholder="Mínimo 8 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="sP2" placeholder="Repite tu contraseña"></div></div><button class="btn btn-r btn-full" onclick="doSign()">Crear mi cuenta</button></div></div></div>
+
+<!-- LOGIN -->
+<div id="s-login" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(160,123,111,.1);text-align:center;"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">Vuelve a tu HOGAR</h2><p style="font-size:.88rem;color:var(--muted);font-weight:300;margin-bottom:1.5rem;">Inicia sesión para continuar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="lE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="lP" placeholder="Tu contraseña"></div></div><button class="btn btn-r btn-full" onclick="doLog()">Entrar</button><p style="margin-top:1.2rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--muted);text-decoration:none;">← Volver al inicio</a></p></div></div></div>
+
+<!-- DASHBOARD -->
+<div id="s-dash" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><button class="tb-lk" onclick="go('profile')">Mi cuenta</button><div class="av" id="a0" onclick="go('profile')"></div></div></div><div class="app-c"><div style="margin:1rem 0 .3rem;"><h2 style="font-size:1.6rem;text-align:left;" id="dN">Hola</h2><p style="font-size:.85rem;color:var(--muted);font-weight:300;">Tu espacio de práctica diaria</p></div><div class="ph-card" style="margin:1rem 0;padding:1.5rem;"><p id="dashPhrase" style="font-size:1rem;"></p></div><div class="d-stats"><div class="ds"><div class="n" id="dd">0</div><div class="l">Días</div></div><div class="ds"><div class="n" id="dss">0</div><div class="l">Sesiones</div></div><div class="ds"><div class="n" id="dk">0</div><div class="l">Racha</div></div></div><div class="d-start"><h3>Práctica de hoy</h3><p>Empieza con un check-in para encontrar tu camino.</p><button class="btn btn-r" onclick="go('ci1')">Comenzar check-in</button></div><div class="d-hist" style="margin:2rem 0;"><h3 style="font-size:1rem;margin-bottom:1rem;text-align:left;">Historial reciente</h3><div id="hL"><p style="font-size:.84rem;color:var(--muted);font-weight:300;text-align:center;padding:1rem;">Aún no tienes prácticas. ¡Empieza hoy!</p></div></div></div></div>
+
+<!-- CHECK-IN 1: EMOCION -->
+<div id="s-ci1" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><button class="tb-lk" onclick="go('dash')">← Inicio</button></div></div><div class="app-c"><div class="ci-t"><h2>¿Cómo se siente tu cuerpo hoy?</h2><p>Elige la opción que más se acerque.</p></div><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png" alt="" class="ci-img"><div class="ci-opts"><div class="ci-o" onclick="pickEmo(0)"><div class="ico">☽</div><div><h4>En calma</h4><p>Tranquila, sin tensión aparente</p></div></div><div class="ci-o" onclick="pickEmo(1)"><div class="ico">◌</div><div><h4>Desconectada / No lo sé</h4><p>Sin mucha claridad sobre cómo estoy</p></div></div><div class="ci-o" onclick="pickEmo(2)"><div class="ico">↓</div><div><h4>Cansada / Poca energía</h4><p>Necesito algo suave y restaurativo</p></div></div><div class="ci-o" onclick="pickEmo(3)"><div class="ico">♡</div><div><h4>Sensible / Emocional</h4><p>Algo se mueve adentro hoy</p></div></div><div class="ci-o" onclick="pickEmo(4)"><div class="ico">⚡</div><div><h4>Tensa / Acelerada</h4><p>Necesito soltar y descargar</p></div></div></div></div></div>
+
+<!-- QUESTIONNAIRE (dynamic) - AFTER PRACTICE -->
+<div id="s-quest" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><button class="tb-lk" onclick="go('prac')">← Volver</button></div></div><div class="q-wrap"><div class="q-progress" id="qProg"></div><div id="qContent"></div></div></div>
+
+<!-- CHECK-IN 2: TIEMPO -->
+<div id="s-ci2" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><button class="tb-lk" onclick="go('ci1')">← Volver</button></div></div><div class="app-c"><div class="ci-t"><h2>¿Cuánto tiempo tienes hoy?</h2><p>Elige lo que sí es posible. <strong>HOGAR</strong> se adapta.</p></div><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772566688/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png" alt="" class="ci-img"><div class="ci-tms"><div class="ci-tm" onclick="pT('5-15','Ritmo Micro')"><div class="big">5–15</div><div class="sm">minutos · Micro</div></div><div class="ci-tm" onclick="pT('15-30','Ritmo Base')"><div class="big">15–30</div><div class="sm">minutos · Base</div></div><div class="ci-tm" onclick="pT('30-45','Ritmo Profundo')"><div class="big">30–45</div><div class="sm">minutos · Profundo</div></div></div></div></div>
+
+<!-- PRACTICE -->
+<div id="s-prac" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><button class="tb-lk" onclick="go('ci1')">← Cambiar</button></div></div><div class="pr-w"><p style="font-size:.63rem;letter-spacing:.3em;text-transform:uppercase;color:var(--rose);font-weight:600;margin-top:.5rem;">TU PRÁCTICA DE HOY</p><h2 id="prT" style="font-size:1.4rem;margin:.4rem 0;text-align:left;"></h2><p id="prR" style="font-size:.85rem;color:var(--muted);"></p><div class="pr-video"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772497400/5_qlsvxi.webp" alt=""><button class="pr-play" onclick="tTm()">▶</button></div><div class="pr-timer" id="tmD">00:00</div><div class="pr-read"><div class="pr-read-lab">✎ Integrando lo que viviste en este ejercicio</div><h3 id="rT"></h3><p id="rTx"></p></div><button class="btn btn-r btn-full" onclick="startQuest()">Terminé mi práctica</button><div style="height:2rem;"></div></div></div>
+
+<!-- POST-PRACTICE (last question) -->
+<div id="s-postprac" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><div class="av" id="a4" onclick="go('profile')"></div></div></div><div style="max-width:500px;margin:0 auto;padding:2rem 1.5rem;text-align:center;"><p style="font-size:.63rem;letter-spacing:.3em;text-transform:uppercase;color:var(--rose);font-weight:600;">DESPUÉS DE TU PRÁCTICA</p><div style="height:1rem;"></div><h2 style="font-size:1.3rem;">¿Cómo te sientes ahora?</h2><div style="height:1.5rem;"></div><div class="ci-opts"><div class="ci-o" onclick="postAns('Igual')"><div class="ico">—</div><div><h4>Igual</h4></div></div><div class="ci-o" onclick="postAns('Un poco mejor')"><div class="ico">↑</div><div><h4>Un poco mejor</h4></div></div><div class="ci-o" onclick="postAns('Mucho mejor')"><div class="ico">✦</div><div><h4>Mucho mejor</h4></div></div><div class="ci-o" onclick="postAns('Más cargada')"><div class="ico">↓</div><div><h4>Más cargada</h4></div></div></div></div></div>
+
+<!-- DONE -->
+<div id="s-done" class="scr"><div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center;"><div style="font-size:3rem;color:var(--rose);margin-bottom:1rem;">✦</div><h2 style="font-size:1.7rem;">Práctica completa</h2><p style="font-family:'Montserrat',sans-serif;font-size:1.1rem;font-style:italic;color:var(--rose);margin:.5rem 0;">Hoy volviste a tu cuerpo.</p><div class="ph-card" style="max-width:380px;"><p id="donePhrase"></p></div><p style="font-size:.85rem;color:var(--muted);font-weight:300;max-width:340px;margin-bottom:2rem;">Confiar en el cuerpo es un pilar fundamental. HOGAR existe para crear las condiciones para escucharlo.</p><button class="btn btn-r" onclick="go('dash')">Volver al inicio</button><p style="margin-top:1.2rem;"><a href="javascript:void(0)" onclick="doOut()" style="font-size:.78rem;color:var(--muted);text-decoration:none;">Cerrar sesión</a></p></div></div>
+
+<!-- PROFILE -->
+<div id="s-profile" class="scr"><div class="topbar"><img src="https://res.cloudinary.com/dp9l5i19b/image/upload/v1772495169/LOGOHOGAR_qasyyc.png" alt=""><div class="tb-r"><button class="tb-lk" onclick="go('dash')">← Mi práctica</button></div></div><div class="pf-w"><div style="height:1rem;"></div><div class="pf-av" id="pA"></div><h2 style="font-size:1.4rem;margin-bottom:.1rem;" id="pN"></h2><p style="font-size:.8rem;color:var(--muted);" id="pE"></p><div class="pf-stats"><div class="pf-s"><div class="n" id="pd">0</div><div class="l">Días</div></div><div class="pf-s"><div class="n" id="ps">0</div><div class="l">Sesiones</div></div><div class="pf-s"><div class="n" id="pk">0</div><div class="l">Racha</div></div></div><div style="display:flex;flex-direction:column;gap:.7rem;max-width:300px;margin:1rem auto;"><button class="btn btn-r btn-full" onclick="go('dash')">Ir a mi práctica</button><button class="btn btn-o btn-full" onclick="doOut()">Cerrar sesión</button></div><p style="font-family:'Montserrat',sans-serif;font-size:1rem;font-style:italic;color:var(--rose);margin-top:2rem;">tu HOGAR siempre está aquí ✦</p></div></div>
+
+<script>
+let U=null,curEmo=-1,curQ=0,sP='',sR='',tm=null,sc=0,hi=[],answers={};
+const EMO_NAMES=['En calma','Desconectada','Cansada','Sensible','Tensa'];
+const EMO_PRAC=['Ritmo Suave','Presencia','Recuperación Suave','Contención','Descarga Segura'];
+const PH=["Lo que hiciste hoy por tu cuerpo, tu cuerpo lo recuerda.","No necesitas haber hecho todo bien. Solo necesitabas estar.","El movimiento no se mide. Se habita.","Hoy elegiste presencia. Eso es suficiente.","Tu cuerpo no necesita que lo corrijas. Solo que lo escuches.","La calma también se entrena.","No hay forma incorrecta de volver a ti.","Cada vez que vuelves, el camino es más corto.","Hoy te diste espacio. Eso ya es fuerza.","La constancia no es no fallar. Es volver."];
+const RD={"Ritmo Suave":"La calma no es ausencia de movimiento. Es movimiento sin ruido. Cuando el cuerpo ya está en calma, la práctica lo refuerza: le dice 'te escucho, te acompaño'. Hoy no necesitas más. Solo necesitas sostener lo que ya está.","Presencia":"A veces el cuerpo habla bajo. Y está bien no entender todavía. Esta práctica no busca respuestas. Busca contacto. Volver a sentir que hay un cuerpo, y que ese cuerpo eres tú. Desde ahí se construye todo.","Recuperación Suave":"El cansancio no es debilidad. Es información. Hoy tu cuerpo pidió descanso activo, y tú lo escuchaste. La recuperación es donde el cuerpo integra, repara y se prepara. Este es el trabajo invisible que sostiene todo lo demás.","Contención":"Cuando algo se mueve adentro, el cuerpo necesita un lugar seguro. Esta práctica fue ese lugar. No pedimos que lo resuelvas. Solo que lo sientas con compañía. Lo que necesita ser sentido, necesita primero ser sostenido.","Descarga Segura":"La tensión acumulada busca salida. Esta práctica le dio espacio para moverse sin dañar. Descargar no es explotar. Es soltar con dirección. Cada vez que lo haces, le enseñas a tu cuerpo que hay formas seguras de liberar lo que carga."};
+
+// 5 QUESTIONNAIRES
+const QUESTS=[
+// 0: EN CALMA
+[{t:"Estabilidad ahora",type:"scale",lo:"Frágil",hi:"Muy estable"},{t:"¿Qué señal del cuerpo te dice \"estoy bien\"?",type:"radio",opts:["Respiración amplia","Pecho abierto","Mandíbula suelta","Estómago tranquilo","Energía estable","No sé"]},{t:"¿Qué quiero sostener hoy sin perderme?",type:"text"},{t:"¿Cuál es el riesgo de hoy?",type:"radio",opts:["Prisa","Distracción","Complacer","Autoexigencia","Caos del entorno","Comparación"]},{t:"¿Qué parte de mí se activa cuando estoy bien?",type:"radio",opts:["Quiero control","Quiero probar valor","Quiero complacer","Me cuesta descansar","Me da culpa estar bien"]},{t:"Decisión mínima de identidad (hoy):",type:"radio",opts:["Bajar el ritmo","Decir \"no\"","No explicarme","Ordenar 1 cosa","Cuidar mi comida/agua","Salir al aire"]},{t:"Una frase honesta:",type:"text",placeholder:"\"Hoy me mantengo en ___ aunque ___.\""}],
+// 1: DESCONECTADA (Saturada)
+[{t:"Saturación ahora",type:"scale",lo:"Leve",hi:"Me sobrepasa"},{t:"¿Dónde se siente más en el cuerpo?",type:"radio",opts:["Pecho","Garganta","Estómago","Cabeza","Hombros","Todo"]},{t:"¿Qué está pidiendo tu mente?",type:"radio",opts:["Resolver ya","Controlar todo","Anticipar","Explicarme","Perfección","Validación"]},{t:"¿Qué estoy evitando sentir?",type:"radio",opts:["Miedo","Tristeza","Rabia","Vergüenza","Vacío","No sé"]},{t:"¿Cuál es la mentira que me estoy diciendo?",type:"radio",opts:["Si no lo hago yo, se cae","Tengo que poder","Si paro, pierdo","Debo explicarme","No puedo fallar"]},{t:"Límite mínimo hoy:",type:"text",placeholder:"\"Hoy no voy a ___.\"" },{t:"Una frase honesta:",type:"text",placeholder:"\"Estoy saturada porque ___, y hoy me doy permiso de ___.\""}],
+// 2: CANSADA
+[{t:"Energía ahora",type:"scale",lo:"Casi nada",hi:"Bien"},{t:"¿Qué tipo de cansancio es?",type:"radio",opts:["Físico","Mental","Emocional","Todo mezclado","No sé"]},{t:"¿Qué me estoy exigiendo aunque no puedo?",type:"text"},{t:"¿Qué estoy intentando demostrar hoy?",type:"radio",opts:["Que puedo","Que valgo","Que soy suficiente","Que no fallo","Que no molesto","Nada, solo sobrevivo"]},{t:"¿Qué me sostendría más que \"echarle ganas\"?",type:"radio",opts:["Pausa","Agua/comida","Movimiento mínimo","Orden mínimo","Silencio","Pedir ayuda"]},{t:"Permiso del día:",type:"radio",opts:["Hacerlo incompleto","Hacerlo lento","No responder ahora","No explicarme","No ser productiva"]},{t:"Una frase honesta:",type:"text",placeholder:"\"Hoy mi victoria es ___.\""}],
+// 3: SENSIBLE (Triste)
+[{t:"Peso emocional ahora",type:"scale",lo:"Ligero",hi:"Muy pesado"},{t:"¿Qué emoción domina más?",type:"radio",opts:["Tristeza","Soledad","Culpa","Miedo","Vacío","No sé"]},{t:"¿Qué parte de mí está herida hoy?",type:"text"},{t:"¿Qué necesito escuchar (no de otros, de mí)?",type:"radio",opts:["Está bien sentir","No estás sola","No tienes que poder hoy","No tienes que explicarte","Puedes ir despacio"]},{t:"¿Qué estoy cargando que no es mío?",type:"text"},{t:"Cuidado mínimo hoy:",type:"radio",opts:["Descanso","Ducha/comida","Orden suave","Salir al aire","Mensaje a alguien","Silencio"]},{t:"Permiso del día:",type:"radio",opts:["Hacerlo incompleto","Hacerlo lento","No responder ahora","No explicarme","No ser productiva"]},{t:"Una frase honesta:",type:"text",placeholder:"\"Hoy me sostengo con ___.\""}],
+// 4: TENSA
+[{t:"Tensión/enojo ahora",type:"scale",lo:"Leve",hi:"Al límite"},{t:"¿Dónde se siente más?",type:"radio",opts:["Mandíbula","Pecho","Estómago","Hombros","Manos","Todo"]},{t:"¿Qué límite fue cruzado (o percibido)?",type:"radio",opts:["Mi tiempo","Mi respeto","Mi espacio","Mi esfuerzo","Mi palabra","Mi calma"]},{t:"¿Qué estoy a punto de hacer por impulso?",type:"radio",opts:["Responder fuerte","Cortar","Probar que tengo razón","Castigar","Callarme y tragar","Explotar"]},{t:"¿Qué quiero proteger realmente?",type:"text"},{t:"Límite claro (una línea):",type:"text",placeholder:"\"Hoy no acepto ___.\"" },{t:"Una frase honesta:",type:"text",placeholder:"\"Puedo descargar sin romperme. Hoy elijo ___.\""}]
+];
+
+function go(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById('s-'+id).classList.add('on');window.scrollTo(0,0);if(id==='dash'){uD();document.getElementById('dashPhrase').textContent=PH[Math.floor(Math.random()*PH.length)];}if(id==='profile')uP();if(id==='done')document.getElementById('donePhrase').textContent=PH[Math.floor(Math.random()*PH.length)];uA();}
+
+// NAV
+window.addEventListener('scroll',()=>{const n=document.getElementById('lnav');if(n)n.classList.toggle('stuck',window.scrollY>50);});
+document.getElementById('mobTog').addEventListener('click',()=>document.getElementById('navLinks').classList.toggle('open'));
+document.querySelectorAll('#navLinks a').forEach(a=>a.addEventListener('click',()=>document.getElementById('navLinks').classList.remove('open')));
+const ob=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis');});},{threshold:.08,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.rv').forEach(el=>ob.observe(el));
+document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',function(e){const h=this.getAttribute('href');if(h==='#')return;const t=document.querySelector(h);if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}});});
+function tF(b){const i=b.parentElement;const w=i.classList.contains('open');document.querySelectorAll('.faq-i').forEach(x=>x.classList.remove('open'));if(!w)i.classList.add('open');}
+function fC(i){let v=i.value.replace(/\D/g,'').substring(0,16);i.value=v.replace(/(.{4})/g,'$1 ').trim();}
+function fEi(i){let v=i.value.replace(/\D/g,'').substring(0,4);if(v.length>=2)v=v.substring(0,2)+'/'+v.substring(2);i.value=v;}
+function doPay(){const b=document.getElementById('payB');if(!document.getElementById('cN').value||document.getElementById('cNu').value.length<16){b.textContent='Completa los campos';b.style.background='var(--blush)';setTimeout(()=>{b.textContent='Pagar $499 MXN';b.style.background='';},2000);return;}b.textContent='Procesando...';b.disabled=true;setTimeout(()=>{b.textContent='✓ ¡Pago exitoso!';b.style.background='#8BA888';setTimeout(()=>{b.textContent='Pagar $499 MXN';b.style.background='';b.disabled=false;go('signup');},1200);},1800);}
+function doSign(){const n=document.getElementById('sN').value,e=document.getElementById('sE').value,p=document.getElementById('sP').value,p2=document.getElementById('sP2').value;if(!n||!e||!p){alert('Completa todos los campos');return;}if(p!==p2){alert('Las contraseñas no coinciden');return;}if(p.length<8){alert('Mínimo 8 caracteres');return;}U={name:n,email:e,sessions:0,streak:0,days:0};hi=[];go('dash');}
+function doLog(){const e=document.getElementById('lE').value,p=document.getElementById('lP').value;if(!e||!p){alert('Ingresa email y contraseña');return;}U={name:e.split('@')[0],email:e,sessions:3,streak:2,days:5};hi=[{p:'Contención',r:'Ritmo Base',d:'Ayer'},{p:'Ritmo Suave',r:'Ritmo Micro',d:'Hace 2 días'}];go('dash');}
+function doOut(){U=null;if(tm)clearInterval(tm);tm=null;go('landing');}
+function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});}
+function uD(){if(!U)return;document.getElementById('dN').textContent='Hola, '+U.name;document.getElementById('dd').textContent=U.days;document.getElementById('dss').textContent=U.sessions;document.getElementById('dk').textContent=U.streak;const hl=document.getElementById('hL');if(hi.length===0)hl.innerHTML='<p style="font-size:.84rem;color:var(--muted);font-weight:300;text-align:center;padding:1rem;">Aún no tienes prácticas. ¡Empieza hoy!</p>';else hl.innerHTML=hi.map(h=>'<div class="dh-i"><div><h4 style="font-size:.85rem;font-family:Montserrat,sans-serif;font-weight:500;">'+h.p+'</h4><p style="font-size:.72rem;color:var(--muted);">'+h.r+' · '+h.d+'</p></div><div class="dh-tag">Completada</div></div>').join('');}
+function uP(){if(!U)return;document.getElementById('pA').textContent=U.name.charAt(0).toUpperCase();document.getElementById('pN').textContent=U.name;document.getElementById('pE').textContent=U.email;document.getElementById('pd').textContent=U.days;document.getElementById('ps').textContent=U.sessions;document.getElementById('pk').textContent=U.streak;}
+
+// CHECK-IN: Pick emotion → start questionnaire
+function pickEmo(idx){curEmo=idx;sP=EMO_PRAC[idx];curQ=0;answers={};go('ci2');}
+
+// START QUESTIONNAIRE (after practice)
+function startQuest(){if(tm)clearInterval(tm);tm=null;curQ=0;go('quest');renderQ();}
+
+// QUESTIONNAIRE ENGINE
+function renderQ(){
+  const qs=QUESTS[curEmo];const q=qs[curQ];const tot=qs.length;
+  // Progress bar
+  let prog='';for(let i=0;i<tot;i++){let cls='q-pip';if(i<curQ)cls+=' done';else if(i===curQ)cls+=' cur';prog+='<div class="'+cls+'"></div>';}
+  document.getElementById('qProg').innerHTML=prog;
+  let html='<div class="q-card"><h3>'+q.t+'</h3>';
+  if(q.type==='scale'){
+    html+='<div class="q-scale-labels"><span>'+q.lo+'</span><span>'+q.hi+'</span></div>';
+    html+='<div class="q-scale-dots">';
+    for(let i=1;i<=5;i++) html+='<div class="q-dot" onclick="ansScale('+i+')">'+i+'</div>';
+    html+='</div>';
+  } else if(q.type==='radio'){
+    html+='<div class="q-opts">';
+    q.opts.forEach((o,i)=>{html+='<div class="q-opt" onclick="ansRadio(this,\''+o.replace(/'/g,"\\'")+'\')" ><div class="q-radio"></div><span>'+o+'</span></div>';});
+    html+='</div>';
+  } else if(q.type==='text'){
+    const ph=q.placeholder||'Tu respuesta';
+    html+='<input type="text" class="q-input" id="qTxtIn" placeholder="'+ph+'" onkeydown="if(event.key===\'Enter\')ansTxt()">';
+  }
+  html+='</div>';
+  // Nav buttons
+  html+='<div style="display:flex;gap:.8rem;justify-content:center;margin-top:.5rem;">';
+  if(curQ>0) html+='<button class="btn btn-o" style="padding:.7rem 1.5rem;font-size:.75rem;" onclick="prevQ()">← Anterior</button>';
+  if(q.type==='text') html+='<button class="btn btn-r" style="padding:.7rem 1.5rem;font-size:.75rem;" onclick="ansTxt()">Siguiente →</button>';
+  html+='</div>';
+  document.getElementById('qContent').innerHTML=html;
+}
+
+function ansScale(v){answers[curQ]=v;nextQ();}
+function ansRadio(el,v){document.querySelectorAll('.q-opt').forEach(o=>o.classList.remove('sel'));el.classList.add('sel');answers[curQ]=v;setTimeout(nextQ,300);}
+function ansTxt(){const v=document.getElementById('qTxtIn');answers[curQ]=v?v.value:'';nextQ();}
+function prevQ(){if(curQ>0){curQ--;renderQ();}}
+function nextQ(){
+  const qs=QUESTS[curEmo];
+  if(curQ<qs.length-1){curQ++;renderQ();}
+  else{go('postprac');}// Done with questionnaire → post-practice feeling → done
+}
+
+// TIME
+function pT(time,rhy){sR=rhy;document.getElementById('prT').textContent='Práctica de '+sP;document.getElementById('prR').textContent=sR+' · '+time+' min';document.getElementById('rT').textContent='Integrando lo que viviste';document.getElementById('rTx').textContent=RD[sP]||RD['Presencia'];sc=0;if(tm)clearInterval(tm);tm=null;document.getElementById('tmD').textContent='00:00';document.querySelector('.pr-play').textContent='▶';go('prac');}
+
+// TIMER
+function tTm(){const b=document.querySelector('.pr-play');if(tm){clearInterval(tm);tm=null;b.textContent='▶';}else{tm=setInterval(()=>{sc++;document.getElementById('tmD').textContent=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');},1000);b.textContent='⏸';}}
+
+// POST PRACTICE
+function postAns(v){answers['post']=v;if(U){U.sessions++;U.days++;U.streak++;hi.unshift({p:sP,r:sR,d:'Hoy'});}go('done');}
+</script>
+</body>
+</html>
