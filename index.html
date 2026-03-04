@@ -246,26 +246,19 @@
    TABLET (≤900px)
    ============================================ */
 @media(max-width:900px){
-  /* NAV */
-  .lnav{padding:.8rem 1.4rem;}
-  .lnav.stuck{padding:.6rem 1.4rem;}
-  .mob-tog{display:flex;}
-  .lnav-cta-wrap{display:flex;align-items:center;gap:.8rem;}
+  /* NAV — hamburguesa izq | logo centro | Unirme der */
+  .lnav{padding:.8rem 1.2rem;display:flex;align-items:center;justify-content:space-between;position:relative;}
+  .lnav.stuck{padding:.6rem 1.2rem;}
+  .mob-tog{display:flex;order:1;flex-shrink:0;}
+  .lnav-logo{position:absolute;left:50%;transform:translateX(-50%);order:2;}
+  .lnav-cta-wrap{order:3;flex-shrink:0;display:flex;align-items:center;}
   .lnav-links{
-    position:fixed;top:0;right:-100%;width:75%;max-width:300px;height:100vh;
+    position:fixed;top:0;left:-100%;width:75%;max-width:300px;height:100vh;
     background:var(--cream);flex-direction:column;justify-content:center;
-    padding:2rem;transition:right .4s;
-    box-shadow:-8px 0 30px rgba(0,0,0,.08);z-index:100;
+    padding:2rem;transition:left .4s;
+    box-shadow:8px 0 30px rgba(0,0,0,.08);z-index:100;list-style:none;
   }
-  .lnav-links.open{right:0;}
-
-  /* Reorder nav: hamburger left | logo center | Unirme right */
-  .lnav{display:grid;grid-template-columns:auto 1fr auto;align-items:center;}
-  .lnav-logo{grid-column:2;display:flex;justify-content:center;}
-  .lnav-links{grid-column:1;grid-row:1;}
-  .lnav-cta-wrap{grid-column:3;grid-row:1;display:flex;align-items:center;}
-  /* Move hamburger to left side using order */
-  .mob-tog{order:-1;}
+  .lnav-links.open{left:0;}
 
   /* HERO */
   .hero{padding:5.5rem 1.5rem 3rem;background-position:70% center;}
@@ -320,11 +313,8 @@
    ============================================ */
 @media(max-width:480px){
   /* NAV */
-  .lnav{padding:.7rem 1rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;}
+  .lnav{padding:.7rem 1rem;position:relative;}
   .lnav.stuck{padding:.55rem 1rem;}
-  .lnav-logo{grid-column:2;display:flex;justify-content:center;}
-  .lnav-cta-wrap{grid-column:3;display:flex;align-items:center;}
-  .mob-tog{order:-1;}
   .lnav-logo img{height:38px;}
   .lnav.stuck .lnav-logo img{height:30px;}
   .lnav-cta{padding:.45rem 1rem!important;font-size:.65rem!important;}
