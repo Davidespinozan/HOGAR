@@ -336,13 +336,15 @@
    ============================================ */
 @media(max-width:480px){
   /* NAV */
-  .lnav{padding:.65rem 1rem;}
+  .lnav{padding:.65rem 1rem;position:fixed !important;background:rgba(250,246,243,.97) !important;backdrop-filter:blur(20px);box-shadow:0 1px 20px rgba(160,123,111,.08);}
   .lnav.stuck{padding:.5rem 1rem;}
   .lnav-logo img{height:36px;}
-  .lnav.stuck .lnav-logo img{height:28px;}
+  .lnav-logo img{height:48px !important;}
+  .lnav.stuck .lnav-logo img{height:38px !important;}
   .lnav-cta{padding:.4rem .9rem!important;font-size:.63rem!important;}
   /* Fondo sección ¿Qué es HOGAR? solo en móvil */
-  .prev-sect::after{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772642829/ideogram-v3.0_Cozy_girly_home_workout_space_with_clean_aesthetics_soft_neutral_colors_and_femi-0.jpg_qsr9gc.png');opacity:.18;}
+  .prev-sect::after{background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772642829/ideogram-v3.0_Cozy_girly_home_workout_space_with_clean_aesthetics_soft_neutral_colors_and_femi-0.jpg_qsr9gc.png');opacity:.35;}
+  .prev-sect{background:rgba(255,255,255,.6) !important;}
   /* HERO — móvil completo */
   .hero{padding:5rem 1.1rem 2.5rem;min-height:100svh;background-image:url('https://res.cloudinary.com/dp9l5i19b/image/upload/v1772642827/ideogram-v3.0_A_candid_lifestyle_photo_of_a_woman_doing_gentle_yoga_at_home._Side_view_profile-0.jpg_nlntru.png');background-position:center center;background-size:cover;}
   .hero::before{background:linear-gradient(180deg,rgba(58,50,45,.35) 0%,rgba(58,50,45,.2) 35%,rgba(58,50,45,.45) 70%,rgba(58,50,45,.75) 100%);}
