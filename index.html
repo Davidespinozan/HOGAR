@@ -495,6 +495,336 @@
   .fg{max-width:100%;}
   .fg input,.fg textarea{font-size:.85rem;padding:.8rem 1rem;}
 }
+
+/* ============================================
+   DESIGN SYSTEM v2 — Visual elevation
+   Mantiene paleta, UX, copy y estructura.
+   Solo sube el nivel de presentación.
+   ============================================ */
+
+:root{
+  --accent: var(--rose);
+  --accent-l: var(--blush);
+  --accent-glow: var(--blush-xl);
+  --sh-sm: 0 4px 14px rgba(132,90,80,.07);
+  --sh-md: 0 14px 34px rgba(132,90,80,.09);
+  --sh-lg: 0 22px 50px rgba(58,50,45,.10);
+  --sh-xl: 0 34px 80px rgba(58,50,45,.13);
+  --sh-halo: 0 12px 30px -10px rgba(155,110,98,.45);
+  --r-input: 14px;
+  --r-card: 22px;
+  --r-panel: 28px;
+  --r-hero: 32px;
+}
+
+/* — Ambient orb backgrounds (solo app screens, no landing) — */
+#s-payment.on,#s-signup.on,#s-login.on,
+#s-dash.on,#s-ci1.on,#s-ci2.on,
+#s-prac.on,#s-quest.on,#s-postprac.on,
+#s-done.on,#s-profile.on{
+  background:
+    radial-gradient(circle at 6% 4%, rgba(232,193,180,.45), transparent 38%),
+    radial-gradient(circle at 94% 14%, rgba(184,148,138,.22), transparent 32%),
+    radial-gradient(circle at 50% 102%, rgba(245,224,216,.38), transparent 46%),
+    linear-gradient(180deg, var(--cream) 0%, #f6ebe4 55%, #efdfd6 100%) !important;
+}
+
+/* — Glass shell: topbar + landing nav stuck — */
+.topbar{
+  background: rgba(253,248,245,.72) !important;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border-bottom: 1px solid rgba(132,90,80,.08);
+  box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 10px 26px -16px rgba(132,90,80,.18);
+}
+.lnav.stuck{
+  background: rgba(253,248,245,.78);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border-bottom: 1px solid rgba(132,90,80,.06);
+  box-shadow: 0 10px 26px -16px rgba(132,90,80,.18);
+}
+
+/* — Typography: tighter display tracking — */
+.hero h1, .sect-t, .cierre-in h2, h2{
+  letter-spacing: -0.02em;
+}
+.ds .n, .pf-s .n, .pc-price, .pr-timer, .ci-tm .big{
+  letter-spacing: -0.04em;
+  font-weight: 600;
+}
+.cre-quote, .tr-quote p, .hero h1 em, .cierre-in em, .ph-card p{
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 400;
+}
+
+/* — Refined kickers — */
+.sect-lab, .pr-read-lab{
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  font-size: 0.65rem;
+}
+.sect-lab{
+  padding: 0.35rem 0.9rem;
+  border: 1px solid rgba(155,110,98,.10);
+  background: rgba(245,224,216,.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* — Stat cards (dashboard + profile) — */
+.ds, .pf-s{
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(232,193,180,.55);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-md);
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease;
+  padding: 1.1rem .9rem;
+}
+.ds:hover, .pf-s:hover{
+  transform: translateY(-2px);
+  border-color: rgba(155,110,98,.28);
+  box-shadow: var(--sh-lg);
+}
+.ds .l, .pf-s .l{
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+/* — Today's practice panel — */
+.d-start{
+  border-radius: var(--r-panel);
+  box-shadow: var(--sh-lg);
+  border: 1px solid rgba(255,255,255,.7);
+  background: linear-gradient(135deg, rgba(245,224,216,.92), rgba(240,207,196,.92));
+  position: relative;
+  overflow: hidden;
+}
+.d-start::before{
+  content:'';
+  position:absolute; top:-30%; right:-15%;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(255,255,255,.55), transparent 60%);
+  pointer-events:none;
+}
+.d-start > *{ position: relative; z-index: 1; }
+
+/* — Check-in option cards & time cards — */
+.ci-o, .ci-tm{
+  background: rgba(255,255,255,.82);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-radius: var(--r-card);
+  border: 1px solid rgba(232,193,180,.6);
+  box-shadow: var(--sh-sm);
+  transition: transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .25s ease, background-color .25s ease;
+}
+.ci-o:hover{
+  transform: translateY(-1px) translateX(4px);
+  box-shadow: var(--sh-md);
+}
+.ci-tm:hover{
+  transform: translateY(-3px);
+  box-shadow: var(--sh-lg);
+}
+
+/* — Questionnaire card — */
+.q-card{
+  background: rgba(255,255,255,.86);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border-radius: var(--r-card);
+  border: 1px solid rgba(232,193,180,.5);
+  box-shadow: var(--sh-md);
+}
+.q-input{
+  border-radius: var(--r-input);
+  background: rgba(255,255,255,.7);
+}
+.q-input:focus{
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(232,193,180,.28);
+}
+
+/* — Pricing card — */
+.price-card{
+  border-radius: var(--r-hero);
+  box-shadow: var(--sh-xl);
+  border: 1px solid rgba(255,255,255,.8);
+}
+
+/* — Auth / payment containers — */
+#s-payment > div > div,
+#s-signup > div > div,
+#s-login > div > div{
+  border-radius: var(--r-hero) !important;
+  background: rgba(255,255,255,.86) !important;
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: var(--sh-xl) !important;
+}
+
+/* — Status badge (history "Completada") — */
+.dh-tag{
+  background: rgba(168,181,160,.18) !important;
+  color: #5a6e54 !important;
+  border: 1px solid rgba(168,181,160,.4);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.75rem !important;
+  font-size: 0.62rem !important;
+  text-transform: uppercase;
+}
+.dh-i{
+  padding: 0.95rem 0;
+}
+
+/* — Practice phrase block — */
+.ph-card{
+  border-radius: var(--r-panel);
+  box-shadow: var(--sh-lg);
+  border: 1px solid rgba(255,255,255,.7);
+  position: relative;
+  overflow: hidden;
+}
+.ph-card::after{
+  content:'';
+  position:absolute; bottom:-40%; left:-10%;
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(255,255,255,.45), transparent 60%);
+  pointer-events:none;
+}
+.ph-card p{ position: relative; z-index: 1; }
+
+/* — Practice integration read block — */
+.pr-read{
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-md);
+  background: rgba(255,255,255,.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-left: 4px solid var(--rose);
+}
+
+/* — Practice video — */
+.pr-video{
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-xl);
+}
+
+/* — Avatars with halo — */
+.pf-av{
+  box-shadow: 0 20px 40px -12px rgba(155,110,98,.55), 0 0 0 4px rgba(255,255,255,.7);
+}
+.av{
+  box-shadow: 0 8px 20px -6px rgba(155,110,98,.6), 0 0 0 2px rgba(255,255,255,.7);
+}
+
+/* — Inputs unified — */
+.fg input, .fg textarea, .q-input{
+  border-radius: var(--r-input);
+  transition: border-color .2s ease, box-shadow .25s ease, background-color .2s ease;
+}
+.fg input:focus, .fg textarea:focus{
+  box-shadow: 0 0 0 4px rgba(232,193,180,.28);
+}
+
+/* — Buttons: lift + halo on primary — */
+.btn{
+  transition: background-color .2s ease, color .2s ease, border-color .2s ease, transform .22s cubic-bezier(.16,1,.3,1), box-shadow .25s ease;
+  letter-spacing: 0.12em;
+}
+.btn-r{
+  box-shadow: var(--sh-halo);
+}
+.btn-r:hover{
+  box-shadow: 0 18px 40px -12px rgba(155,110,98,.58);
+  transform: translateY(-1px);
+}
+.btn-o:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px -10px rgba(155,110,98,.35);
+}
+
+/* — Phone preview (landing) richer shadow — */
+.prev-phone{
+  box-shadow: 0 34px 90px rgba(58,50,45,.28), 0 0 0 1px rgba(255,255,255,.08) inset !important;
+}
+.prev-feats-card{
+  border-radius: var(--r-panel);
+  box-shadow: var(--sh-lg);
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(14px);
+}
+
+/* — Universal focus-visible — */
+*:focus{ outline: none; }
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[onclick]:focus-visible,
+[role="button"]:focus-visible,
+.ci-o:focus-visible, .ci-tm:focus-visible, .q-opt:focus-visible, .q-dot:focus-visible{
+  outline: 2px solid rgba(155,110,98,.6);
+  outline-offset: 3px;
+}
+
+/* — iOS zoom-on-focus fix (16px en inputs ≤768px) — */
+@media (max-width: 768px){
+  input, select, textarea, .q-input, .fg input, .fg textarea{
+    font-size: 16px !important;
+  }
+}
+
+/* — Safe-area for iOS home indicator — */
+.app-c, .pr-w, .q-wrap, .pf-w{
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* — Global transition baseline on interactive elements — */
+button, a, .ci-o, .ci-tm, .ds, .pf-s, .q-opt, .q-dot, .pp-card, .pf-i, .faq-q{
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .25s ease, transform .22s cubic-bezier(.16,1,.3,1);
+}
+
+/* — Subtle visible scrollbars on desktop, hidden on mobile — */
+@media (min-width: 769px){
+  .scr.on::-webkit-scrollbar, body::-webkit-scrollbar{ width: 6px; }
+  .scr.on::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb{
+    background: rgba(132,90,80,.18);
+    border-radius: 10px;
+  }
+  .scr.on::-webkit-scrollbar-track, body::-webkit-scrollbar-track{ background: transparent; }
+}
+@media (max-width: 768px){
+  .scr.on::-webkit-scrollbar, body::-webkit-scrollbar{ display: none; }
+}
+
+/* — Hero label refinement (desktop) — */
+.hero-label{
+  border: 1px solid rgba(255,255,255,.4);
+  font-weight: 700;
+  letter-spacing: 0.26em;
+}
+
+/* — Marquee subtle divider — */
+.marquee-bar{
+  box-shadow: 0 1px 0 rgba(132,90,80,.06) inset, 0 -1px 0 rgba(132,90,80,.06) inset;
+}
+
+/* — Q-dot selected halo — */
+.q-dot.sel{
+  box-shadow: 0 0 0 4px rgba(232,193,180,.35);
+}
+
+/* — Practice play button glow — */
+.pr-play{
+  box-shadow: 0 12px 32px rgba(58,50,45,.35), 0 0 0 8px rgba(255,255,255,.12);
+}
 </style>
 </head>
 <body>
