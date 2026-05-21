@@ -2804,6 +2804,27 @@ body.app-active { overflow: hidden; }
   #s-history .hist-toggle{width:100%;text-align:left;margin-top:14px;padding-top:13px;border-top:1px solid #f0e3d8;font-size:11px;font-weight:500;color:#c0673f;}
   #s-history .hist-sin{margin-top:14px;padding-top:13px;border-top:1px solid #f0e3d8;}
 }
+
+/* ===== FIN DE PRACTICA #s-done — rediseño SOLO movil (<=480px) ===== */
+@keyframes badgeIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+@media(max-width:480px){
+  #s-done.on{background:linear-gradient(180deg,#f8d9cb 0%,#f5e6da 100%);min-height:100svh;display:flex;flex-direction:column;}
+  #s-done .completado-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 22px;}
+  /* 1) Circulo terracota con palomita */
+  #s-done .completado-badge{width:100px;height:100px;margin:0 auto 26px;background:linear-gradient(145deg,#ec9c84,#c66b41);box-shadow:0 0 40px -4px rgba(200,107,65,.5),0 10px 24px -6px rgba(181,88,54,.4);animation:badgeIn .5s ease;}
+  #s-done .completado-badge svg{display:none;}
+  #s-done .completado-badge::before{content:'';position:static;inset:auto;border:none;border-radius:0;animation:none;opacity:1;width:48px;height:48px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E") center/contain no-repeat;}
+  /* 2) Ocultar la frase en cursiva (la rellena el JS — solo se oculta) */
+  #s-done .completado-mensaje{display:none;}
+  /* 3) Textos */
+  #s-done .completado-script{font-size:14px;color:#c0673f;}
+  #s-done .completado-title{font-size:27px;color:#3a2820;}
+  #s-done .completado-title em{color:#c0673f !important;font-style:italic;}
+  /* 4) Botones */
+  #s-done .volver-btn{width:100%;max-width:340px;background:linear-gradient(135deg,#d2774a,#b55836);color:#fff;border-radius:30px;padding:16px 28px;letter-spacing:2.5px;box-shadow:0 10px 22px -6px rgba(181,88,54,.5);margin-top:8px;}
+  #s-done .completado-screen p{margin-top:18px !important;}
+  #s-done .completado-screen p a{font-size:12px !important;color:#9c6b5c !important;}
+}
 </style>
 </head>
 <body>
