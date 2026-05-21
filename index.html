@@ -2680,6 +2680,55 @@ body.app-active { overflow: hidden; }
 .auth-msg.show{ display:block; }
 .auth-msg.error{ background:rgba(184,95,61,.10); color:var(--terracota-oscuro); border:1px solid rgba(184,95,61,.22); }
 .auth-msg.info{ background:rgba(197,205,176,.20); color:#5a6e54; border:1px solid rgba(197,205,176,.45); }
+
+/* ===== DASHBOARD #s-dash — rediseño SOLO movil (<=480px) ===== */
+.pill-ds{display:none;}
+.stat-ico{display:none;}
+.aside-q{display:none;}
+@media(max-width:480px){
+  /* A) SALUDO */
+  .dash-greeting-row{flex-direction:column;align-items:stretch;gap:16px;margin-bottom:22px;}
+  .dash-greeting-text{background:linear-gradient(155deg,#f8d9cb,#f5e6da);border-radius:20px;padding:22px 20px;}
+  .dash-meta{margin-bottom:10px;}
+  .dash-greeting-title{font-size:28px;}
+  .dash-greeting-sub{font-size:14px;}
+  .dash-greeting-aside{background:#ffffff;border-radius:16px;box-shadow:0 10px 26px -12px rgba(58,40,32,.22);padding:16px;gap:13px;align-items:flex-start;margin-top:0;max-width:none;}
+  .aside-q{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#c66b41,#b55836);color:#fdf6ee;}
+  .aside-q svg{width:20px;height:20px;}
+  .dash-aside-story{display:none;}
+  .dash-aside-text{text-align:left;max-width:none;}
+  /* B) ESTADISTICAS — 3 en una fila */
+  .dash-stats-gallery{grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 22px;}
+  .stat-tile{display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 8px;border-radius:15px;box-shadow:0 8px 20px -10px rgba(58,40,32,0.18);}
+  .stat-tile:hover{transform:none;}
+  .stat-ico{order:0;display:flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;color:#fdf6ee;margin-bottom:9px;}
+  .stat-ico svg{width:20px;height:20px;}
+  .stat-tile .stat-ico{background:linear-gradient(135deg,#f3c5b5,#ec9c84);}
+  .stat-tile.salmon .stat-ico{background:linear-gradient(135deg,#f0d0da,#d98aa6);}
+  .stat-tile.accent .stat-ico{background:linear-gradient(135deg,#c66b41,#b55836);}
+  .stat-tile-num{order:1;font-size:26px;line-height:1;}
+  .stat-tile-eyebrow{order:2;margin:7px 0 0;font-size:8.5px;letter-spacing:1px;}
+  .stat-tile-sub{display:none;}
+  /* C) CHECK-IN DE EMOCIONES */
+  .pills-row{padding-left:0;gap:10px;margin-top:14px;}
+  .pill{display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:16px;border:1px solid transparent;box-shadow:0 7px 16px -9px rgba(58,40,32,.20);transition:transform .25s ease,box-shadow .25s ease;}
+  .pill:active{transform:scale(.985);}
+  .pill-ico{flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:13px;}
+  #dash-pills-emocion .pill .pill-ico svg{width:24px;height:24px;background:none;padding:0;border-radius:0;}
+  .pill-tx{display:flex;flex-direction:column;gap:2px;min-width:0;}
+  .pill-nm{font-size:14px;font-weight:700;line-height:1.2;}
+  .pill-ds{display:block;font-size:11px;font-weight:400;font-style:italic;color:#8a6b60;line-height:1.3;}
+  #dash-pills-emocion .pill:nth-child(1){background:#fbeee3;border-color:#f3d9c8;color:#c0673f;}
+  #dash-pills-emocion .pill:nth-child(1) .pill-ico{background:linear-gradient(135deg,#f3c5b5,#ec9c84);}
+  #dash-pills-emocion .pill:nth-child(2){background:#fbeaf0;border-color:#f0d0da;color:#b15578;}
+  #dash-pills-emocion .pill:nth-child(2) .pill-ico{background:linear-gradient(135deg,#f0d0da,#d98aa6);}
+  #dash-pills-emocion .pill:nth-child(3){background:#f6ede3;border-color:#e8d5c2;color:#9c6b3f;}
+  #dash-pills-emocion .pill:nth-child(3) .pill-ico{background:linear-gradient(135deg,#d9b896,#b8895f);}
+  #dash-pills-emocion .pill:nth-child(4){background:#fbeaf2;border-color:#f0d0e0;color:#b1557a;}
+  #dash-pills-emocion .pill:nth-child(4) .pill-ico{background:linear-gradient(135deg,#f0c5da,#d98ab5);}
+  #dash-pills-emocion .pill:nth-child(5){background:#fbe8e0;border-color:#f0cdbe;color:#9c4a2e;}
+  #dash-pills-emocion .pill:nth-child(5) .pill-ico{background:linear-gradient(135deg,#ec9c84,#c66b41);}
+}
 </style>
 </head>
 <body>
@@ -2762,6 +2811,7 @@ body.app-active { overflow: hidden; }
         <p class="dash-greeting-sub" id="dash-greeting-sub">Tu espacio de práctica diaria.</p>
       </div>
       <div class="dash-greeting-aside">
+        <div class="aside-q"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 5C4.7 5 3 7.2 3 10.2V18.5H10.7V11H6.6C6.6 8.4 7.6 7.4 9.7 7.4L7.5 5Z"/><path d="M18.3 5C15.5 5 13.8 7.2 13.8 10.2V18.5H21.5V11H17.4C17.4 8.4 18.4 7.4 20.5 7.4L18.3 5Z"/></svg></div>
         <div class="dash-aside-text">
           <div class="dash-aside-eyebrow">Andrea publicó</div>
           <p class="dash-aside-cita" id="dash-aside-cita"></p>
@@ -2774,16 +2824,19 @@ body.app-active { overflow: hidden; }
     </div>
     <div class="dash-stats-gallery">
       <div class="stat-tile">
+        <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5H20.5M8.5 3V6.5M15.5 3V6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
         <div class="stat-tile-eyebrow">— DÍAS</div>
         <div class="stat-tile-num" id="stat-dias">0</div>
         <div class="stat-tile-sub">en relación con tu cuerpo</div>
       </div>
       <div class="stat-tile salmon">
+        <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="6" rx="2.7" ry="3.5" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="18" rx="2.7" ry="3.5" stroke="currentColor" stroke-width="2"/><ellipse cx="6" cy="12" rx="3.5" ry="2.7" stroke="currentColor" stroke-width="2"/><ellipse cx="18" cy="12" rx="3.5" ry="2.7" stroke="currentColor" stroke-width="2"/></svg></div>
         <div class="stat-tile-eyebrow">— SESIONES</div>
         <div class="stat-tile-num" id="stat-sesiones">0</div>
         <div class="stat-tile-sub">prácticas habitadas</div>
       </div>
       <div class="stat-tile accent">
+        <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3C12 3 6 7.5 6 13.5C6 17.6 8.7 21 12 21C15.3 21 18 17.6 18 13.5C18 11 16.5 9 16.5 9C16.5 9 16 11 14 11C14 11 15 6.5 12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
         <div class="stat-tile-eyebrow">— EN RACHA</div>
         <div class="stat-tile-num"><em id="stat-racha">0</em></div>
         <div class="stat-tile-sub">días consecutivos</div>
@@ -3098,7 +3151,11 @@ function renderEmoPills(){
   const row=document.getElementById('dash-pills-emocion');
   if(!row) return;
   row.innerHTML=EMOCIONES.map(e=>
-    '<div class="pill" onclick="pickEmo('+e.idx+')">'+emoIcon(e.idx,14)+e.nombre+'</div>'
+    '<div class="pill" onclick="pickEmo('+e.idx+')">'
+    +'<span class="pill-ico">'+emoIcon(e.idx,14)+'</span>'
+    +'<span class="pill-tx"><span class="pill-nm">'+e.nombre+'</span>'
+    +'<span class="pill-ds">'+e.desc+'</span></span>'
+    +'</div>'
   ).join('');
 }
 
