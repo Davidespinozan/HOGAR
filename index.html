@@ -111,6 +111,7 @@
 .prev-head{text-align:left;}
 .prev-head .sect-d{max-width:900px;}
 .prev-grid{display:grid;grid-template-columns:1fr auto 1fr;gap:1.8rem;align-items:center;justify-content:center;margin-top:1.8rem;}
+.prev-howto{display:none;} /* sub-encabezado timeline — solo visible en móvil */
 .prev-phone{background:linear-gradient(155deg,#3a3a3c 0%,#1c1c1e 48%,#2c2c2e 100%);border-radius:42px;padding:7px;width:240px;margin:0 auto;box-shadow:0 22px 44px rgba(0,0,0,.24),0 8px 16px rgba(0,0,0,.14);position:relative;}
 .prev-phone-in{background:radial-gradient(circle at 50% 24%, rgba(255,255,255,.5), transparent 62%), linear-gradient(165deg,var(--crema-claro) 0%,var(--salmon-claro) 100%);border-radius:36px;overflow:hidden;height:472px;position:relative;box-shadow:0 0 0 1px rgba(255,255,255,.1);}
 .prev-phone-in::before{content:'';position:absolute;top:11px;left:50%;transform:translateX(-50%);width:72px;height:21px;background:#000;border-radius:11px;z-index:6;}
@@ -409,18 +410,27 @@
   .sect-t{font-size:1.3rem;line-height:1.35;}
   .sect-d{font-size:.83rem;max-width:100%;}
 
-  /* PREVIEW / PHONE MOCKUP — movil: apilado vertical (texto, telefono grande centrado, grid 2x2 de features) */
-  .prev-grid{display:flex;flex-direction:column;align-items:center;gap:16px;margin-top:1.6rem;}
-  .prev-phone{order:-1;margin:0 0 -60px 0;}
+  /* PREVIEW — movil: telefono solo arriba + 4 features como linea de tiempo */
+  .prev-grid{display:flex;flex-direction:column;align-items:center;gap:0;margin-top:1.6rem;}
+  .prev-phone{order:-1;margin:0 0 -73px 0;}
   .prev-grid .prev-phone.rv,
   .prev-grid .prev-phone.rv.vis{transform:scale(.85);transform-origin:top center;}
-  .prev-feats{width:100%;max-width:none;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;}
-  .prev-feats .pf-i{flex-direction:column;align-items:center;text-align:center;gap:.5rem;}
-  .prev-feats .pf-txt{width:100%;}
-  .pf-ico{width:38px;height:38px;font-size:.95rem;}
-  .pf-txt h4{font-size:.85rem;line-height:1.3;}
-  .pf-txt p{font-size:.75rem;}
-  .prev-feats-card{padding:1.2rem;}
+  /* Sub-encabezado "Cómo funciona" */
+  .prev-howto{order:0;display:block;width:100%;margin-top:2.6rem;text-align:left;}
+  .prev-howto-pill{display:inline-block;background:#f3c5b5;color:#9c4a2e;font-family:'Montserrat',sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;padding:.42rem .85rem;border-radius:100px;}
+  .prev-howto-title{color:#3a2820;font-family:'Montserrat',sans-serif;font-size:1.25rem;font-weight:700;line-height:1.3;margin:.7rem 0 0;}
+  /* Timeline: 4 features en una columna, alineadas a la izquierda */
+  .prev-feats{width:100%;max-width:none;display:flex;flex-direction:column;gap:0;margin:0;padding:0;text-align:left;}
+  .prev-feats-left{order:1;margin-top:1.6rem;}
+  .prev-feats-right{order:2;}
+  .prev-feats .pf-i{position:relative;flex-direction:row;align-items:flex-start;gap:12px;margin:0 0 24px;text-align:left;}
+  .prev-feats .pf-i::before{content:'';position:absolute;left:22px;top:0;width:2px;height:calc(100% + 24px);background:#e3b9a4;transform:translateX(-50%);z-index:0;}
+  .prev-feats-right .pf-i:last-child{margin-bottom:0;}
+  .prev-feats-right .pf-i:last-child::before{display:none;}
+  .pf-ico{position:relative;z-index:1;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#c66b41,#b55836);color:var(--crema-claro);font-size:1rem;flex-shrink:0;}
+  .prev-feats .pf-txt{flex:1;min-width:0;width:auto;}
+  .pf-txt h4{color:#3a2820;font-size:.95rem;line-height:1.3;margin-bottom:.15rem;}
+  .pf-txt p{color:#8a6b60;font-size:.8rem;line-height:1.5;}
   .prev-phone-in{min-height:420px;}
   .pp-screen{min-height:420px;padding:1.7rem .7rem .85rem;}
   .pp-hi{font-size:13px;}
@@ -439,7 +449,7 @@
 
   /* CREADORA */
   /* Creadora — rediseño móvil */
-  .cre-sect{background:linear-gradient(180deg,var(--crema) 0%,var(--crema-claro) 100%);}
+  .cre-sect{background:#ffffff;}
   .cre-layout{gap:1.6rem;}
   .cre-photo{margin-bottom:0;}
   .cre-frame{width:82%;max-width:330px;height:auto;aspect-ratio:3/4;margin:0 auto;}
@@ -2687,7 +2697,7 @@ body.app-active { overflow: hidden; }
 </aside>
 <section class="hero"><div class="hero-text"><p class="hero-label">Regulación a través del movimiento</p><h1>El ejercicio está dejando de ser sólo una herramienta para <em>cambiar el cuerpo.</em></h1><p class="hero-desc">Está volviendo a ser una forma de reconectar con él.</p><div class="hero-ctas"><a href="#sec-price" class="btn btn-r">Comenzar mi práctica</a><a href="#sec-prev" class="btn btn-o">Ver cómo funciona</a></div></div></section>
 <div class="marquee-bar"><div class="marquee-track">Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> </div></div>
-<section class="sect prev-sect" id="sec-prev"><div class="sect-in"><div class="prev-head"><p class="sect-lab rv">¿Qué es HOGAR?</p><h2 class="sect-t rv rd1">Un espacio para entrenar con estructura, claridad y fuerza en calma.</h2><p class="sect-d rv rd2">Aquí no vienes a exigir ni a corregirte, sino a escuchar tu cuerpo y acompañarlo con movimiento y presencia. Una práctica que se adapta a cómo estás hoy, no al revés.</p></div><div class="prev-grid"><div class="prev-feats prev-feats-left rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Check-in en 30 segundos</h4><p>HOGAR te sugiere una práctica.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Movimiento consciente</h4><p>Sesiones de 5 a 45 minutos.</p></div></div></div><div class="prev-phone rv"><div class="prev-phone-in"><div class="pp-screen" id="pp-screen"></div></div></div><div class="prev-feats prev-feats-right rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Integrando lo que viviste</h4><p>Lectura breve al terminar.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Cuestionario + registro</h4><p>Privado, sin juicio.</p></div></div></div></div></div></section>
+<section class="sect prev-sect" id="sec-prev"><div class="sect-in"><div class="prev-head"><p class="sect-lab rv">¿Qué es HOGAR?</p><h2 class="sect-t rv rd1">Un espacio para entrenar con estructura, claridad y fuerza en calma.</h2><p class="sect-d rv rd2">Aquí no vienes a exigir ni a corregirte, sino a escuchar tu cuerpo y acompañarlo con movimiento y presencia. Una práctica que se adapta a cómo estás hoy, no al revés.</p></div><div class="prev-grid"><div class="prev-howto"><p class="prev-howto-pill">Cómo funciona</p><h3 class="prev-howto-title">Tu práctica, paso a paso</h3></div><div class="prev-feats prev-feats-left rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Check-in en 30 segundos</h4><p>HOGAR te sugiere una práctica.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Movimiento consciente</h4><p>Sesiones de 5 a 45 minutos.</p></div></div></div><div class="prev-phone rv"><div class="prev-phone-in"><div class="pp-screen" id="pp-screen"></div></div></div><div class="prev-feats prev-feats-right rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Integrando lo que viviste</h4><p>Lectura breve al terminar.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Cuestionario + registro</h4><p>Privado, sin juicio.</p></div></div></div></div></div></section>
 
 <section class="sect trans-sect" style="background:linear-gradient(160deg,var(--texto-oscuro) 0%,var(--terracota-oscuro) 100%);color:var(--crema);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" style="background-image:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
 
