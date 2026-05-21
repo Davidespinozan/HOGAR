@@ -384,7 +384,7 @@
   .prev-sect::after{background-image:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_girly_home_workout_space_with_clean_aesthetics_soft_neutral_colors_and_femi-0.jpg_qsr9gc.png');opacity:.35;}
   .prev-sect{background:rgba(255,255,255,.6) !important;}
   /* HERO — móvil completo */
-  .hero{padding:5rem 1.1rem 2.5rem;min-height:100svh;background-image:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/hero-andrea-vertical.jpg');background-position:center 75%;background-size:auto 160%;}
+  .hero{padding:5rem 1.1rem 2.5rem;min-height:100svh;background-image:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/hero-andrea-vertical-NUEVA.jpg');background-position:center center;background-size:cover;}
   .hero::before{background:linear-gradient(180deg,rgba(40,26,18,0) 0%,rgba(40,26,18,0.55) 40%,rgba(40,26,18,0.92) 100%);}
   .hero-text{text-align:left;}
   .hero-label{text-align:left;color:var(--salmon-claro);font-size:.8rem;letter-spacing:.02em;margin:0 0 12px;}
@@ -406,8 +406,13 @@
   .sect-t{font-size:1.3rem;line-height:1.35;}
   .sect-d{font-size:.83rem;max-width:100%;}
 
-  /* PREVIEW / PHONE MOCKUP */
-  .prev-phone{max-width:240px;}
+  /* PREVIEW / PHONE MOCKUP — movil: telefono pequeno izquierda + 4 features en columna derecha */
+  .prev-grid{grid-template-columns:152px 1fr;column-gap:.6rem;row-gap:1.3rem;align-items:start;justify-items:start;}
+  .prev-phone{grid-column:1;grid-row:1 / span 2;max-width:240px;margin:0 0 -185px 0;}
+  .prev-grid .prev-phone.rv,
+  .prev-grid .prev-phone.rv.vis{transform:scale(.62);transform-origin:top left;}
+  .prev-feats-left{grid-column:2;grid-row:1;justify-self:start;text-align:left;}
+  .prev-feats-right{grid-column:2;grid-row:2;justify-self:start;text-align:left;}
   .prev-phone-in{min-height:420px;}
   .pp-screen{min-height:420px;padding:1.7rem .7rem .85rem;}
   .pp-hi{font-size:13px;}
