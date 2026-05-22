@@ -2141,10 +2141,13 @@ body.app-active { overflow: hidden; }
 
 .video-container video,
 .video-container iframe {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
+  z-index: 1;
 }
 
 .video-placeholder {
@@ -2153,10 +2156,12 @@ body.app-active { overflow: hidden; }
   left: 0;
   width: 100%;
   height: 100%;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 50% 30%, rgba(255,220,190,0.28), transparent 70%), linear-gradient(145deg, #C99A7C 0%, var(--tierra) 60%, var(--tierra-oscuro) 100%);
+  /* Scrim translúcido: deja ver la imagen del video debajo antes del play */
+  background: radial-gradient(circle at 50% 48%, rgba(45,30,22,0.50) 0%, rgba(45,30,22,0.24) 70%);
   color: var(--crema);
   flex-direction: column;
   gap: 14px;
@@ -2199,6 +2204,7 @@ body.app-active { overflow: hidden; }
   font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   letter-spacing: 1px;
+  z-index: 3;
 }
 .video-fs-btn {
   position: absolute;
@@ -2231,7 +2237,9 @@ body.app-active { overflow: hidden; }
 }
 
 .video-container:fullscreen img,
-.video-container:-webkit-full-screen img {
+.video-container:-webkit-full-screen img,
+.video-container:fullscreen video,
+.video-container:-webkit-full-screen video {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -3056,6 +3064,7 @@ body.app-active { overflow: hidden; }
     </div>
     <div class="video-frame">
       <div class="video-container" id="video-container">
+        <video id="prac-video" playsinline preload="metadata"></video>
         <div class="video-placeholder">
           <div class="video-play-btn" onclick="tTm()">▶</div>
           <div style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:16px;">Toca para comenzar</div>
@@ -4108,6 +4117,7 @@ function resetDashChat(){
 function startQuest(){
   if(tm)clearInterval(tm);
   tm=null;
+  stopPracVideo();
   curQ=1;
   answers={};
   go('quest');
@@ -4303,6 +4313,36 @@ function qFinish(){
   go('done');
 }
 
+// ============================================
+// VIDEOS DE PRÁCTICA — conectados a Supabase Storage.
+// Archivos reales: {SLUG}{minutos}.mp4  ·  solo existen 15 y 30 min.
+// ============================================
+const VIDEO_BASE='https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/';
+const VIDEO_SLUG={
+  'Ritmo Suave':'RITMOSUAVE',
+  'Presencia':'PRESENCIA',
+  'Recuperación Suave':'RECUPERACIONSUAVE',
+  'Contención':'CONTENCION',
+  'Descarga Segura':'DESCARGASEGURA'
+};
+// URL del video real según práctica (emoción) + duración elegida.
+// Solo hay videos de 15 y 30 min; la opción de 45 reutiliza el de 30.
+function practiceVideoURL(practica, time){
+  const slug=VIDEO_SLUG[practica];
+  if(!slug) return '';
+  let min=String(time||'').split('-').pop();
+  if(min!=='15' && min!=='30') min='30';
+  // #t=0.1 → fuerza al navegador a pintar el primer fotograma como vista previa
+  return VIDEO_BASE+slug+min+'.mp4#t=0.1';
+}
+// Detiene y reinicia el video de la práctica (al salir o terminar)
+function stopPracVideo(){
+  const v=document.getElementById('prac-video');
+  const c=document.getElementById('video-container');
+  if(v){ v.pause(); try{v.currentTime=0;}catch(e){} }
+  if(c) c.classList.remove('playing');
+}
+
 // TIME
 function pT(time,rhy){
   sR=rhy;
@@ -4315,15 +4355,39 @@ function pT(time,rhy){
   if($('tmD'))$('tmD').textContent='00:00';
   const pb=document.querySelector('#s-prac .video-play-btn, #s-prac .pr-play');
   if(pb)pb.textContent='▶';
+  // Cargar el video real de esta práctica + duración en el <video>
+  const vid=$('prac-video'), cont=$('video-container');
+  if(vid && cont){
+    cont.classList.remove('playing');
+    const url=practiceVideoURL(sP,time);
+    if(url){
+      vid.src=url;
+      vid.load();
+      vid.onended=()=>{ if(tm){clearInterval(tm);tm=null;} if(pb)pb.textContent='▶'; };
+    }else{
+      vid.removeAttribute('src');
+    }
+  }
   go('prac');
 }
 
-// TIMER
+// TIMER + reproducción del video
 function tTm(){
   const b=document.querySelector('#s-prac .video-play-btn, #s-prac .pr-play');
   if(!b)return;
-  if(tm){clearInterval(tm);tm=null;b.textContent='▶';}
-  else{tm=setInterval(()=>{sc++;document.getElementById('tmD').textContent=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');},1000);b.textContent='⏸';}
+  const v=document.getElementById('prac-video');
+  const cont=document.getElementById('video-container');
+  if(tm){
+    clearInterval(tm);tm=null;b.textContent='▶';
+    if(v && v.src) v.pause();
+  }else{
+    tm=setInterval(()=>{sc++;document.getElementById('tmD').textContent=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');},1000);
+    b.textContent='⏸';
+    if(v && v.src){
+      if(cont) cont.classList.add('playing'); // descubre el video bajo el placeholder
+      v.play().catch(()=>{});
+    }
+  }
 }
 
 // Pantalla completa del reproductor de video (con fallback webkit para Safari)
@@ -4601,6 +4665,7 @@ function guardarPerfil(campo){
 function confirmExit(){
   if(confirm('¿Salir de la práctica? Tu progreso de hoy se perderá.')){
     if(tm){clearInterval(tm);tm=null;}
+    stopPracVideo();
     sc=0;
     go('dash');
   }
