@@ -2144,9 +2144,13 @@ body.app-active { overflow: hidden; }
   width: 100%;
   height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .video-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   display: flex;
@@ -2157,6 +2161,9 @@ body.app-active { overflow: hidden; }
   flex-direction: column;
   gap: 14px;
 }
+/* Mientras el video real se reproduce: dejar ver el video (botón ⏸ sigue visible) */
+.video-container.playing .video-placeholder { background: transparent; }
+.video-container.playing .video-placeholder > div:not(.video-play-btn) { display: none; }
 
 .video-play-btn {
   width: 80px;
