@@ -2166,9 +2166,11 @@ body.app-active { overflow: hidden; }
   flex-direction: column;
   gap: 14px;
 }
-/* Mientras el video real se reproduce: dejar ver el video (botón ⏸ sigue visible) */
+/* Una vez iniciado el video: ocultar el texto "Toca para comenzar" */
+.video-container.started .video-placeholder > div:not(.video-play-btn) { display: none; }
+/* Mientras el video reproduce: placeholder transparente y botón de play oculto */
 .video-container.playing .video-placeholder { background: transparent; }
-.video-container.playing .video-placeholder > div:not(.video-play-btn) { display: none; }
+.video-container.playing .video-play-btn { display: none; }
 
 .video-play-btn {
   width: 80px;
@@ -2190,22 +2192,6 @@ body.app-active { overflow: hidden; }
 
 .video-play-btn:hover { transform: scale(1.1); }
 
-.video-timer {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.28);
-  color: #FFFFFF;
-  padding: 6px 14px;
-  border-radius: 100px;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 13px;
-  letter-spacing: 1px;
-  z-index: 3;
-}
 .video-fs-btn {
   position: absolute;
   bottom: 16px;
@@ -2767,7 +2753,6 @@ body.app-active { overflow: hidden; }
   #s-prac .video-container{border-radius:16px;box-shadow:0 0 40px -6px rgba(200,107,65,.45),0 12px 24px -8px rgba(58,40,32,.3);}
   #s-prac .video-play-btn{width:72px;height:72px;background:rgba(255,255,255,.92);border:none;color:#c0673f;font-size:26px;box-shadow:0 6px 20px -4px rgba(58,40,32,.4);}
   #s-prac .video-placeholder>div:not(.video-play-btn){display:none;}
-  #s-prac .video-timer{background:rgba(0,0,0,.25);border:none;bottom:12px;left:12px;font-size:12px;padding:5px 11px;}
   #s-prac .video-fs-btn{display:none;}
   #s-prac .video-frame::after{content:'Toca play cuando estés lista';display:block;text-align:center;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:#9c6b5c;margin-top:14px;}
   /* E) Recuadro de cierre */
@@ -3065,11 +3050,10 @@ body.app-active { overflow: hidden; }
     <div class="video-frame">
       <div class="video-container" id="video-container">
         <video id="prac-video" playsinline preload="metadata"></video>
-        <div class="video-placeholder">
-          <div class="video-play-btn" onclick="tTm()">▶</div>
+        <div class="video-placeholder" onclick="tTm()">
+          <div class="video-play-btn">▶</div>
           <div style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:16px;">Toca para comenzar</div>
         </div>
-        <div class="video-timer" id="tmD">00:00</div>
         <button class="video-fs-btn" onclick="toggleFullscreen()" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
     </div>
@@ -4340,7 +4324,7 @@ function stopPracVideo(){
   const v=document.getElementById('prac-video');
   const c=document.getElementById('video-container');
   if(v){ v.pause(); try{v.currentTime=0;}catch(e){} }
-  if(c) c.classList.remove('playing');
+  if(c) c.classList.remove('playing','started');
 }
 
 // TIME
@@ -4352,18 +4336,20 @@ function pT(time,rhy){
   if($('rT'))$('rT').textContent='Integrando lo que viviste';
   if($('rTx'))$('rTx').textContent=RD[sP]||RD['Presencia'];
   sc=0;if(tm)clearInterval(tm);tm=null;
-  if($('tmD'))$('tmD').textContent='00:00';
   const pb=document.querySelector('#s-prac .video-play-btn, #s-prac .pr-play');
   if(pb)pb.textContent='▶';
   // Cargar el video real de esta práctica + duración en el <video>
   const vid=$('prac-video'), cont=$('video-container');
   if(vid && cont){
-    cont.classList.remove('playing');
+    cont.classList.remove('playing','started');
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
       vid.load();
-      vid.onended=()=>{ if(tm){clearInterval(tm);tm=null;} if(pb)pb.textContent='▶'; };
+      // Las clases del contenedor siguen el estado real del <video>
+      vid.onplay =()=>{ cont.classList.add('started','playing'); if(pb)pb.textContent='⏸'; };
+      vid.onpause=()=>{ cont.classList.remove('playing'); if(pb)pb.textContent='▶'; };
+      vid.onended=()=>{ cont.classList.remove('playing'); if(pb)pb.textContent='▶'; };
     }else{
       vid.removeAttribute('src');
     }
@@ -4371,23 +4357,12 @@ function pT(time,rhy){
   go('prac');
 }
 
-// TIMER + reproducción del video
+// Reproduce / pausa el video de la práctica
 function tTm(){
-  const b=document.querySelector('#s-prac .video-play-btn, #s-prac .pr-play');
-  if(!b)return;
   const v=document.getElementById('prac-video');
-  const cont=document.getElementById('video-container');
-  if(tm){
-    clearInterval(tm);tm=null;b.textContent='▶';
-    if(v && v.src) v.pause();
-  }else{
-    tm=setInterval(()=>{sc++;document.getElementById('tmD').textContent=String(Math.floor(sc/60)).padStart(2,'0')+':'+String(sc%60).padStart(2,'0');},1000);
-    b.textContent='⏸';
-    if(v && v.src){
-      if(cont) cont.classList.add('playing'); // descubre el video bajo el placeholder
-      v.play().catch(()=>{});
-    }
-  }
+  if(!v || !v.src) return;
+  if(v.paused) v.play().catch(()=>{});
+  else v.pause();
 }
 
 // Pantalla completa del reproductor de video (con fallback webkit para Safari)
