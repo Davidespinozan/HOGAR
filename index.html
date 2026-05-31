@@ -2912,7 +2912,7 @@ body.app-active { overflow: hidden; }
 <div id="s-recover" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""><div id="recover-form"><h2 class="auth-title-italic">Recuperar acceso</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Te enviaremos un enlace a tu correo para que vuelvas a entrar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="rE" placeholder="tu@email.com"></div></div><div id="recover-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="recoverBtn" onclick="doRecover()">Enviar enlace</button><p style="margin-top:1.2rem;"><a href="javascript:void(0)" onclick="go('login')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio de sesión</a></p></div><div id="recover-sent" style="display:none;"><h2 class="auth-title-italic">Revisa tu correo</h2><p style="font-size:.88rem;color:var(--texto-oscuro);font-weight:300;margin:1rem 0 .4rem;line-height:1.6;">Te enviamos un correo a <strong id="recover-sent-email" style="font-weight:600;color:var(--terracota-oscuro);"></strong>.</p><p style="font-size:.82rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;line-height:1.6;">Revisa tu bandeja (y la carpeta de spam).</p><button class="btn btn-r btn-full" onclick="go('login')">Volver al inicio</button></div></div></div></div>
 
 <!-- NEW PASSWORD (from recovery email) -->
-<div id="s-newpass" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""><h2 class="auth-title-italic">Define tu nueva contraseña</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Elige una contraseña que recuerdes con cariño.</p><div style="text-align:left;"><div class="fg"><label>Nueva contraseña</label><input type="password" id="npP" placeholder="Mínimo 6 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="npP2" placeholder="Repítela"></div></div><div id="newpass-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="newpassBtn" onclick="doNewPass()">Guardar contraseña</button></div></div></div>
+<div id="s-newpass" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""><h2 class="auth-title-italic">Define tu nueva contraseña</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Elige una nueva clave para volver a entrar.</p><div style="text-align:left;"><div class="fg"><label>Nueva contraseña</label><input type="password" id="npP" placeholder="Mínimo 6 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="npP2" placeholder="Repítela"></div></div><div id="newpass-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="newpassBtn" onclick="doNewPass()">Guardar contraseña</button></div></div></div>
 
 <!-- LOGIN -->
 <div id="s-login" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">Vuelve a tu HOGAR</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Inicia sesión para continuar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="lE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="lP" placeholder="Tu contraseña"></div></div><div id="login-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="loginBtn" onclick="doLog()">Entrar</button><p style="margin-top:.9rem;"><a href="javascript:void(0)" onclick="goToRecover()" style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:.78rem;color:var(--terracota);text-decoration:none;">¿Olvidaste tu contraseña?</a></p><p style="margin-top:.6rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio</a></p></div></div></div>
@@ -3935,6 +3935,23 @@ async function doRecover(){
 }
 
 // NUEVA CONTRASEÑA: tras hacer clic en el enlace del correo
+// Errores específicos al guardar la contraseña nueva (updateUser)
+function newPassError(errOrMsg){
+  const msg = (errOrMsg && typeof errOrMsg==='object') ? (errOrMsg.message||'') : (errOrMsg||'');
+  const code = (errOrMsg && typeof errOrMsg==='object' && errOrMsg.code) ? String(errOrMsg.code).toLowerCase() : '';
+  const m = String(msg).toLowerCase();
+  if(code==='same_password' || m.includes('should be different') || m.includes('same as the old password') || m.includes('same_password')){
+    return 'Elige una contraseña distinta a la que ya tenías.';
+  }
+  if(m.includes('at least 6 characters') || m.includes('weak password') || m.includes('password should be') || m.includes('password is too short') || m.includes('password too short')){
+    return 'La contraseña debe tener al menos 6 caracteres.';
+  }
+  if(m.includes('expired') || m.includes('invalid token') || m.includes('otp_expired') || m.includes('session_not_found') || m.includes('jwt expired') || m.includes('auth session missing')){
+    return 'Este enlace ya expiró. Pide uno nuevo desde "Olvidé mi contraseña".';
+  }
+  return authError(msg);
+}
+
 async function doNewPass(){
   const p=document.getElementById('npP').value;
   const p2=document.getElementById('npP2').value;
@@ -3947,7 +3964,7 @@ async function doNewPass(){
   if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
   try{
     const { error } = await window.sb.auth.updateUser({ password:p });
-    if(error){ authMsg('newpass-msg', authError(error.message),'error'); return; }
+    if(error){ authMsg('newpass-msg', newPassError(error),'error'); return; }
     // Limpia el hash/query del enlace de recuperación
     try{
       if(window.history && window.history.replaceState){
@@ -3965,7 +3982,7 @@ async function doNewPass(){
     }catch(_){}
     setTimeout(()=>{ go('login'); }, 1200);
   }catch(err){
-    authMsg('newpass-msg', authError(err&&err.message),'error');
+    authMsg('newpass-msg', newPassError(err),'error');
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=btnTxt||'Guardar contraseña'; }
   }
