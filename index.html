@@ -28,7 +28,7 @@
 .scr{display:none;}
 .scr.on{display:block;animation:scrIn .5s ease;}
 /* Todas las screens que NO son landing se fijan al viewport */
-#s-payment.on,#s-signup.on,#s-login.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on{
+#s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on{
   position:fixed;top:0;left:0;width:100%;height:100%;overflow-y:auto;z-index:200;background:var(--crema);
 }
 @keyframes scrIn{from{opacity:0}to{opacity:1}}@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(244,200,184,.3)}50%{box-shadow:0 0 40px rgba(244,200,184,.5)}}
@@ -576,7 +576,7 @@
 }
 
 /* — Ambient orb backgrounds (solo app screens, no landing) — */
-#s-payment.on,#s-signup.on,#s-login.on,
+#s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,
 #s-dash.on,#s-ci1.on,#s-ci2.on,
 #s-prac.on,#s-quest.on,
 #s-done.on,#s-profile.on,#s-history.on{
@@ -714,7 +714,9 @@
 /* — Auth / payment containers — */
 #s-payment > div > div,
 #s-signup > div > div,
-#s-login > div > div{
+#s-login > div > div,
+#s-recover > div > div,
+#s-newpass > div > div{
   border-radius: var(--r-hero) !important;
   background: rgba(255,255,255,.86) !important;
   backdrop-filter: blur(22px) saturate(140%);
@@ -722,6 +724,38 @@
   border: 1px solid rgba(255,255,255,.7);
   box-shadow: var(--sh-xl) !important;
 }
+
+/* — Recover / new password: title in italic — */
+.auth-title-italic{
+  font-family:'Montserrat',sans-serif;
+  font-style:italic;
+  font-weight:500;
+  font-size:1.5rem;
+  color:var(--texto-oscuro);
+  letter-spacing:-.01em;
+  line-height:1.2;
+}
+
+/* — Duplicate-email block on signup — */
+.signup-dup{
+  display:none;
+  background:rgba(244,200,184,.20);
+  border:1px solid rgba(216,135,102,.28);
+  border-radius:14px;
+  padding:1rem 1rem .9rem;
+  margin-bottom:1rem;
+  text-align:left;
+}
+.signup-dup.show{ display:block; }
+.signup-dup p{
+  font-size:.85rem;
+  color:var(--texto-oscuro);
+  font-weight:500;
+  line-height:1.5;
+  margin-bottom:.8rem;
+}
+.signup-dup-acts{ display:flex; flex-direction:column; gap:.55rem; }
+@media(min-width:480px){ .signup-dup-acts{ flex-direction:row; } .signup-dup-acts .btn{ flex:1; } }
 
 /* — Status badge (history "Completada") — */
 .dh-tag{
@@ -2872,10 +2906,16 @@ body.app-active { overflow: hidden; }
 <div id="s-payment" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:460px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);"><div style="text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""></div><h2 style="font-size:1.3rem;text-align:center;">Completa tu compra</h2><div style="background:var(--crema-claro);border-radius:14px;padding:1rem 1.2rem;margin:1.2rem 0;display:flex;justify-content:space-between;align-items:center;"><span style="font-size:.82rem;color:var(--texto-medio);">Pago único</span><span style="font-family:'Montserrat',sans-serif;font-size:1.4rem;">$499 <span style="font-size:.7rem;color:var(--texto-medio);">MXN</span></span></div><div class="fg"><label>Nombre en la tarjeta</label><input type="text" id="cN" placeholder="Nombre completo"></div><div class="fg"><label>Número de tarjeta</label><input type="text" id="cNu" placeholder="1234 5678 9012 3456" maxlength="19" oninput="fC(this)"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;"><div class="fg"><label>Vencimiento</label><input type="text" id="cE" placeholder="MM/AA" maxlength="5" oninput="fEi(this)"></div><div class="fg"><label>CVC</label><input type="text" id="cV" placeholder="123" maxlength="3"></div></div><button class="btn btn-r btn-full" id="payB" onclick="doPay()">Pagar $499 MXN</button><p style="text-align:center;font-size:.7rem;color:var(--texto-medio);margin-top:.8rem;">🔒 Pago seguro</p><p style="text-align:center;margin-top:1rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver</a></p></div></div></div>
 
 <!-- SIGNUP -->
-<div id="s-signup" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:440px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">¡Bienvenida a HOGAR!</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Pago exitoso. Crea tu cuenta.</p><div style="text-align:left;"><div class="fg"><label>Tu nombre</label><input type="text" id="sN" placeholder="¿Cómo te llamas?"></div><div class="fg"><label>Email</label><input type="email" id="sE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="sP" placeholder="Mínimo 8 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="sP2" placeholder="Repite tu contraseña"></div></div><div id="signup-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="signupBtn" onclick="doSign()">Crear mi cuenta</button></div></div></div>
+<div id="s-signup" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:440px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">¡Bienvenida a HOGAR!</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Pago exitoso. Crea tu cuenta.</p><div style="text-align:left;"><div class="fg"><label>Tu nombre</label><input type="text" id="sN" placeholder="¿Cómo te llamas?"></div><div class="fg"><label>Email</label><input type="email" id="sE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="sP" placeholder="Mínimo 8 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="sP2" placeholder="Repite tu contraseña"></div></div><div id="signup-msg" class="auth-msg"></div><div id="signup-dup" class="signup-dup"><p>Ya tienes una cuenta con este correo. ¿Quieres iniciar sesión o recuperar tu contraseña?</p><div class="signup-dup-acts"><button type="button" class="btn btn-r" onclick="goToLoginFromSignup()">Iniciar sesión</button><button type="button" class="btn btn-o" onclick="goToRecoverFromSignup()">Recuperar contraseña</button></div></div><button class="btn btn-r btn-full" id="signupBtn" onclick="doSign()">Crear mi cuenta</button></div></div></div>
+
+<!-- RECOVER PASSWORD -->
+<div id="s-recover" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""><div id="recover-form"><h2 class="auth-title-italic">Recuperar acceso</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Te enviaremos un enlace a tu correo para que vuelvas a entrar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="rE" placeholder="tu@email.com"></div></div><div id="recover-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="recoverBtn" onclick="doRecover()">Enviar enlace</button><p style="margin-top:1.2rem;"><a href="javascript:void(0)" onclick="go('login')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio de sesión</a></p></div><div id="recover-sent" style="display:none;"><h2 class="auth-title-italic">Revisa tu correo</h2><p style="font-size:.88rem;color:var(--texto-oscuro);font-weight:300;margin:1rem 0 .4rem;line-height:1.6;">Te enviamos un correo a <strong id="recover-sent-email" style="font-weight:600;color:var(--terracota-oscuro);"></strong>.</p><p style="font-size:.82rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;line-height:1.6;">Revisa tu bandeja (y la carpeta de spam).</p><button class="btn btn-r btn-full" onclick="go('login')">Volver al inicio</button></div></div></div></div>
+
+<!-- NEW PASSWORD (from recovery email) -->
+<div id="s-newpass" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""><h2 class="auth-title-italic">Define tu nueva contraseña</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Elige una contraseña que recuerdes con cariño.</p><div style="text-align:left;"><div class="fg"><label>Nueva contraseña</label><input type="password" id="npP" placeholder="Mínimo 6 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="npP2" placeholder="Repítela"></div></div><div id="newpass-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="newpassBtn" onclick="doNewPass()">Guardar contraseña</button></div></div></div>
 
 <!-- LOGIN -->
-<div id="s-login" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">Vuelve a tu HOGAR</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Inicia sesión para continuar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="lE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="lP" placeholder="Tu contraseña"></div></div><div id="login-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="loginBtn" onclick="doLog()">Entrar</button><p style="margin-top:1.2rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio</a></p></div></div></div>
+<div id="s-login" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">Vuelve a tu HOGAR</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Inicia sesión para continuar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="lE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="lP" placeholder="Tu contraseña"></div></div><div id="login-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="loginBtn" onclick="doLog()">Entrar</button><p style="margin-top:.9rem;"><a href="javascript:void(0)" onclick="goToRecover()" style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:.78rem;color:var(--terracota);text-decoration:none;">¿Olvidaste tu contraseña?</a></p><p style="margin-top:.6rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio</a></p></div></div></div>
 
 <!-- DASHBOARD -->
 <div id="s-dash" class="scr">
@@ -3787,6 +3827,25 @@ function applyUser(supaUser){
   U={ name:nombre, email:supaUser.email||'', sessions:0, streak:0, days:0 };
 }
 
+// Detecta si un error/respuesta indica correo duplicado
+function _isDuplicateEmail(errMsg, data){
+  const m=(errMsg||'').toLowerCase();
+  if(m.includes('already registered')||m.includes('already been registered')||m.includes('user already exists')||m.includes('already exists')) return true;
+  if(data && data.user && Array.isArray(data.user.identities) && data.user.identities.length===0) return true;
+  return false;
+}
+
+// Muestra el bloque amable de "ya tienes cuenta" con dos botones
+function showSignupDuplicate(){
+  const dup=document.getElementById('signup-dup');
+  if(dup) dup.classList.add('show');
+  authMsg('signup-msg','');
+}
+function hideSignupDuplicate(){
+  const dup=document.getElementById('signup-dup');
+  if(dup) dup.classList.remove('show');
+}
+
 // REGISTRO REAL
 async function doSign(){
   const n=document.getElementById('sN').value.trim(),
@@ -3794,6 +3853,7 @@ async function doSign(){
         p=document.getElementById('sP').value,
         p2=document.getElementById('sP2').value;
   authMsg('signup-msg','');
+  hideSignupDuplicate();
   if(!n||!e||!p){ authMsg('signup-msg','Completa todos los campos.','error'); return; }
   if(p!==p2){ authMsg('signup-msg','Las contraseñas no coinciden.','error'); return; }
   if(p.length<8){ authMsg('signup-msg','La contraseña debe tener al menos 8 caracteres.','error'); return; }
@@ -3804,18 +3864,110 @@ async function doSign(){
     const { data, error } = await window.sb.auth.signUp({
       email:e, password:p, options:{ data:{ full_name:n } }
     });
-    if(error){ authMsg('signup-msg', authError(error.message),'error'); return; }
+    if(error){
+      if(_isDuplicateEmail(error.message, null)){ showSignupDuplicate(); return; }
+      authMsg('signup-msg', authError(error.message),'error'); return;
+    }
     if(data && data.session){
       applyUser(data.user); hi=[]; go('dash');
-    } else if(data && data.user && Array.isArray(data.user.identities) && data.user.identities.length===0){
-      authMsg('signup-msg','Ese correo ya tiene una cuenta. Intenta iniciar sesión.','error');
+    } else if(_isDuplicateEmail(null, data)){
+      showSignupDuplicate();
     } else {
       authMsg('signup-msg','¡Casi listo! Te enviamos un correo a '+e+' para confirmar tu cuenta. Confírmalo y después inicia sesión.','info');
     }
   }catch(err){
+    if(_isDuplicateEmail(err&&err.message, null)){ showSignupDuplicate(); return; }
     authMsg('signup-msg', authError(err&&err.message),'error');
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=btnTxt||'Crear mi cuenta'; }
+  }
+}
+
+// Desde el bloque de duplicado: ir a login con el correo pre-llenado
+function goToLoginFromSignup(){
+  const e=(document.getElementById('sE')||{}).value||'';
+  const lE=document.getElementById('lE'); if(lE) lE.value=e.trim();
+  authMsg('login-msg','');
+  hideSignupDuplicate();
+  go('login');
+}
+
+// Desde el bloque de duplicado: ir a recuperación con el correo pre-llenado
+function goToRecoverFromSignup(){
+  const e=(document.getElementById('sE')||{}).value||'';
+  goToRecover(e);
+  hideSignupDuplicate();
+}
+
+// Entrar a la pantalla de recuperación con email opcional pre-llenado
+function goToRecover(prefillEmail){
+  const rE=document.getElementById('rE');
+  if(rE && typeof prefillEmail==='string' && prefillEmail.trim()) rE.value=prefillEmail.trim();
+  const form=document.getElementById('recover-form');
+  const sent=document.getElementById('recover-sent');
+  if(form) form.style.display='';
+  if(sent) sent.style.display='none';
+  authMsg('recover-msg','');
+  go('recover');
+}
+
+// RECUPERACIÓN: envía el correo con el enlace
+async function doRecover(){
+  const e=document.getElementById('rE').value.trim();
+  authMsg('recover-msg','');
+  if(!e){ authMsg('recover-msg','Ingresa tu correo.','error'); return; }
+  if(!window.sb){ authMsg('recover-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); return; }
+  const btn=document.getElementById('recoverBtn'); const btnTxt=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
+  try{
+    const { error } = await window.sb.auth.resetPasswordForEmail(e, {
+      redirectTo: window.location.origin + '/?reset=true'
+    });
+    if(error){ authMsg('recover-msg', authError(error.message),'error'); return; }
+    document.getElementById('recover-form').style.display='none';
+    document.getElementById('recover-sent').style.display='block';
+    document.getElementById('recover-sent-email').textContent=e;
+  }catch(err){
+    authMsg('recover-msg', authError(err&&err.message),'error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=btnTxt||'Enviar enlace'; }
+  }
+}
+
+// NUEVA CONTRASEÑA: tras hacer clic en el enlace del correo
+async function doNewPass(){
+  const p=document.getElementById('npP').value;
+  const p2=document.getElementById('npP2').value;
+  authMsg('newpass-msg','');
+  if(!p||!p2){ authMsg('newpass-msg','Completa ambos campos.','error'); return; }
+  if(p!==p2){ authMsg('newpass-msg','Las contraseñas no coinciden.','error'); return; }
+  if(p.length<6){ authMsg('newpass-msg','La contraseña debe tener al menos 6 caracteres.','error'); return; }
+  if(!window.sb){ authMsg('newpass-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); return; }
+  const btn=document.getElementById('newpassBtn'); const btnTxt=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+  try{
+    const { error } = await window.sb.auth.updateUser({ password:p });
+    if(error){ authMsg('newpass-msg', authError(error.message),'error'); return; }
+    // Limpia el hash/query del enlace de recuperación
+    try{
+      if(window.history && window.history.replaceState){
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }catch(_){}
+    authMsg('newpass-msg','Contraseña actualizada. Ya puedes entrar.','info');
+    // Si la recuperación dejó sesión activa, ir directo al dashboard
+    try{
+      const { data:sess } = await window.sb.auth.getSession();
+      if(sess && sess.session && sess.session.user){
+        setTimeout(()=>{ applyUser(sess.session.user); hi=[]; go('dash'); }, 900);
+        return;
+      }
+    }catch(_){}
+    setTimeout(()=>{ go('login'); }, 1200);
+  }catch(err){
+    authMsg('newpass-msg', authError(err&&err.message),'error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=btnTxt||'Guardar contraseña'; }
   }
 }
 
@@ -3850,6 +4002,25 @@ async function doOut(){
 // Restaurar sesión al cargar — lo llama el módulo ESM cuando window.sb está listo
 async function _authInit(){
   if(!window.sb) return;
+  // Detectar flujo de recuperación de contraseña ANTES de restaurar sesión
+  try{
+    const hash=window.location.hash||'';
+    const search=window.location.search||'';
+    const isRecovery=hash.includes('type=recovery')||search.includes('reset=true');
+    if(isRecovery){
+      try{ await window.sb.auth.getSession(); }catch(_){}
+      go('newpass');
+      // Aún suscribirse al evento por si Supabase emite PASSWORD_RECOVERY después
+      try{
+        window.sb.auth.onAuthStateChange((event)=>{ if(event==='PASSWORD_RECOVERY') go('newpass'); });
+      }catch(_){}
+      return;
+    }
+    // Suscribirse al evento de recuperación (por si llega con la app ya abierta)
+    try{
+      window.sb.auth.onAuthStateChange((event)=>{ if(event==='PASSWORD_RECOVERY') go('newpass'); });
+    }catch(_){}
+  }catch(_){}
   try{
     const { data } = await window.sb.auth.getSession();
     if(data && data.session && data.session.user){
