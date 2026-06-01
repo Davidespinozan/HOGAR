@@ -3146,6 +3146,7 @@ body.app-active { overflow: hidden; }
     <div class="video-frame">
       <div class="video-container" id="video-container">
         <video id="prac-video" playsinline preload="metadata"></video>
+        <audio id="prac-audio" preload="auto" style="display:none"></audio>
         <div class="video-placeholder" onclick="tTm()">
           <div class="video-play-btn">▶</div>
           <div style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:16px;">Toca para comenzar</div>
@@ -4566,11 +4567,19 @@ function practiceVideoURL(practica, time){
   // #t=0.1 → fuerza al navegador a pintar el primer fotograma como vista previa
   return VIDEO_BASE+slug+min+'.mp4#t=0.1';
 }
+// URL del audio (voz de Andrea encima del video) — mismo patrón que el video pero .mp3
+function practiceAudioURL(practica, time){
+  const u=practiceVideoURL(practica, time);
+  if(!u) return '';
+  return u.replace(/#.*$/,'').replace(/\.mp4$/,'.mp3');
+}
 // Detiene y reinicia el video de la práctica (al salir o terminar)
 function stopPracVideo(){
   const v=document.getElementById('prac-video');
   const c=document.getElementById('video-container');
+  const a=document.getElementById('prac-audio');
   if(v){ v.pause(); try{v.currentTime=0;}catch(e){} }
+  if(a){ a.pause(); try{a.currentTime=0;}catch(e){} a.removeAttribute('src'); }
   if(c) c.classList.remove('playing','started');
 }
 
@@ -4587,18 +4596,27 @@ function pT(time,rhy){
   if(pb)pb.textContent='▶';
   // Cargar el video real de esta práctica + duración en el <video>
   const vid=$('prac-video'), cont=$('video-container');
+  const aud=$('prac-audio');
   if(vid && cont){
     cont.classList.remove('playing','started');
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
       vid.load();
+      // Cargar el audio sincronizado (voz de Andrea encima del audio del video)
+      if(aud){
+        const aurl=practiceAudioURL(sP,time);
+        if(aurl){ aud.src=aurl; aud.currentTime=0; aud.load(); }
+        else { aud.removeAttribute('src'); }
+      }
       // Las clases del contenedor siguen el estado real del <video>
-      vid.onplay =()=>{ cont.classList.add('started','playing'); if(pb)pb.textContent='⏸'; };
-      vid.onpause=()=>{ cont.classList.remove('playing'); if(pb)pb.textContent='▶'; };
-      vid.onended=()=>{ cont.classList.remove('playing'); if(pb)pb.textContent='▶'; };
+      vid.onplay =()=>{ cont.classList.add('started','playing'); if(pb)pb.textContent='⏸'; if(aud&&aud.src){ aud.play().catch(()=>{}); } };
+      vid.onpause=()=>{ cont.classList.remove('playing'); if(pb)pb.textContent='▶'; if(aud){ aud.pause(); } };
+      vid.onended=()=>{ cont.classList.remove('playing'); if(pb)pb.textContent='▶'; if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } };
+      vid.onseeked=()=>{ if(aud){ try{ aud.currentTime=vid.currentTime; }catch(e){} } };
     }else{
       vid.removeAttribute('src');
+      if(aud) aud.removeAttribute('src');
     }
   }
   go('prac');
