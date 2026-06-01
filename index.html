@@ -1885,12 +1885,12 @@ body.app-active { overflow: hidden; }
 #dash-pills-emocion .pill:nth-child(5) svg{ background:linear-gradient(135deg,color-mix(in srgb,#B85F3D 30%,#fff),color-mix(in srgb,#B85F3D 12%,#fff)); }
 
 /* PILLS de TIEMPO (Tu Momento — chat con Andrea)
-   Mismo lenguaje visual que las tarjetas de emoción, con paleta cálida progresiva.
-   Aplica en móvil y escritorio. */
+   Mismo lenguaje visual y MISMA escala que las tarjetas de emoción,
+   con paleta cálida progresiva. Aplica en móvil y escritorio. */
 #dash-pills-tiempo{ display:flex; flex-direction:column; gap:10px; padding-left:0; margin-top:10px; }
 #dash-pills-tiempo .pill{
-  display:flex; align-items:center; gap:14px;
-  padding:14px; border-radius:16px;
+  display:flex; align-items:center; gap:13px;
+  padding:13px 14px; border-radius:16px;
   border:0.5px solid transparent;
   background:transparent;
   box-shadow:none !important;
@@ -1903,21 +1903,21 @@ body.app-active { overflow: hidden; }
 #dash-pills-tiempo .pill:hover{ transform:translateY(-2px); box-shadow:0 6px 16px -8px rgba(58,40,32,.18) !important; }
 #dash-pills-tiempo .pill:active{ transform:scale(.985); }
 #dash-pills-tiempo .pill-ico{
-  flex-shrink:0; width:62px; height:62px;
-  border-radius:14px;
+  flex-shrink:0; width:44px; height:44px;
+  border-radius:13px;
   display:flex; align-items:center; justify-content:center;
   background:transparent;
 }
 #dash-pills-tiempo .pill svg,
 #dash-pills-tiempo .pill .pill-ico svg{
-  width:30px; height:30px;
+  width:24px; height:24px;
   background:none; padding:0; border-radius:0;
 }
 #dash-pills-tiempo .pill-tx{ display:flex; flex-direction:column; gap:3px; min-width:0; }
 #dash-pills-tiempo .pill-nm{
   font-family:'Montserrat',sans-serif;
   font-style:italic; font-weight:500;
-  font-size:23px; line-height:1.15; letter-spacing:-.01em;
+  font-size:17px; line-height:1.2; letter-spacing:-.01em;
 }
 #dash-pills-tiempo .pill-ds{
   display:block;
