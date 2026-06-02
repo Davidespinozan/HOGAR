@@ -4676,8 +4676,8 @@ function pT(time,rhy){
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
-      // CAMBIO 1: volúmenes balanceados — música del video al 20%, voz de Andrea al 100%
-      try{ vid.volume = 0.2; }catch(e){}
+      // CAMBIO 1: volúmenes balanceados — música del video al 5%, voz de Andrea al 100%
+      try{ vid.volume = 0.05; }catch(e){}
       vid.load();
       // Cargar el audio sincronizado (voz de Andrea encima del audio del video)
       if(aud){
@@ -4690,7 +4690,7 @@ function pT(time,rhy){
       _vpSetPlayIcon(false);
       _vpUpdateProgress();
       // Las clases del contenedor siguen el estado real del <video>
-      vid.onplay =()=>{ cont.classList.add('started','playing'); try{ vid.volume = 0.2; }catch(e){} if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
+      vid.onplay =()=>{ cont.classList.add('started','playing'); try{ vid.volume = 0.05; }catch(e){} if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
       vid.onpause=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
       vid.onended=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
       vid.onseeked=()=>{ if(aud){ try{ aud.currentTime=vid.currentTime; }catch(e){} } };
