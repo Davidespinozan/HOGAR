@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HOGAR — Regulación a través del movimiento</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&display=swap" rel="stylesheet">
 <style>
 :root {
   --salmon: #F4C8B8;
@@ -1364,130 +1365,102 @@ body.app-active { overflow: hidden; }
   margin-bottom: 30px;
 }
 
-/* ===== DASHBOARD CONVERSACIONAL (B+C) ===== */
-.dash-greeting-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 32px;
-  margin-bottom: 32px;
+/* ===== DASHBOARD HEADER — tarjeta editorial unificada ===== */
+.dash-header{
+  position:relative;
+  background:linear-gradient(135deg,#f8d2b5 0%,#f0b896 100%);
+  border-radius:24px;
+  padding:24px 22px;
+  overflow:hidden;
+  margin-bottom:18px;
 }
-.dash-greeting-text { flex: 1; }
-.dash-meta {
-  font-size: 10px;
-  letter-spacing: 3px;
-  color: var(--terracota);
-  font-weight: 600;
-  margin-bottom: 14px;
+.dash-header::before{
+  content:"";
+  position:absolute;
+  top:-20px; right:-30px;
+  width:160px; height:160px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(253,246,238,.25), transparent 70%);
+  pointer-events:none;
 }
-.dash-greeting-title {
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 300;
-  font-size: 32px;
-  letter-spacing: -1px;
-  line-height: 1.1;
-  color: var(--texto-oscuro);
-  margin-bottom: 8px;
+.dash-header-top{ position:relative; z-index:1; }
+.dash-meta{
+  font-family:'Montserrat',sans-serif;
+  font-size:11px; letter-spacing:2px;
+  text-transform:uppercase; font-weight:500;
+  color:#9c4a2e;
+  margin:0;
 }
-.dash-greeting-title em {
-  font-weight: 700;
-  font-style: italic;
-  color: var(--terracota);
+.dash-hello{
+  font-family:'Montserrat',sans-serif;
+  font-size:22px; font-weight:400;
+  color:#3a2820; line-height:1.1;
+  margin:10px 0 0;
 }
-.dash-greeting-sub {
-  font-family: 'Montserrat', sans-serif;
-  font-style: italic;
-  font-size: 15px;
-  color: var(--tierra);
-  font-weight: 300;
-  max-width: 420px;
-  line-height: 1.6;
+.dash-name{
+  font-family:'Cormorant Garamond', serif;
+  font-style:italic; font-weight:500;
+  font-size:50px; letter-spacing:-1.5px;
+  color:#9c4a2e; line-height:1;
+  margin:0;
 }
-.dash-greeting-sub em {
-  font-weight: 700;
-  font-style: italic;
-  color: var(--terracota);
+.dash-rule{
+  width:36px; height:2px;
+  background:#c66b41;
+  border-radius:2px;
+  margin:14px 0;
+  border:none;
 }
-/* ===== STORY DOT CON CITA EN ESQUINA SUPERIOR DERECHA ===== */
-.dash-greeting-aside {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-shrink: 0;
-  max-width: 380px;
+.dash-andrea-glass{
+  position:relative; z-index:1;
+  background:rgba(255,255,255,.6);
+  border-radius:18px;
+  padding:14px;
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.7);
+  display:flex; gap:13px; align-items:center;
 }
-.dash-aside-text {
-  text-align: right;
-  max-width: 240px;
+.dash-andrea-photo{
+  flex-shrink:0;
+  width:62px; height:62px;
+  border-radius:50%;
+  border:2.5px solid #fdf6ee;
+  box-shadow:0 1px 4px rgba(58,40,32,.12);
+  overflow:hidden;
+  background:var(--salmon);
 }
-.dash-aside-eyebrow {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 9px;
-  letter-spacing: 4px;
-  color: var(--terracota);
-  font-weight: 600;
-  text-transform: uppercase;
-  margin-bottom: 8px;
+.dash-andrea-photo img{
+  width:100%; height:100%;
+  object-fit:cover;
+  display:block;
 }
-.dash-aside-cita {
-  font-family: 'Montserrat', sans-serif;
-  font-style: italic;
-  font-weight: 300;
-  font-size: 14px;
-  line-height: 1.4;
-  color: var(--texto-oscuro);
-  letter-spacing: -0.2px;
-  margin: 0 0 8px 0;
+.dash-andrea-text{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+.dash-aside-meta{
+  font-family:'Montserrat',sans-serif;
+  font-size:11px; letter-spacing:2px;
+  text-transform:uppercase; font-weight:500;
+  color:#9c4a2e;
+  margin:0;
 }
-.dash-aside-cita em {
-  font-weight: 700;
-  color: var(--terracota);
+.dash-aside-cita{
+  font-family:'Cormorant Garamond', serif;
+  font-style:italic; font-weight:500;
+  font-size:15px; line-height:1.3;
+  color:#3a2820;
+  margin:0;
 }
-.dash-aside-meta {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: var(--tierra);
-  font-weight: 500;
-  text-transform: uppercase;
-}
-.dash-aside-story {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  padding: 2.5px;
-  background: conic-gradient(from 0deg, #D88766, #C77789, #A88560, #D88766);
-  flex-shrink: 0;
-  animation: girarAside 8s linear infinite;
-}
-@keyframes girarAside {
-  to { transform: rotate(360deg); }
-}
-.dash-aside-story-inner {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: var(--salmon) url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg') center 30% / cover no-repeat;
-  animation: girarAsideRev 8s linear infinite;
-}
-@keyframes girarAsideRev {
-  to { transform: rotate(-360deg); }
-}
+.dash-aside-cita em{ font-weight:600; color:#9c4a2e; }
 
-/* Mobile: el aside se apila debajo del saludo */
-@media (max-width: 700px) {
-  .dash-greeting-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .dash-greeting-aside {
-    margin-top: 18px;
-    align-self: flex-start;
-    max-width: 100%;
-  }
-  .dash-aside-text {
-    text-align: left;
-  }
+/* Escritorio — un poco más generoso */
+@media(min-width:721px){
+  .dash-header{ padding:30px 28px; margin-bottom:24px; }
+  .dash-name{ font-size:60px; letter-spacing:-2px; }
+  .dash-hello{ font-size:24px; margin-top:12px; }
+  .dash-rule{ margin:18px 0; }
+  .dash-andrea-glass{ padding:16px; gap:16px; }
+  .dash-andrea-photo{ width:70px; height:70px; }
+  .dash-aside-cita{ font-size:17px; }
 }
 
 /* STATS GALERÍA */
@@ -1945,8 +1918,6 @@ body.app-active { overflow: hidden; }
 
 /* RESPONSIVE móvil dashboard conversacional */
 @media (max-width: 720px) {
-  .dash-greeting-row { gap: 16px; }
-  .dash-greeting-title { font-size: 26px; }
   .dash-avatar-circle { width: 48px; height: 48px; }
   .dash-stats-gallery { grid-template-columns: 1fr; gap: 10px; }
   .stat-tile { padding: 18px 20px; }
@@ -2879,24 +2850,7 @@ body.app-active { overflow: hidden; }
 /* ===== DASHBOARD #s-dash — rediseño SOLO movil (<=480px) ===== */
 .pill-ds{display:none;}
 .stat-ico{display:none;}
-.aside-foto{display:none;}
 @media(max-width:480px){
-  /* A) SALUDO — mas notorio */
-  .dash-greeting-row{flex-direction:column;align-items:stretch;gap:16px;margin-bottom:22px;}
-  .dash-greeting-text{background:linear-gradient(155deg,#f8d9cb,#f5e6da);border-radius:20px;padding:24px 22px;}
-  .dash-meta{margin-bottom:12px;font-size:10px;letter-spacing:3px;color:#9c4a2e;}
-  .dash-greeting-title{font-size:24px;font-weight:400;color:#3a2820;line-height:1.15;margin-bottom:0;}
-  .dash-greeting-title em{font-size:38px;font-style:italic;font-weight:500;color:#c0673f;}
-  .dash-greeting-title::after{content:'';display:block;width:42px;height:3px;background:#c66b41;border-radius:3px;margin:14px 0 0;}
-  .dash-greeting-sub{font-size:13px;color:#8a6b60;margin-top:14px;}
-  /* Mensaje de Andrea — tarjeta blanca con foto */
-  .dash-greeting-aside{background:#fff;border-radius:16px;box-shadow:0 8px 22px -10px rgba(58,40,32,.2);padding:16px;display:flex;align-items:center;gap:13px;margin-top:0;max-width:none;}
-  .aside-foto{display:block;flex-shrink:0;width:50px;height:50px;border-radius:50%;border:2px solid #fff;box-shadow:0 4px 12px -3px rgba(58,40,32,.3);background:var(--salmon) url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg') center/cover no-repeat;}
-  .dash-aside-story{display:none;}
-  .dash-aside-eyebrow{display:none;}
-  .dash-aside-text{display:flex;flex-direction:column;text-align:left;max-width:none;}
-  .dash-aside-meta{order:1;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#9c4a2e;font-weight:500;}
-  .dash-aside-cita{order:2;margin:5px 0 0;font-style:italic;color:#3a2820;font-size:14px;line-height:1.35;}
   /* B) ESTADISTICAS — 3 en una fila */
   .dash-stats-gallery{grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 22px;}
   .stat-tile{display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 8px;border-radius:15px;box-shadow:0 8px 20px -10px rgba(58,40,32,0.18);}
@@ -3101,21 +3055,20 @@ body.app-active { overflow: hidden; }
     </div>
   </div>
   <div class="app-container">
-    <div class="dash-greeting-row">
-      <div class="dash-greeting-text">
+    <div class="dash-header">
+      <div class="dash-header-top">
         <div class="dash-meta" id="dash-meta">— HOY · DÍA 1</div>
-        <h1 class="dash-greeting-title">Hola,<br/><em id="user-name">Andrea</em>.</h1>
-        <p class="dash-greeting-sub" id="dash-greeting-sub">Tu espacio de práctica diaria.</p>
+        <p class="dash-hello">Hola,</p>
+        <h1 class="dash-name"><span id="user-name">Andrea</span>.</h1>
+        <hr class="dash-rule">
       </div>
-      <div class="dash-greeting-aside">
-        <div class="aside-foto"></div>
-        <div class="dash-aside-text">
-          <div class="dash-aside-eyebrow">Andrea publicó</div>
-          <p class="dash-aside-cita" id="dash-aside-cita"></p>
-          <div class="dash-aside-meta" id="dash-aside-meta"></div>
+      <div class="dash-andrea-glass">
+        <div class="dash-andrea-photo">
+          <img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg" alt="Andrea">
         </div>
-        <div class="dash-aside-story">
-          <div class="dash-aside-story-inner"></div>
+        <div class="dash-andrea-text">
+          <div class="dash-aside-meta" id="dash-aside-meta">ANDREA · HOY</div>
+          <p class="dash-aside-cita" id="dash-aside-cita"></p>
         </div>
       </div>
     </div>
