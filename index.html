@@ -4676,14 +4676,11 @@ function pT(time,rhy){
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
+      vid.muted=false;            // asegurar que no quede silenciado al recargar src
+      // CAMBIO 1: volúmenes balanceados — música del video al 5%, voz de Andrea al 100%
+      // (en iOS Safari vid.volume es ignorado — limitación de Apple, no del código)
+      try{ vid.volume = 0.05; }catch(e){}
       vid.load();
-      // CAMBIO 1: el volumen del video lo controla un GainNode de Web Audio
-      // (video.volume es ignorado por iOS Safari). Voz de Andrea sigue en .mp3 al 100%.
-      setupVideoGain();
-      if(_audioCtx && _audioCtx.state==='suspended'){
-        // iOS requiere user interaction para arrancar el AudioContext
-        vid.addEventListener('play', ()=>_audioCtx.resume(), { once: true });
-      }
       // Cargar el audio sincronizado (voz de Andrea encima del audio del video)
       if(aud){
         const aurl=practiceAudioURL(sP,time);
@@ -4695,7 +4692,7 @@ function pT(time,rhy){
       _vpSetPlayIcon(false);
       _vpUpdateProgress();
       // Las clases del contenedor siguen el estado real del <video>
-      vid.onplay =()=>{ cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
+      vid.onplay =()=>{ cont.classList.add('started','playing'); try{ vid.volume = 0.05; }catch(e){} if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
       vid.onpause=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
       vid.onended=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
       vid.onseeked=()=>{ if(aud){ try{ aud.currentTime=vid.currentTime; }catch(e){} } };
@@ -4733,27 +4730,6 @@ function toggleFullscreen(){
 
 // ===== Reproductor custom: helpers (skip ±15s, auto-hide, barra, tiempo) =====
 let _vpHideTm=null;
-
-// ===== Web Audio API: control de volumen del video que SÍ funciona en iOS Safari =====
-// (iOS ignora video.volume desde JS; un GainNode lo soluciona)
-let _audioCtx=null;
-let _videoSourceNode=null;
-let _videoGainNode=null;
-function setupVideoGain(){
-  if(_videoGainNode) return; // createMediaElementSource solo se puede llamar 1 vez por elemento
-  const vid=document.getElementById('prac-video');
-  if(!vid) return;
-  try{
-    const AC=window.AudioContext||window.webkitAudioContext;
-    if(!AC) return;
-    _audioCtx=new AC();
-    _videoSourceNode=_audioCtx.createMediaElementSource(vid);
-    _videoGainNode=_audioCtx.createGain();
-    _videoGainNode.gain.value=0.05;
-    _videoSourceNode.connect(_videoGainNode);
-    _videoGainNode.connect(_audioCtx.destination);
-  }catch(e){ console.warn('Web Audio setup failed:', e); }
-}
 function _fmtT(s){
   if(!isFinite(s) || s<0) s=0;
   const m=Math.floor(s/60), r=Math.floor(s%60);
