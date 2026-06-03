@@ -42,6 +42,7 @@
 .fg label{display:block;font-size:.73rem;font-weight:500;color:var(--texto-medio);margin-bottom:.3rem;letter-spacing:.04em;text-transform:uppercase;}
 .fg input,.fg textarea{width:100%;padding:.85rem 1.1rem;border:1.5px solid var(--crema-claro);border-radius:12px;background:var(--white);font-family:'Montserrat',sans-serif;font-size:.88rem;color:var(--texto-oscuro);outline:none;transition:all .3s;}
 .fg input:focus,.fg textarea:focus{border-color:var(--terracota);box-shadow:0 0 0 3px rgba(244,200,184,.25);}
+#s-login .fg input{background:var(--crema-claro);}
 .fg textarea{resize:vertical;min-height:70px;}
 .IMG1{background-image:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_minimalist_home_wellness_corner_inside_a_serene_modern_house_empty_peaceful-1.jpg_avnn4e.png');}
 .IMG2{background-image:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png');}
@@ -69,6 +70,8 @@
 .hero-menu-drawer nav{display:flex;flex-direction:column;gap:4px;}
 .hero-menu-drawer nav a{font-family:'Montserrat',sans-serif;font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--crema-claro);text-decoration:none;padding:18px 0;border-bottom:1px solid rgba(245,235,217,0.15);transition:color 0.2s,padding-left 0.2s;font-weight:500;}
 .hero-menu-drawer nav a:hover{color:var(--salmon);padding-left:8px;}
+.hero-menu-drawer-cta{display:block;margin-top:28px;background:var(--salmon);color:var(--texto-oscuro);padding:14px 28px;border-radius:100px;font-family:'Montserrat',sans-serif;font-size:12px;letter-spacing:2.5px;font-weight:700;text-transform:uppercase;text-decoration:none;text-align:center;transition:transform 0.2s,background 0.2s;}
+.hero-menu-drawer-cta:hover{transform:translateY(-1px);background:var(--salmon-claro);}
 
 /* HERO */
 .hero{min-height:calc(100vh - 100px);display:flex;align-items:center;padding:2rem 3rem;position:relative;overflow:hidden;background:url('https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/hero-andrea.jpg') center/cover no-repeat;}
@@ -972,7 +975,7 @@ body.app-active { overflow: hidden; }
 .app-nav-back:hover { background: var(--crema); }
 
 .app-nav-logo { height: 40px; }
-.app-nav-logo img { height: 100%; display: block; transition: filter 0.3s ease; }
+.app-nav-logo img { height: 100%; display: block; filter: brightness(0.85); transition: filter 0.3s ease; }
 
 /* En pantallas con emoción activa (header de color), el logo café se vuelve blanco */
 .app-screen.emocion-activa .app-nav-logo img {
@@ -1501,10 +1504,9 @@ body.app-active { overflow: hidden; }
   letter-spacing: -1.5px;
 }
 .stat-tile-num em { font-weight: 700; font-style: italic; color: var(--terracota); }
-/* Diferenciación por tono del número: días→tierra, sesiones→terracota, racha→terracota-oscuro */
+/* Diferenciación por tono del número: días→tierra, sesiones→terracota.
+   Racha se mantiene en el estilo base (ligero, tierra) — sin override. */
 .stat-tile.salmon .stat-tile-num { color: var(--terracota); }
-.stat-tile.accent .stat-tile-num { color: var(--terracota-oscuro); }
-.stat-tile.accent .stat-tile-num em { color: var(--terracota-oscuro); }
 .stat-tile-sub {
   font-size: 11px;
   color: var(--tierra);
@@ -2850,7 +2852,7 @@ body.app-active { overflow: hidden; }
   .stat-ico svg{width:20px;height:20px;}
   .stat-tile .stat-ico{background:linear-gradient(135deg,#f3c5b5,#ec9c84);}
   .stat-tile.salmon .stat-ico{background:linear-gradient(135deg,#f0d0da,#d98aa6);}
-  .stat-tile.accent .stat-ico{background:linear-gradient(135deg,#c66b41,#b55836);}
+  .stat-tile.accent .stat-ico{background:linear-gradient(135deg,#ec9c84,#c66b41);}
   .stat-tile-num{order:1;font-size:26px;line-height:1;}
   .stat-tile-eyebrow{order:2;margin:7px 0 0;font-size:8.5px;letter-spacing:1px;}
   .stat-tile-sub{display:none;}
@@ -2983,6 +2985,7 @@ body.app-active { overflow: hidden; }
     <a href="#sec-price" onclick="closeHeroMenu()">Precio</a>
     <a href="javascript:void(0)" onclick="closeHeroMenu();go('login')">Iniciar sesión</a>
   </nav>
+  <a href="#sec-price" class="hero-menu-drawer-cta" onclick="closeHeroMenu()">Únete</a>
 </aside>
 <section class="hero"><div class="hero-text"><p class="hero-label">Regulación a través del movimiento</p><h1>El ejercicio está dejando de ser sólo una herramienta para <em>cambiar el cuerpo.</em></h1><p class="hero-desc">Está volviendo a ser una forma de reconectar con él.</p><div class="hero-ctas"><a href="#sec-price" class="btn btn-r">Comenzar mi práctica</a><a href="#sec-prev" class="btn btn-o">Ver cómo funciona</a></div></div></section>
 <div class="marquee-bar"><div class="marquee-track">Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> </div></div>
@@ -3018,7 +3021,7 @@ body.app-active { overflow: hidden; }
 <div id="s-newpass" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1.2rem;" alt=""><h2 class="auth-title-italic">Define tu nueva contraseña</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Elige una nueva clave para volver a entrar.</p><div style="text-align:left;"><div class="fg"><label>Nueva contraseña</label><input type="password" id="npP" placeholder="Mínimo 6 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="npP2" placeholder="Repítela"></div></div><div id="newpass-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="newpassBtn" onclick="doNewPass()">Guardar contraseña</button></div></div></div>
 
 <!-- LOGIN -->
-<div id="s-login" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">Vuelve a tu HOGAR</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Inicia sesión para continuar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="lE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="lP" placeholder="Tu contraseña"></div></div><div id="login-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="loginBtn" onclick="doLog()">Entrar</button><p style="margin-top:.9rem;"><a href="javascript:void(0)" onclick="goToRecover()" style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:.78rem;color:var(--terracota);text-decoration:none;">¿Olvidaste tu contraseña?</a></p><p style="margin-top:.6rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio</a></p></div></div></div>
+<div id="s-login" class="scr"><div style="min-height:100svh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://ltveorvqvvlyivjwxjlc.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:54px;margin:0 auto 1.2rem;" alt=""><h2 style="font-size:1.4rem;">Vuelve a tu HOGAR</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Inicia sesión para continuar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="lE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="lP" placeholder="Tu contraseña"></div></div><div id="login-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="loginBtn" onclick="doLog()">Entrar</button><p style="margin-top:.9rem;"><a href="javascript:void(0)" onclick="goToRecover()" style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:.78rem;color:var(--terracota);text-decoration:none;">¿Olvidaste tu contraseña?</a></p><p style="margin-top:.6rem;"><a href="javascript:void(0)" onclick="go('landing')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio</a></p></div></div></div>
 
 <!-- DASHBOARD -->
 <div id="s-dash" class="scr">
@@ -3047,7 +3050,7 @@ body.app-active { overflow: hidden; }
     <div class="dash-header">
       <div class="dash-header-top">
         <div class="dash-meta" id="dash-meta">— HOY · DÍA 1</div>
-        <p class="dash-hello">Hola,</p>
+        <p class="dash-hello" id="dash-hello">Hola,</p>
         <h1 class="dash-name"><span id="user-name">Andrea</span>.</h1>
         <hr class="dash-rule">
       </div>
@@ -3077,7 +3080,7 @@ body.app-active { overflow: hidden; }
       <div class="stat-tile accent">
         <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3C12 3 6 7.5 6 13.5C6 17.6 8.7 21 12 21C15.3 21 18 17.6 18 13.5C18 11 16.5 9 16.5 9C16.5 9 16 11 14 11C14 11 15 6.5 12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
         <div class="stat-tile-eyebrow">— EN RACHA</div>
-        <div class="stat-tile-num"><em id="stat-racha">0</em></div>
+        <div class="stat-tile-num" id="stat-racha">0</div>
         <div class="stat-tile-sub">días consecutivos</div>
       </div>
     </div>
@@ -4212,6 +4215,13 @@ async function _authInit(){
   }catch(err){ /* sin sesión válida → se queda en la landing */ }
 }
 function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});}
+// Saludo según hora LOCAL del dispositivo. Sin coma — la HTML añade el nombre.
+function _greetingByTime(){
+  const h=new Date().getHours();
+  if(h>=5 && h<12) return 'Buenos días,';
+  if(h>=12 && h<20) return 'Buenas tardes,';
+  return 'Buenas noches,';
+}
 // Índice determinístico por día LOCAL: misma nota durante 24h, cambia a medianoche local.
 function _dailyNoteIndex(arr){
   if(!arr || !arr.length) return 0;
@@ -4224,6 +4234,7 @@ function uD(){
   if(!U)return;
   const $=id=>document.getElementById(id);
   if($('user-name'))$('user-name').textContent=U.name;
+  if($('dash-hello'))$('dash-hello').textContent=_greetingByTime();
   if($('stat-dias'))$('stat-dias').textContent=U.days;
   if($('stat-sesiones'))$('stat-sesiones').textContent=U.sessions;
   if($('stat-racha'))$('stat-racha').textContent=U.streak;
