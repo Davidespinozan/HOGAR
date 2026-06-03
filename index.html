@@ -3946,9 +3946,51 @@ function authError(msg){
 function authMsg(elId, text, type){
   const el=document.getElementById(elId);
   if(!el) return;
-  if(!text){ el.className='auth-msg'; el.textContent=''; return; }
+  if(!text){ el.className='auth-msg'; el.textContent=''; clearConnTimeout(); return; }
   el.textContent=text;
   el.className='auth-msg show '+(type||'error');
+}
+
+// ===== Timeout de conexión: si "Conectando con el servidor…" lleva 8s
+// sin que window.sb aparezca, mostrar mensaje de reinicio + botón. =====
+let _connTimeoutTm=null;
+function scheduleConnTimeout(elId){
+  if(_connTimeoutTm){ clearTimeout(_connTimeoutTm); }
+  _connTimeoutTm=setTimeout(()=>{
+    if(window.sb) return; // ya conectó, no transformar
+    const el=document.getElementById(elId);
+    if(!el) return;
+    el.className='auth-msg show error';
+    el.innerHTML='No pudimos conectar contigo en este momento. Toca aquí para reiniciar.'
+      +'<br><button type="button" class="btn btn-r" style="margin-top:.9rem;width:100%;max-width:280px;" onclick="reiniciarSesionHogar()">Reiniciar sesión</button>';
+  }, 8000);
+}
+function clearConnTimeout(){
+  if(_connTimeoutTm){ clearTimeout(_connTimeoutTm); _connTimeoutTm=null; }
+}
+
+// ===== Botón "Reiniciar sesión": limpia todo y recarga =====
+async function reiniciarSesionHogar(){
+  try{
+    if(window.sb && window.sb.auth){
+      await window.sb.auth.signOut();
+    }
+    Object.keys(localStorage).forEach(k=>{
+      if(k.includes('supabase')||k.includes('sb-')||k.includes('hogar')){
+        localStorage.removeItem(k);
+      }
+    });
+    sessionStorage.clear();
+    if('caches' in window){
+      const keys=await caches.keys();
+      await Promise.all(keys.map(k=>caches.delete(k)));
+    }
+    if('serviceWorker' in navigator){
+      const regs=await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r=>r.unregister()));
+    }
+  }catch(e){ console.warn('Error limpiando sesión:', e); }
+  window.location.reload();
 }
 
 // Construye el objeto U a partir del usuario de Supabase
@@ -3989,7 +4031,7 @@ async function doSign(){
   if(!n||!e||!p){ authMsg('signup-msg','Completa todos los campos.','error'); return; }
   if(p!==p2){ authMsg('signup-msg','Las contraseñas no coinciden.','error'); return; }
   if(p.length<8){ authMsg('signup-msg','La contraseña debe tener al menos 8 caracteres.','error'); return; }
-  if(!window.sb){ authMsg('signup-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); return; }
+  if(!window.sb){ authMsg('signup-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); scheduleConnTimeout('signup-msg'); return; }
   const btn=document.getElementById('signupBtn'); const btnTxt=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Creando cuenta…'; }
   try{
@@ -4048,7 +4090,7 @@ async function doRecover(){
   const e=document.getElementById('rE').value.trim();
   authMsg('recover-msg','');
   if(!e){ authMsg('recover-msg','Ingresa tu correo.','error'); return; }
-  if(!window.sb){ authMsg('recover-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); return; }
+  if(!window.sb){ authMsg('recover-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); scheduleConnTimeout('recover-msg'); return; }
   const btn=document.getElementById('recoverBtn'); const btnTxt=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
   try{
@@ -4091,7 +4133,7 @@ async function doNewPass(){
   if(!p||!p2){ authMsg('newpass-msg','Completa ambos campos.','error'); return; }
   if(p!==p2){ authMsg('newpass-msg','Las contraseñas no coinciden.','error'); return; }
   if(p.length<6){ authMsg('newpass-msg','La contraseña debe tener al menos 6 caracteres.','error'); return; }
-  if(!window.sb){ authMsg('newpass-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); return; }
+  if(!window.sb){ authMsg('newpass-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); scheduleConnTimeout('newpass-msg'); return; }
   const btn=document.getElementById('newpassBtn'); const btnTxt=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
   try{
@@ -4126,7 +4168,7 @@ async function doLog(){
         p=document.getElementById('lP').value;
   authMsg('login-msg','');
   if(!e||!p){ authMsg('login-msg','Ingresa tu correo y tu contraseña.','error'); return; }
-  if(!window.sb){ authMsg('login-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); return; }
+  if(!window.sb){ authMsg('login-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); scheduleConnTimeout('login-msg'); return; }
   const btn=document.getElementById('loginBtn'); const btnTxt=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Entrando…'; }
   try{
@@ -4676,10 +4718,7 @@ function pT(time,rhy){
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
-      vid.muted=false;            // asegurar que no quede silenciado al recargar src
-      // CAMBIO 1: volúmenes balanceados — música del video al 5%, voz de Andrea al 100%
-      // (en iOS Safari vid.volume es ignorado — limitación de Apple, no del código)
-      try{ vid.volume = 0.05; }catch(e){}
+      vid.muted=false;
       vid.load();
       // Cargar el audio sincronizado (voz de Andrea encima del audio del video)
       if(aud){
@@ -4692,7 +4731,7 @@ function pT(time,rhy){
       _vpSetPlayIcon(false);
       _vpUpdateProgress();
       // Las clases del contenedor siguen el estado real del <video>
-      vid.onplay =()=>{ cont.classList.add('started','playing'); try{ vid.volume = 0.05; }catch(e){} if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
+      vid.onplay =()=>{ cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
       vid.onpause=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
       vid.onended=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
       vid.onseeked=()=>{ if(aud){ try{ aud.currentTime=vid.currentTime; }catch(e){} } };
@@ -5081,6 +5120,28 @@ function confirmExit(){
     if (typeof window._authInit === 'function') { window._authInit(); }
   } catch (err) {
     console.error('[HOGAR] No se pudo inicializar Supabase:', err);
+  }
+</script>
+<script>
+  // ===== Service Worker: auto-update silencioso =====
+  // Cuando se publica una versión nueva de sw.js (cambiando CACHE_VERSION),
+  // el navegador detecta el nuevo SW, lo instala con skipWaiting() y aquí
+  // se dispara updatefound → la página se recarga sola con la versión nueva.
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[HOGAR] Nueva versión detectada, recargando…');
+              window.location.reload();
+            }
+          });
+        });
+      }).catch((err) => console.warn('[HOGAR] SW register failed:', err));
+    });
   }
 </script>
 </body>
