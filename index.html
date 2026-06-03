@@ -2008,11 +2008,13 @@ body.app-active { overflow: hidden; }
   margin-right: auto;
 }
 
-.estados-grid .estado-card:nth-child(5) {
-  grid-column: 1 / -1;
-  max-width: 270px;
-  margin: 0 auto;
+.estados-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
 }
 
 .estado-card {
