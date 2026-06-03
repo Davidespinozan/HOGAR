@@ -2891,7 +2891,7 @@ body.app-active { overflow: hidden; }
   /* A) Encabezado */
   #s-prac .app-nav{background:rgba(248,221,200,.92);border-bottom:none;padding:14px 16px;}
   #s-prac .app-nav-back{background:rgba(255,255,255,.72);padding:9px 16px;box-shadow:0 2px 8px -2px rgba(58,40,32,.18);}
-  #s-prac .app-nav-logo{height:28px;opacity:.72;}
+  #s-prac .app-nav-logo{height:28px;}
   /* B) Titulo */
   #s-prac .practica-header{margin-bottom:24px;}
   #s-prac .practica-eyebrow{font-size:10px;letter-spacing:2.5px;color:#c0673f;}
@@ -2919,7 +2919,7 @@ body.app-active { overflow: hidden; }
   /* A) Encabezado */
   #s-history .app-nav{background:rgba(248,217,203,.92);border-bottom:none;padding:14px 16px;}
   #s-history .app-nav-back{background:#fdf6ee;padding:9px 16px;box-shadow:0 2px 8px -2px rgba(58,40,32,.18);}
-  #s-history .app-nav-logo{height:28px;opacity:.72;}
+  #s-history .app-nav-logo{height:28px;}
   /* B) Titulo */
   #s-history .app-eyebrow{font-size:10px;letter-spacing:3px;color:#9c4a2e;}
   #s-history .app-title{font-size:30px !important;color:#3a2820;margin-bottom:14px;}
@@ -2948,8 +2948,7 @@ body.app-active { overflow: hidden; }
   #s-history .hist-card.emo-tensa .hist-id .app-eyebrow{color:#9c4a2e;}
   #s-history .hist-id .estado-name{font-size:18px !important;color:#3a2820;margin-bottom:2px;}
   #s-history .hist-id .estado-name + div{font-size:12px !important;color:#8a6b60 !important;}
-  #s-history .dh-tag{background:#eaf0e2;color:#6d8a4f;font-size:0;letter-spacing:0;padding:5px 9px;border-radius:7px;flex-shrink:0;}
-  #s-history .dh-tag::after{content:'✓ HECHA';font-size:9px;letter-spacing:1px;font-weight:700;}
+  #s-history .dh-tag{background:#eaf0e2;color:#6d8a4f;padding:5px 9px;border-radius:7px;flex-shrink:0;}
   #s-history .hist-toggle{width:100%;text-align:left;margin-top:14px;padding-top:13px;border-top:1px solid #f0e3d8;font-size:11px;font-weight:500;color:#c0673f;}
   #s-history .hist-sin{margin-top:14px;padding-top:13px;border-top:1px solid #f0e3d8;}
 }
@@ -3325,6 +3324,17 @@ body.app-active { overflow: hidden; }
           <button class="perfil-field-edit" style="background:var(--terracota);color:var(--crema);" onclick="guardarPerfil('email')">Guardar</button>
         </div>
       </div>
+    </div>
+    <div class="perfil-section">
+      <div class="perfil-section-title">Mi suscripción</div>
+      <div class="perfil-field">
+        <div>
+          <div class="perfil-field-label">Plan</div>
+          <div class="perfil-field-value">HOGAR</div>
+        </div>
+        <span style="font-size:.62rem;color:#5a6e54;background:rgba(197,205,176,.18);border:1px solid rgba(197,205,176,.4);padding:.3rem .75rem;border-radius:50px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Activa</span>
+      </div>
+      <a id="perfil-stripe-btn" href="#" target="_blank" rel="noopener" class="btn btn-o" style="display:none;width:100%;margin-top:14px;">Gestionar suscripción</a>
     </div>
     <div class="perfil-section" style="display:none;">
       <div class="perfil-section-title">Tu práctica</div>
@@ -4252,6 +4262,9 @@ function uD(){
   renderPaisaje();
 }
 
+// Pegar aquí el link del Customer Portal de Stripe (dejar vacío oculta el botón "Gestionar suscripción").
+const STRIPE_PORTAL_URL = '';
+
 function uP(){
   if(!U)return;
   const $=id=>document.getElementById(id);
@@ -4262,6 +4275,11 @@ function uP(){
   if($('pd'))$('pd').textContent=U.days;
   if($('ps'))$('ps').textContent=U.sessions;
   if($('pk'))$('pk').textContent=U.streak;
+  const sb=$('perfil-stripe-btn');
+  if(sb){
+    if(STRIPE_PORTAL_URL){ sb.href=STRIPE_PORTAL_URL; sb.style.display=''; }
+    else { sb.style.display='none'; }
+  }
 }
 
 // ============================================
@@ -5038,7 +5056,7 @@ function histCard(h){
           +'<div style="font-size:.8rem;color:var(--texto-medio);">'+(h.r||h.ritmo||'')+' · '+(h.d||h.fecha||'')+'</div>'
         +'</div>'
       +'</div>'
-      +'<div class="dh-tag">Completada</div>'
+      +'<div class="dh-tag">Completada ✓</div>'
     +'</div>'
     +(ans
       ? '<button class="hist-toggle" onclick="toggleHistDetalle(this)">Ver mi reflexión ↓</button>'
