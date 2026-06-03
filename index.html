@@ -4254,13 +4254,31 @@ function uP(){
 const EMO_LABELS = EMOCIONES.map(e=>e.nombre.toLowerCase());
 const EMO_KEYS = EMOCIONES.map(e=>e.key);
 
-// Respuestas empáticas de Andrea por emoción (copiadas de v2)
+// Respuestas empáticas de Andrea por emoción
 const RESP_ANDREA = {
-  calma: 'Qué bonito notarlo. La <em>calma</em> también es algo que se cuida. Te preparé un movimiento suave para sostenerla.',
-  desconectada: 'Lo notaste. Ya con eso volviste un poco. El cuerpo es el lugar al que volver, sin entender, sólo <em>sintiendo</em>.',
-  cansada: 'Te escucho. Hoy no hay que hacer más, hay que <em>recibir</em>. Te preparé algo bajo y lento.',
-  sensible: 'Está bien que algo se mueva. No hay que arreglarlo. Esta práctica acompaña sin <em>presionar</em>.',
-  tensa: 'La tensión necesita salida, no contención. Vamos a darle al cuerpo un espacio para <em>soltarla</em>.'
+  calma: 'Qué lindo notar la calma. No es algo que se logra y ya: también se cuida y se sostiene. Quedémonos aquí un rato, con un ritmo suave.',
+  desconectada: 'Y aun así, lo notaste. Con eso ya volviste un poco. No necesitas entender cómo estás: el cuerpo es el lugar al que regresar, sintiendo, no explicando.',
+  cansada: 'Te escucho. El cansancio no se empuja, se atiende. Hoy no toca hacer más, toca recibir: algo bajo y lento, a tu ritmo.',
+  sensible: 'Está bien que algo se mueva adentro. No viene a arreglarse, viene a ser sentido. Aquí no hay que poder con todo, solo dejar que pase, acompañada.',
+  tensa: 'La tensión no se aguanta, se suelta. No la cargues un rato más: vamos a darle al cuerpo un espacio seguro para descargarla.'
+};
+
+// Confirmación de Andrea tras elegir duración — texto distinto por emoción.
+const CONFIRM_ANDREA = {
+  calma: 'Te preparé una práctica de Ritmo Suave: un movimiento amable para acompañar tu calma, sin sacarte de ella.',
+  desconectada: 'Te preparé una práctica de Presencia: para volver al cuerpo de a poco, sin exigirte claridad.',
+  cansada: 'Te preparé una práctica de Recuperación Suave: lenta y restauradora, hecha para recibir, no para esforzarte.',
+  sensible: 'Te preparé una práctica de Contención: un espacio que te sostiene mientras algo se mueve, sin presionarte a entenderlo.',
+  tensa: 'Te preparé una práctica de Descarga Segura: para darle salida a la tensión y soltar lo que cargas, con cuidado.'
+};
+
+// Mapeo del nombre de práctica (variable sP) → key de emoción.
+const PRACTICE_TO_EMO = {
+  'Ritmo Suave': 'calma',
+  'Presencia': 'desconectada',
+  'Recuperación Suave': 'cansada',
+  'Contención': 'sensible',
+  'Descarga Segura': 'tensa'
 };
 
 // Screens del flow que reciben el tinte .emocion-activa cuando se selecciona emoción
@@ -4400,7 +4418,7 @@ function dashSelectTiempo(time, rhy){
 
   // Cascada de 3: confirmación usuario + propuesta Andrea + action card
   setTimeout(()=>appendChatMsg('right','Tengo <em>'+minutos+' minutos</em>.','TÚ · AHORA'), 300);
-  setTimeout(()=>appendChatMsg('left','Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.','ANDREA · AHORA'), 1400);
+  setTimeout(()=>appendChatMsg('left', (CONFIRM_ANDREA[PRACTICE_TO_EMO[sP]] || ('Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.')),'ANDREA · AHORA'), 1400);
   setTimeout(()=>appendActionCard(time, rhy, ritmo, minutos), 2400);
 }
 
