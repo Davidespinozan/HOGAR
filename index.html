@@ -4212,6 +4212,14 @@ async function _authInit(){
   }catch(err){ /* sin sesión válida → se queda en la landing */ }
 }
 function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});}
+// Índice determinístico por día LOCAL: misma nota durante 24h, cambia a medianoche local.
+function _dailyNoteIndex(arr){
+  if(!arr || !arr.length) return 0;
+  const now=new Date();
+  const localMidnightMs=new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const days=Math.floor(localMidnightMs/86400000);
+  return ((days % arr.length) + arr.length) % arr.length;
+}
 function uD(){
   if(!U)return;
   const $=id=>document.getElementById(id);
@@ -4220,7 +4228,7 @@ function uD(){
   if($('stat-sesiones'))$('stat-sesiones').textContent=U.sessions;
   if($('stat-racha'))$('stat-racha').textContent=U.streak;
   if($('dash-meta'))$('dash-meta').textContent='— HOY · DÍA '+(U.days||1);
-  if($('dash-aside-cita'))$('dash-aside-cita').textContent='"'+PH[Math.floor(Math.random()*PH.length)]+'"';
+  if($('dash-aside-cita'))$('dash-aside-cita').textContent='"'+PH[_dailyNoteIndex(PH)]+'"';
   if($('dash-aside-meta'))$('dash-aside-meta').textContent='ANDREA · HOY';
   if($('dash-paisaje-meta'))$('dash-paisaje-meta').textContent=U.streak>0?'EN RACHA':'CONSTRUYENDO';
   renderPaisaje();
