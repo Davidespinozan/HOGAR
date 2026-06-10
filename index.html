@@ -3222,7 +3222,7 @@ body.app-active { overflow: hidden; }
             </button>
           </div>
           <div class="vp-bottom">
-            <input type="range" class="vp-progress" id="vp-progress" min="0" max="1000" value="0" step="1" oninput="_vpSeek()" aria-label="Progreso del video">
+            <input type="range" class="vp-progress" id="vp-progress" min="0" max="1000" value="0" step="1" oninput="_vpSeek()" onchange="_vpSeekRelease()" aria-label="Progreso del video">
             <div class="vp-meta">
               <span class="vp-time" id="vp-time">00:00 / 00:00</span>
               <button type="button" class="vp-fs" onclick="toggleFullscreen()" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
@@ -3272,7 +3272,7 @@ body.app-active { overflow: hidden; }
       Confiar en el cuerpo es un pilar fundamental. HOGAR existe para crear las condiciones para escucharlo.
     </div>
     <button class="volver-btn" onclick="go('dash')">Volver al inicio</button>
-    <p style="margin-top:1.5rem;"><a href="javascript:void(0)" onclick="doOut()" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">Cerrar sesión</a></p>
+    <p style="margin-top:1.5rem;"><a href="javascript:void(0)" onclick="go('history')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">Ver mi historial</a></p>
   </div>
 </div>
 
@@ -4760,7 +4760,7 @@ function pT(time,rhy){
   sR=rhy;
   const $=id=>document.getElementById(id);
   if($('prT'))$('prT').textContent='Práctica de '+sP;
-  if($('prR'))$('prR').textContent=sR+' · '+time+' min';
+  if($('prR'))$('prR').textContent=sR+' · '+String(time||'').split('-').pop()+' min';
   if($('rT'))$('rT').textContent='Integrando lo que viviste';
   if($('rTx'))$('rTx').textContent=RD[sP]||RD['Presencia'];
   sc=0;if(tm)clearInterval(tm);tm=null;
@@ -4785,11 +4785,11 @@ function pT(time,rhy){
       _vpSetPlayIcon(false);
       _vpUpdateProgress();
       // Las clases del contenedor siguen el estado real del <video>
-      vid.onplay =()=>{ cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} aud.play().catch(()=>{}); } _vpSetPlayIcon(true); vpShow(); };
+      vid.onplay =()=>{ cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} } _syncAudioToVideo(true); _vpSetPlayIcon(true); vpShow(); };
       vid.onpause=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
       vid.onended=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
-      vid.onseeked=()=>{ if(aud){ try{ aud.currentTime=vid.currentTime; }catch(e){} } };
-      vid.ontimeupdate=()=>{ _vpUpdateProgress(); };
+      vid.onseeked=()=>{ if(_vpDragging) return; _syncAudioToVideo(); };
+      vid.ontimeupdate=()=>{ _vpUpdateProgress(); _maybeCorrectDrift(); };
       vid.onloadedmetadata=()=>{ _vpUpdateProgress(); };
     }else{
       vid.removeAttribute('src');
@@ -4851,17 +4851,31 @@ function _vpUpdateProgress(){
   }
   if(t) t.textContent=_fmtT(cur)+' / '+_fmtT(dur);
 }
+// _vpSeek = oninput de la barra → dispara MUCHAS veces durante el arrastre.
+// Para evitar micro-seeks del .mp3 en iOS: al primer disparo entramos en modo "dragging"
+// (pausamos el audio una sola vez); de ahí en adelante solo actualizamos v.currentTime
+// y la barra visual. La reanudación del audio se hace en _vpSeekRelease (onchange).
+let _vpDragging=false;
 function _vpSeek(){
   const v=document.getElementById('prac-video');
-  const a=document.getElementById('prac-audio');
   const p=document.getElementById('vp-progress');
   if(!v || !p || !isFinite(v.duration)) return;
+  if(!_vpDragging){
+    _vpDragging=true;
+    const a=document.getElementById('prac-audio');
+    if(a && a.src){ try{ a.pause(); }catch(_){} }
+  }
   const ratio=Number(p.value)/1000;
   const next=Math.max(0, Math.min(v.duration, v.duration*ratio));
   v.currentTime=next;
-  if(a){ try{ a.currentTime=v.currentTime; }catch(e){} }
   p.style.setProperty('--vp-fill', (ratio*100)+'%');
   vpShow();
+}
+// _vpSeekRelease = onchange de la barra → un solo disparo al soltar mouse/dedo.
+// Hace el sync final del audio y reanuda con un único play().
+function _vpSeekRelease(){
+  _vpDragging=false;
+  _syncAudioToVideo();
 }
 function vpShow(){
   const c=document.getElementById('video-container');
@@ -4879,10 +4893,45 @@ function vpToggleHide(){
   if(c.classList.contains('vp-hidden')) vpShow();
   else c.classList.add('vp-hidden');
 }
+// ===== Sync de voz (audio.mp3) con video — la voz vive en un <audio> aparte =====
+// Pega la voz al video en cada seek/play y reproduce si el video está corriendo.
+// Maneja casos borde: práctica sin .mp3, currentTime más allá de la duración de la voz.
+function _syncAudioToVideo(forcePlay){
+  const v=document.getElementById('prac-video');
+  const a=document.getElementById('prac-audio');
+  if(!v || !a || !a.src) return;
+  try{
+    // Si el video pasó la duración del .mp3 de voz, pausa la voz sin error.
+    if(isFinite(a.duration) && a.duration>0 && v.currentTime >= a.duration){
+      a.pause(); return;
+    }
+    if(Math.abs(a.currentTime - v.currentTime) > 0.05){
+      a.currentTime = v.currentTime;
+    }
+    if((forcePlay || !v.paused) && a.paused){
+      a.play().catch(()=>{});
+    }
+  }catch(_){}
+}
+// Corrección de deriva cada ~5s mientras reproduce.
+let _lastDriftCheck=0;
+function _maybeCorrectDrift(){
+  const v=document.getElementById('prac-video');
+  const a=document.getElementById('prac-audio');
+  if(!v || !a || !a.src || v.paused) return;
+  const now=Date.now();
+  if(now - _lastDriftCheck < 5000) return;
+  _lastDriftCheck = now;
+  if(isFinite(a.duration) && a.duration>0 && v.currentTime >= a.duration){ a.pause(); return; }
+  if(Math.abs(a.currentTime - v.currentTime) > 0.4){
+    try{ a.currentTime = v.currentTime; }catch(_){}
+    if(a.paused){ a.play().catch(()=>{}); }
+  }
+}
+
 // CAMBIO 2 — saltos ±15s, sincronizando audio con video
 function pracSkip(delta){
   const v=document.getElementById('prac-video');
-  const a=document.getElementById('prac-audio');
   if(!v || !isFinite(v.duration)) return;
   let next;
   if(delta<0){
@@ -4891,7 +4940,7 @@ function pracSkip(delta){
     next = Math.min(v.duration, v.currentTime + 15);
   }
   v.currentTime = next;
-  if(a){ try{ a.currentTime = v.currentTime; }catch(e){} }
+  _syncAudioToVideo();
   _vpUpdateProgress();
   vpShow();
 }
