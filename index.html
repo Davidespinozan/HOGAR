@@ -3353,7 +3353,6 @@ body.app-active { overflow: hidden; }
           <div class="perfil-field-label">Email</div>
           <div class="perfil-field-value" id="perfil-email-display">tu@email.com</div>
         </div>
-        <button class="perfil-field-edit" onclick="editarPerfil('email')">Editar</button>
       </div>
       <div class="perfil-field" id="field-email-edit" style="display:none;flex-direction:column;align-items:stretch;">
         <div class="perfil-field-label">Email</div>
@@ -4847,7 +4846,17 @@ function pT(time,rhy){
       vid.onended=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
       vid.onseeked=()=>{ if(_vpDragging) return; _syncAudioToVideo(); };
       vid.ontimeupdate=()=>{ _vpUpdateProgress(); _maybeCorrectDrift(); };
-      vid.onloadedmetadata=()=>{ _vpUpdateProgress(); };
+      vid.onloadedmetadata=()=>{ _vpUpdateProgress(); console.log('[HOGAR diag] loadedmetadata OK · dur='+vid.duration+'s · src='+vid.currentSrc); };
+      // TEMPORAL · DIAGNÓSTICO de Profundo 45 — quitar cuando se confirme la causa
+      vid.onerror=(ev)=>{
+        const e=vid.error;
+        const codeMap={1:'MEDIA_ERR_ABORTED',2:'MEDIA_ERR_NETWORK',3:'MEDIA_ERR_DECODE',4:'MEDIA_ERR_SRC_NOT_SUPPORTED'};
+        console.log('[HOGAR diag] video onerror · code='+(e?e.code:'?')+' ('+(e?codeMap[e.code]:'?')+') · message='+(e?e.message:'?')+' · src='+vid.currentSrc);
+      };
+      vid.onstalled=()=>{ console.log('[HOGAR diag] stalled · readyState='+vid.readyState+' · networkState='+vid.networkState+' · src='+vid.currentSrc); };
+      vid.onsuspend=()=>{ console.log('[HOGAR diag] suspend · readyState='+vid.readyState+' · networkState='+vid.networkState); };
+      vid.onloadstart=()=>{ console.log('[HOGAR diag] loadstart · src='+vid.currentSrc); };
+      vid.onprogress=()=>{ try{ const r=vid.buffered; const ranges=[]; for(let i=0;i<r.length;i++){ ranges.push(r.start(i).toFixed(1)+'-'+r.end(i).toFixed(1)); } console.log('[HOGAR diag] progress · buffered='+(ranges.join('|')||'[]')+' · readyState='+vid.readyState); }catch(_){} };
     }else{
       vid.removeAttribute('src');
       if(aud) aud.removeAttribute('src');
@@ -5249,14 +5258,31 @@ function cancelarEdicion(campo){
   if(!view||!edit)return;
   view.style.display='';edit.style.display='none';
 }
-function guardarPerfil(campo){
+async function guardarPerfil(campo){
   const input=document.getElementById('input-'+campo);
   if(!input||!U)return;
   const v=input.value.trim();
   if(!v){cancelarEdicion(campo);return;}
-  if(campo==='nombre')U.name=v;
-  else if(campo==='email')U.email=v;
-  uP();uA();cancelarEdicion(campo);
+  if(campo==='nombre'){
+    U.name=v;             // memoria: la UI se actualiza al instante
+    uP();uA();cancelarEdicion(campo);
+    // Persistencia en Supabase user_metadata. Si falla, la UI ya quedó actualizada
+    // — solo log; no bloqueamos a la usuaria.
+    if(window.sb){
+      try{
+        const { error } = await window.sb.auth.updateUser({ data:{ full_name:v } });
+        if(error) console.warn('[HOGAR] No se pudo guardar el nombre en Supabase:', error.message);
+      }catch(err){
+        console.warn('[HOGAR] Error guardando el nombre:', err);
+      }
+    }
+    return;
+  }
+  if(campo==='email'){
+    // Email es read-only por ahora — requiere reverificación por correo.
+    U.email=v;
+    uP();uA();cancelarEdicion(campo);
+  }
 }
 
 // PRÁCTICA: confirmar salida
