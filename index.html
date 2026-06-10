@@ -2387,6 +2387,36 @@ body.app-active { overflow: hidden; }
 .vp-fs:hover{ background:rgba(0,0,0,0.65); }
 .vp-fs svg{ width:20px; height:20px; }
 
+/* Overlay "Pendiente · 45 min llega pronto" — cubre el reproductor */
+.vp-pendiente{
+  position:absolute; inset:0; z-index:6;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:14px; padding:32px 28px;
+  background:linear-gradient(180deg, var(--salmon-claro) 0%, var(--crema-claro) 100%);
+  text-align:center;
+}
+.vp-pendiente-eyebrow{
+  font-family:'Montserrat',sans-serif;
+  font-size:11px; font-weight:600;
+  letter-spacing:2px; text-transform:uppercase;
+  color:var(--terracota);
+}
+.vp-pendiente-title{
+  font-family:'Montserrat',sans-serif;
+  font-style:italic; font-weight:500;
+  font-size:24px; line-height:1.25;
+  color:var(--texto-oscuro);
+  margin:0;
+}
+.vp-pendiente-desc{
+  font-family:'Montserrat',sans-serif;
+  font-size:14px; font-weight:300; line-height:1.55;
+  color:var(--texto-medio);
+  max-width:380px; margin:0;
+}
+.vp-pendiente .btn{ margin-top:6px; }
+
 @media(max-width:480px){
   .vp-center{ gap:28px; }
   .vp-skip{ width:48px; height:48px; }
@@ -2394,6 +2424,9 @@ body.app-active { overflow: hidden; }
   .vp-play{ width:64px; height:64px; }
   .vp-play svg{ width:30px; height:30px; }
   .vp-bottom{ padding:12px 14px 10px; }
+  .vp-pendiente{ padding:24px 20px; gap:10px; }
+  .vp-pendiente-title{ font-size:20px; }
+  .vp-pendiente-desc{ font-size:13px; }
 }
 
 .practica-guia {
@@ -3207,6 +3240,12 @@ body.app-active { overflow: hidden; }
           <div class="video-play-btn"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
           <div style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:16px;">Toca para comenzar</div>
         </div>
+        <div class="vp-pendiente" id="vp-pendiente" style="display:none;">
+          <div class="vp-pendiente-eyebrow">✦ EN PREPARACIÓN</div>
+          <h3 class="vp-pendiente-title">Esta práctica de 45 min<br>llega pronto</h3>
+          <p class="vp-pendiente-desc">Estamos preparándola con calma. Mientras tanto, puedes elegir Micro o Base.</p>
+          <button type="button" class="btn btn-r" onclick="go('dash')">Volver al inicio</button>
+        </div>
         <div class="vp-controls" id="vp-controls">
           <div class="vp-center">
             <button type="button" class="vp-btn vp-skip" onclick="pracSkip(-15)" aria-label="Retroceder 15 segundos">
@@ -3235,7 +3274,7 @@ body.app-active { overflow: hidden; }
       <div class="practica-guia-label">✎ Integrando lo que viviste en este ejercicio</div>
       <p id="rTx">Encuentra una posición cómoda. Permite que tu respiración se asiente antes de comenzar. No hay prisa.</p>
     </div>
-    <button class="terminar-btn" onclick="startQuest()">Terminé mi práctica ✦</button>
+    <button class="terminar-btn" id="terminar-btn" onclick="startQuest()">Terminé mi práctica ✦</button>
   </div>
 </div>
 
@@ -4729,13 +4768,18 @@ const VIDEO_SLUG={
   'Contención':'CONTENCION',
   'Descarga Segura':'DESCARGASEGURA'
 };
+// Prácticas que YA tienen video real de 45 min subido a Supabase.
+// Agregar aquí cada práctica conforme se vaya subiendo su archivo *45.mp4.
+const VIDEOS_45_DISPONIBLES=['Recuperación Suave','Contención'];
 // URL del video real según práctica (emoción) + duración elegida.
-// Solo hay videos de 15 y 30 min; la opción de 45 reutiliza el de 30.
+// 15 y 30 existen para todas; 45 solo para las listadas en VIDEOS_45_DISPONIBLES.
+// Para 45 no-disponible devolvemos '' (la lógica de pT muestra overlay "pendiente").
 function practiceVideoURL(practica, time){
   const slug=VIDEO_SLUG[practica];
   if(!slug) return '';
   let min=String(time||'').split('-').pop();
-  if(min!=='15' && min!=='30') min='30';
+  if(min==='45' && !VIDEOS_45_DISPONIBLES.includes(practica)) return '';
+  if(!['15','30','45'].includes(min)) min='30';
   // #t=0.1 → fuerza al navegador a pintar el primer fotograma como vista previa
   return VIDEO_BASE+slug+min+'.mp4#t=0.1';
 }
@@ -4767,6 +4811,19 @@ function pT(time,rhy){
   // Cargar el video real de esta práctica + duración en el <video>
   const vid=$('prac-video'), cont=$('video-container');
   const aud=$('prac-audio');
+  // Estado "pendiente" cuando la combinación es 45 min y la práctica aún no tiene video
+  const minOut=String(time||'').split('-').pop();
+  const esPendiente = (minOut==='45' && !VIDEOS_45_DISPONIBLES.includes(sP));
+  const pend=$('vp-pendiente'), tBtn=$('terminar-btn');
+  if(pend) pend.style.display = esPendiente ? 'flex' : 'none';
+  if(tBtn) tBtn.style.display = esPendiente ? 'none' : '';
+  if(esPendiente){
+    if(vid){ vid.pause(); try{vid.removeAttribute('src'); vid.load();}catch(_){} }
+    if(aud){ aud.pause(); try{aud.removeAttribute('src');}catch(_){} }
+    if(cont) cont.classList.remove('playing','started');
+    go('prac');
+    return;
+  }
   if(vid && cont){
     cont.classList.remove('playing','started');
     const url=practiceVideoURL(sP,time);
