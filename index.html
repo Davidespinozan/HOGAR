@@ -2235,6 +2235,42 @@ body.app-active { overflow: hidden; }
 .video-container.playing .video-placeholder { background: transparent; }
 .video-container.playing .video-play-btn { display: none; }
 
+/* ===== Loader de buffering: cubre el hueco entre el tap y el primer fotograma real.
+   Se muestra con .buffering (evento 'play' sin datos) y se retira en 'playing'. ===== */
+.vp-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: radial-gradient(circle at 50% 48%, rgba(45,30,22,0.55) 0%, rgba(45,30,22,0.30) 70%);
+}
+.video-container.buffering .vp-loader { display: flex; }
+/* Mientras bufferea, el placeholder ("Toca para comenzar" + botón) estorba: fuera */
+.video-container.buffering .video-placeholder { display: none; }
+
+.vp-loader-ring {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(253,246,238,0.28);
+  border-top-color: #c66b41;
+  animation: vpSpin .9s linear infinite;
+}
+.vp-loader-txt {
+  font-family: 'Montserrat', sans-serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 14px;
+  letter-spacing: .02em;
+  color: #fdf6ee;
+}
+@keyframes vpSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .vp-loader-ring { animation-duration: 2.4s; } }
+
 .video-play-btn {
   width: 80px;
   height: 80px;
@@ -3239,6 +3275,10 @@ body.app-active { overflow: hidden; }
         <div class="video-placeholder" onclick="tTm()">
           <div class="video-play-btn"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
           <div style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:16px;">Toca para comenzar</div>
+        </div>
+        <div class="vp-loader" id="vp-loader">
+          <div class="vp-loader-ring"></div>
+          <div class="vp-loader-txt">Preparando tu práctica…</div>
         </div>
         <div class="vp-pendiente" id="vp-pendiente" style="display:none;">
           <div class="vp-pendiente-eyebrow">✦ EN PREPARACIÓN</div>
@@ -4795,7 +4835,7 @@ function stopPracVideo(){
   const a=document.getElementById('prac-audio');
   if(v){ v.pause(); try{v.currentTime=0;}catch(e){} }
   if(a){ a.pause(); try{a.currentTime=0;}catch(e){} a.removeAttribute('src'); }
-  if(c) c.classList.remove('playing','started');
+  if(c) c.classList.remove('playing','started','buffering');
 }
 
 // TIME
@@ -4819,12 +4859,12 @@ function pT(time,rhy){
   if(esPendiente){
     if(vid){ vid.pause(); try{vid.removeAttribute('src'); vid.load();}catch(_){} }
     if(aud){ aud.pause(); try{aud.removeAttribute('src');}catch(_){} }
-    if(cont) cont.classList.remove('playing','started');
+    if(cont) cont.classList.remove('playing','started','buffering');
     go('prac');
     return;
   }
   if(vid && cont){
-    cont.classList.remove('playing','started');
+    cont.classList.remove('playing','started','buffering');
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
@@ -4840,10 +4880,18 @@ function pT(time,rhy){
       cont.classList.remove('vp-hidden');
       _vpSetPlayIcon(false);
       _vpUpdateProgress();
-      // Las clases del contenedor siguen el estado real del <video>
-      vid.onplay =()=>{ cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} } _syncAudioToVideo(true); _vpSetPlayIcon(true); vpShow(); };
-      vid.onpause=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
-      vid.onended=()=>{ cont.classList.remove('playing'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
+      // Las clases del contenedor siguen el estado real del <video>.
+      // CLAVE: 'play' solo significa que se SOLICITÓ reproducir — el video puede tener 0 bytes
+      // todavía. Si arrancáramos la voz aquí, el .mp3 (ligero, ya buffereado) se adelantaría al
+      // .mp4 y luego _maybeCorrectDrift lo rebobinaría: ese era el "arranque sucio".
+      // La voz arranca en 'playing', que sí garantiza reproducción real.
+      vid.onplay =()=>{ if(vid.readyState < 3) cont.classList.add('buffering'); _vpSetPlayIcon(true); vpShow(); };
+      vid.onplaying=()=>{ cont.classList.remove('buffering'); cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} } _syncAudioToVideo(true); _vpSetPlayIcon(true); vpShow(); };
+      // El video se quedó sin buffer a mitad de reproducción. 'waiting' NO dispara 'pause',
+      // así que hay que parar la voz a mano o se adelantaría mientras el video carga.
+      vid.onwaiting=()=>{ if(aud) aud.pause(); cont.classList.remove('playing'); cont.classList.add('buffering'); _vpSetPlayIcon(true); };
+      vid.onpause=()=>{ cont.classList.remove('playing','buffering'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
+      vid.onended=()=>{ cont.classList.remove('playing','buffering'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
       vid.onseeked=()=>{ if(_vpDragging) return; _syncAudioToVideo(); };
       vid.ontimeupdate=()=>{ _vpUpdateProgress(); _maybeCorrectDrift(); };
       vid.onloadedmetadata=()=>{ _vpUpdateProgress(); console.log('[HOGAR diag] loadedmetadata OK · dur='+vid.duration+'s · src='+vid.currentSrc); };
@@ -4853,7 +4901,7 @@ function pT(time,rhy){
         const codeMap={1:'MEDIA_ERR_ABORTED',2:'MEDIA_ERR_NETWORK',3:'MEDIA_ERR_DECODE',4:'MEDIA_ERR_SRC_NOT_SUPPORTED'};
         console.log('[HOGAR diag] video onerror · code='+(e?e.code:'?')+' ('+(e?codeMap[e.code]:'?')+') · message='+(e?e.message:'?')+' · src='+vid.currentSrc);
       };
-      vid.onstalled=()=>{ console.log('[HOGAR diag] stalled · readyState='+vid.readyState+' · networkState='+vid.networkState+' · src='+vid.currentSrc); };
+      vid.onstalled=()=>{ if(!vid.paused && aud) aud.pause(); console.log('[HOGAR diag] stalled · readyState='+vid.readyState+' · networkState='+vid.networkState+' · src='+vid.currentSrc); };
       vid.onsuspend=()=>{ console.log('[HOGAR diag] suspend · readyState='+vid.readyState+' · networkState='+vid.networkState); };
       vid.onloadstart=()=>{ console.log('[HOGAR diag] loadstart · src='+vid.currentSrc); };
       vid.onprogress=()=>{ try{ const r=vid.buffered; const ranges=[]; for(let i=0;i<r.length;i++){ ranges.push(r.start(i).toFixed(1)+'-'+r.end(i).toFixed(1)); } console.log('[HOGAR diag] progress · buffered='+(ranges.join('|')||'[]')+' · readyState='+vid.readyState); }catch(_){} };
