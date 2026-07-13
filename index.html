@@ -2248,9 +2248,15 @@ body.app-active { overflow: hidden; }
   gap: 16px;
   background: radial-gradient(circle at 50% 48%, rgba(45,30,22,0.55) 0%, rgba(45,30,22,0.30) 70%);
 }
-.video-container.buffering .vp-loader { display: flex; }
-/* Mientras bufferea, el placeholder ("Toca para comenzar" + botón) estorba: fuera */
-.video-container.buffering .video-placeholder { display: none; }
+.video-container.buffering .vp-loader,
+.video-container.vp-error .vp-loader { display: flex; }
+/* Mientras bufferea o hay error, el placeholder ("Toca para comenzar" + botón) estorba: fuera */
+.video-container.buffering .video-placeholder,
+.video-container.vp-error .video-placeholder { display: none; }
+/* Estado de error: sin spinner girando, con mensaje y botón de reintento */
+.video-container.vp-error .vp-loader-ring { display: none; }
+.vp-loader-retry { display: none; }
+.video-container.vp-error .vp-loader-retry { display: inline-flex; }
 
 .vp-loader-ring {
   width: 44px;
@@ -2265,9 +2271,15 @@ body.app-active { overflow: hidden; }
   font-style: italic;
   font-weight: 300;
   font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
   letter-spacing: .02em;
   color: #fdf6ee;
 }
+/* Los dos textos del overlay se alternan según el estado del contenedor */
+.vp-loader-txt-err { display: none; }
+.video-container.vp-error .vp-loader-txt-load { display: none; }
+.video-container.vp-error .vp-loader-txt-err { display: block; }
 @keyframes vpSpin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .vp-loader-ring { animation-duration: 2.4s; } }
 
@@ -3278,7 +3290,9 @@ body.app-active { overflow: hidden; }
         </div>
         <div class="vp-loader" id="vp-loader">
           <div class="vp-loader-ring"></div>
-          <div class="vp-loader-txt">Preparando tu práctica…</div>
+          <div class="vp-loader-txt vp-loader-txt-load">Preparando tu práctica…</div>
+          <div class="vp-loader-txt vp-loader-txt-err">No pudimos cargar tu práctica.<br>Revisa tu conexión.</div>
+          <button type="button" class="btn btn-r vp-loader-retry" onclick="vpRetry()">Reintentar</button>
         </div>
         <div class="vp-pendiente" id="vp-pendiente" style="display:none;">
           <div class="vp-pendiente-eyebrow">✦ EN PREPARACIÓN</div>
@@ -4833,9 +4847,10 @@ function stopPracVideo(){
   const v=document.getElementById('prac-video');
   const c=document.getElementById('video-container');
   const a=document.getElementById('prac-audio');
+  _vpDragging=false; // si se salió a mitad de arrastre, no envenenar la próxima sesión
   if(v){ v.pause(); try{v.currentTime=0;}catch(e){} }
   if(a){ a.pause(); try{a.currentTime=0;}catch(e){} a.removeAttribute('src'); }
-  if(c) c.classList.remove('playing','started','buffering');
+  if(c) c.classList.remove('playing','started','buffering','vp-error');
 }
 
 // TIME
@@ -4859,12 +4874,13 @@ function pT(time,rhy){
   if(esPendiente){
     if(vid){ vid.pause(); try{vid.removeAttribute('src'); vid.load();}catch(_){} }
     if(aud){ aud.pause(); try{aud.removeAttribute('src');}catch(_){} }
-    if(cont) cont.classList.remove('playing','started','buffering');
+    if(cont) cont.classList.remove('playing','started','buffering','vp-error');
     go('prac');
     return;
   }
   if(vid && cont){
-    cont.classList.remove('playing','started','buffering');
+    _vpDragging=false;
+    cont.classList.remove('playing','started','buffering','vp-error');
     const url=practiceVideoURL(sP,time);
     if(url){
       vid.src=url;
@@ -4880,28 +4896,43 @@ function pT(time,rhy){
       cont.classList.remove('vp-hidden');
       _vpSetPlayIcon(false);
       _vpUpdateProgress();
-      // Las clases del contenedor siguen el estado real del <video>.
+      // Las clases del contenedor siguen el estado real del <video>. Todos estos handlers
+      // delegan la voz en _reconcileAudio(): ninguno comanda play()/pause() por su cuenta.
       // CLAVE: 'play' solo significa que se SOLICITÓ reproducir — el video puede tener 0 bytes
-      // todavía. Si arrancáramos la voz aquí, el .mp3 (ligero, ya buffereado) se adelantaría al
-      // .mp4 y luego _maybeCorrectDrift lo rebobinaría: ese era el "arranque sucio".
-      // La voz arranca en 'playing', que sí garantiza reproducción real.
-      vid.onplay =()=>{ if(vid.readyState < 3) cont.classList.add('buffering'); _vpSetPlayIcon(true); vpShow(); };
-      vid.onplaying=()=>{ cont.classList.remove('buffering'); cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} } _syncAudioToVideo(true); _vpSetPlayIcon(true); vpShow(); };
+      // todavía. La voz arranca en 'playing', que sí garantiza reproducción real.
+      vid.onplay =()=>{ cont.classList.remove('vp-error'); if(vid.readyState < 3) cont.classList.add('buffering'); _vpSetPlayIcon(true); vpShow(); };
+      vid.onplaying=()=>{ cont.classList.remove('buffering','vp-error'); cont.classList.add('started','playing'); if(aud&&aud.src){ try{ aud.volume = 1.0; }catch(e){} } _reconcileAudio(true); _vpSetPlayIcon(true); vpShow(); };
       // El video se quedó sin buffer a mitad de reproducción. 'waiting' NO dispara 'pause',
-      // así que hay que parar la voz a mano o se adelantaría mientras el video carga.
-      vid.onwaiting=()=>{ if(aud) aud.pause(); cont.classList.remove('playing'); cont.classList.add('buffering'); _vpSetPlayIcon(true); };
-      vid.onpause=()=>{ cont.classList.remove('playing','buffering'); if(aud){ aud.pause(); } _vpSetPlayIcon(false); vpShow(); };
+      // así que sin esto la voz seguiría hablando sola mientras el video carga.
+      vid.onwaiting=()=>{ cont.classList.remove('playing'); cont.classList.add('buffering'); _reconcileAudio(); _vpSetPlayIcon(true); };
+      vid.onpause=()=>{ cont.classList.remove('playing','buffering'); _reconcileAudio(); _vpSetPlayIcon(false); vpShow(); };
       vid.onended=()=>{ cont.classList.remove('playing','buffering'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
-      vid.onseeked=()=>{ if(_vpDragging) return; _syncAudioToVideo(); };
-      vid.ontimeupdate=()=>{ _vpUpdateProgress(); _maybeCorrectDrift(); };
+      // Un seek en un .mp4 grande cae casi siempre en zona sin buffer: la voz se calla
+      // mientras dura el salto ('seeking') y se vuelve a pegar al aterrizar ('seeked').
+      vid.onseeking=()=>{ _reconcileAudio(); };
+      vid.onseeked=()=>{ _reconcileAudio(true); _vpUpdateProgress(); };
+      vid.onratechange=()=>{ _reconcileAudio(true); };
+      vid.onemptied=()=>{ cont.classList.remove('playing','buffering','started'); if(aud) aud.pause(); };
+      // Tick de autorreparación: dispara ~4 veces/s SOLO cuando el video reproduce de verdad.
+      vid.ontimeupdate=()=>{ _vpUpdateProgress(); _reconcileAudio(); };
       vid.onloadedmetadata=()=>{ _vpUpdateProgress(); console.log('[HOGAR diag] loadedmetadata OK · dur='+vid.duration+'s · src='+vid.currentSrc); };
-      // TEMPORAL · DIAGNÓSTICO de Profundo 45 — quitar cuando se confirme la causa
+      // Si el video falla (red caída, 404), NINGÚN evento de los de arriba llega: sin esto
+      // el spinner se quedaba girando para siempre. Retiramos 'buffering' y ofrecemos reintentar.
       vid.onerror=(ev)=>{
         const e=vid.error;
+        cont.classList.remove('buffering','playing');
+        cont.classList.add('vp-error');
+        if(aud) aud.pause();
+        _vpSetPlayIcon(false);
         const codeMap={1:'MEDIA_ERR_ABORTED',2:'MEDIA_ERR_NETWORK',3:'MEDIA_ERR_DECODE',4:'MEDIA_ERR_SRC_NOT_SUPPORTED'};
         console.log('[HOGAR diag] video onerror · code='+(e?e.code:'?')+' ('+(e?codeMap[e.code]:'?')+') · message='+(e?e.message:'?')+' · src='+vid.currentSrc);
       };
-      vid.onstalled=()=>{ if(!vid.paused && aud) aud.pause(); console.log('[HOGAR diag] stalled · readyState='+vid.readyState+' · networkState='+vid.networkState+' · src='+vid.currentSrc); };
+      // La voz falló pero el video no: seguimos la práctica sin voz en vez de romperla.
+      if(aud){
+        aud.onerror=()=>{ console.log('[HOGAR diag] audio onerror · src='+aud.currentSrc); };
+        aud.onstalled=()=>{ console.log('[HOGAR diag] audio stalled · readyState='+aud.readyState); };
+      }
+      vid.onstalled=()=>{ _reconcileAudio(); console.log('[HOGAR diag] stalled · readyState='+vid.readyState+' · networkState='+vid.networkState+' · src='+vid.currentSrc); };
       vid.onsuspend=()=>{ console.log('[HOGAR diag] suspend · readyState='+vid.readyState+' · networkState='+vid.networkState); };
       vid.onloadstart=()=>{ console.log('[HOGAR diag] loadstart · src='+vid.currentSrc); };
       vid.onprogress=()=>{ try{ const r=vid.buffered; const ranges=[]; for(let i=0;i<r.length;i++){ ranges.push(r.start(i).toFixed(1)+'-'+r.end(i).toFixed(1)); } console.log('[HOGAR diag] progress · buffered='+(ranges.join('|')||'[]')+' · readyState='+vid.readyState); }catch(_){} };
@@ -4976,8 +5007,7 @@ function _vpSeek(){
   if(!v || !p || !isFinite(v.duration)) return;
   if(!_vpDragging){
     _vpDragging=true;
-    const a=document.getElementById('prac-audio');
-    if(a && a.src){ try{ a.pause(); }catch(_){} }
+    _reconcileAudio(); // _vpDragging=true ⇒ el reconciliador calla la voz durante el arrastre
   }
   const ratio=Number(p.value)/1000;
   const next=Math.max(0, Math.min(v.duration, v.duration*ratio));
@@ -4986,10 +5016,23 @@ function _vpSeek(){
   vpShow();
 }
 // _vpSeekRelease = onchange de la barra → un solo disparo al soltar mouse/dedo.
-// Hace el sync final del audio y reanuda con un único play().
 function _vpSeekRelease(){
   _vpDragging=false;
-  _syncAudioToVideo();
+  _reconcileAudio(true);
+}
+// Al volver de bloquear el iPhone o de cambiar de app, el video puede reanudar sin emitir
+// 'playing'. Sin esto la voz se quedaba muda al regresar.
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState==='visible') _reconcileAudio(true);
+});
+// Reintentar tras un fallo de carga del video (botón del overlay de error)
+function vpRetry(){
+  const v=document.getElementById('prac-video');
+  const c=document.getElementById('video-container');
+  if(!v || !v.src) return;
+  if(c){ c.classList.remove('vp-error'); c.classList.add('buffering'); }
+  try{ v.load(); }catch(_){}
+  v.play().catch(()=>{ if(c){ c.classList.remove('buffering'); c.classList.add('vp-error'); } });
 }
 function vpShow(){
   const c=document.getElementById('video-container');
@@ -5007,43 +5050,46 @@ function vpToggleHide(){
   if(c.classList.contains('vp-hidden')) vpShow();
   else c.classList.add('vp-hidden');
 }
-// ===== Sync de voz (audio.mp3) con video — la voz vive en un <audio> aparte =====
-// Pega la voz al video en cada seek/play y reproduce si el video está corriendo.
-// Maneja casos borde: práctica sin .mp3, currentTime más allá de la duración de la voz.
-function _syncAudioToVideo(forcePlay){
+// ===== RECONCILIADOR DE VOZ — única autoridad sobre el <audio id="prac-audio"> =====
+// La voz vive en un .mp3 aparte y debe seguir al video como una sombra.
+//
+// Antes esto se hacía con órdenes sueltas de play()/pause() repartidas por seis handlers,
+// y el único resume periódico vivía DENTRO del if de corrección de deriva. Bastaba con que
+// un pause() cayera último (p.ej. el 'waiting' que dispara todo seek en un .mp4 grande) o
+// con que un play() fuera rechazado en silencio, para que la voz quedara pausada Y en sync
+// (deriva ≈ 0) — con lo cual el corrector no entraba nunca y la voz se quedaba muda para
+// el resto de la práctica. Ese era el bug del seek.
+//
+// Ahora el estado de la voz se DERIVA del estado real del video, nunca se comanda suelto:
+// una sola función decide, y se la llama desde todos los eventos + desde 'timeupdate'
+// (~4 veces/s mientras el video reproduce de verdad). Eso la vuelve autorreparable: si la
+// voz queda pausada debiendo sonar, se recupera sola en ~250 ms.
+//
+// ¿Debe sonar la voz? Solo si el video está reproduciendo DE VERDAD.
+// readyState >= 3 (HAVE_FUTURE_DATA) descarta el buffering; !seeking descarta el salto.
+function _audioShouldPlay(v){
+  return !!(v && !v.paused && !v.ended && !v.seeking && v.readyState >= 3);
+}
+// hard = resync exigente (tras un seek). Suave = solo corrige deriva perceptible.
+function _reconcileAudio(hard){
   const v=document.getElementById('prac-video');
   const a=document.getElementById('prac-audio');
   if(!v || !a || !a.src) return;
   try{
-    // Si el video pasó la duración del .mp3 de voz, pausa la voz sin error.
-    if(isFinite(a.duration) && a.duration>0 && v.currentTime >= a.duration){
-      a.pause(); return;
-    }
-    if(Math.abs(a.currentTime - v.currentTime) > 0.05){
+    // La voz puede ser más corta que el video: pasado su final, se calla y no se la fuerza.
+    const voiceOver = isFinite(a.duration) && a.duration>0 && v.currentTime >= a.duration;
+    const should = _audioShouldPlay(v) && !voiceOver && !_vpDragging;
+    if(!should){ if(!a.paused) a.pause(); return; }
+    if(Math.abs(a.currentTime - v.currentTime) > (hard ? 0.05 : 0.4)){
       a.currentTime = v.currentTime;
     }
-    if((forcePlay || !v.paused) && a.paused){
-      a.play().catch(()=>{});
-    }
+    // Resume INCONDICIONAL — fuera del if de deriva. Aquí estaba el bug.
+    if(a.paused) a.play().catch(()=>{});
+    if(a.playbackRate !== v.playbackRate) a.playbackRate = v.playbackRate;
   }catch(_){}
 }
-// Corrección de deriva cada ~5s mientras reproduce.
-let _lastDriftCheck=0;
-function _maybeCorrectDrift(){
-  const v=document.getElementById('prac-video');
-  const a=document.getElementById('prac-audio');
-  if(!v || !a || !a.src || v.paused) return;
-  const now=Date.now();
-  if(now - _lastDriftCheck < 5000) return;
-  _lastDriftCheck = now;
-  if(isFinite(a.duration) && a.duration>0 && v.currentTime >= a.duration){ a.pause(); return; }
-  if(Math.abs(a.currentTime - v.currentTime) > 0.4){
-    try{ a.currentTime = v.currentTime; }catch(_){}
-    if(a.paused){ a.play().catch(()=>{}); }
-  }
-}
 
-// CAMBIO 2 — saltos ±15s, sincronizando audio con video
+// CAMBIO 2 — saltos ±15s. El reconciliador se encarga de la voz (seeking → seeked).
 function pracSkip(delta){
   const v=document.getElementById('prac-video');
   if(!v || !isFinite(v.duration)) return;
@@ -5054,7 +5100,7 @@ function pracSkip(delta){
     next = Math.min(v.duration, v.currentTime + 15);
   }
   v.currentTime = next;
-  _syncAudioToVideo();
+  _reconcileAudio(true);
   _vpUpdateProgress();
   vpShow();
 }
