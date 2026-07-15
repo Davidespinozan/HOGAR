@@ -34,7 +34,7 @@
 .scr{display:none;}
 .scr.on{display:block;animation:scrIn .5s ease;}
 /* Todas las screens que NO son landing se fijan al viewport */
-#s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on{
+#s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on,#s-admin.on{
   position:fixed;top:0;left:0;width:100%;height:100%;overflow-y:auto;z-index:200;background:var(--crema);
 }
 @keyframes scrIn{from{opacity:0}to{opacity:1}}@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(244,200,184,.3)}50%{box-shadow:0 0 40px rgba(244,200,184,.5)}}
@@ -589,7 +589,7 @@
 #s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,
 #s-dash.on,#s-ci1.on,#s-ci2.on,
 #s-prac.on,#s-quest.on,
-#s-done.on,#s-profile.on,#s-history.on{
+#s-done.on,#s-profile.on,#s-history.on,#s-admin.on{
   background: linear-gradient(180deg, var(--salmon-claro) 0%, var(--crema-claro) 100%) !important;
 }
 
@@ -3055,23 +3055,21 @@ body.app-active { overflow: hidden; }
 #s-done .completado-screen p a{font-size:12px !important;color:#9c6b5c !important;}
 /* ===== PANEL ADMIN (Andrea, single-tenant) ===== */
 .adm-section{ margin-bottom:36px; }
-.adm-section-title{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid rgba(139,90,60,.14); }
+/* Eyebrow de sección con el mismo tratamiento que la app (em-dash + terracota + tracking) */
+.adm-section-title{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--terracota-oscuro); margin-bottom:16px; }
 .adm-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; }
-.adm-kpi{ background:#fff; border-radius:20px; padding:22px 22px; box-shadow:0 2px 8px rgba(58,40,32,0.07); transition:transform 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium); }
-.adm-kpi:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(58,40,32,0.14); }
-.adm-kpi-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--terracota); margin-bottom:10px; }
-.adm-kpi-num{ font-family:'Montserrat',sans-serif; font-size:36px; font-weight:700; line-height:1; color:var(--terracota); letter-spacing:-1px; }
-.adm-kpi-sub{ font-size:11px; color:var(--texto-medio); margin-top:6px; }
-.adm-kpi.muted{ background:#efe7db; box-shadow:none; }
-.adm-kpi.muted .adm-kpi-eyebrow{ color:var(--texto-medio); }
-.adm-kpi.muted .adm-kpi-num{ font-size:19px; font-weight:600; color:var(--tierra); letter-spacing:0; }
+/* Las KPI del admin reusan .stat-tile del dashboard. DINERO queda como placeholder atenuado
+   pero dentro del mismo sistema (radio y sombra de la app). */
+.adm-kpi.muted{ background:#efe7db; border-radius:22px; padding:26px 24px; box-shadow:var(--highlight-top), var(--sombra-suave); }
+.adm-kpi.muted .adm-kpi-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--texto-medio); margin-bottom:12px; }
+.adm-kpi.muted .adm-kpi-num{ font-family:'Montserrat',sans-serif; font-size:19px; font-weight:600; color:var(--tierra); letter-spacing:0; line-height:1.2; }
 /* filtros de la tabla de usuarias */
 .adm-filters{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
 .adm-filters input,.adm-filters select{ font-family:'Montserrat',sans-serif; font-size:.85rem; color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px; padding:.6rem .9rem; outline:none; transition:border-color .2s; }
 .adm-filters input{ flex:1; min-width:180px; }
 .adm-filters input:focus,.adm-filters select:focus{ border-color:var(--terracota); }
 /* tabla de usuarias */
-.adm-table-wrap{ background:#fff; border-radius:20px; box-shadow:0 2px 8px rgba(58,40,32,0.07); overflow-x:auto; }
+.adm-table-wrap{ background:#fff; border-radius:22px; box-shadow:var(--highlight-top), var(--sombra-suave); overflow:hidden; overflow-x:auto; }
 .adm-table{ width:100%; border-collapse:collapse; font-family:'Montserrat',sans-serif; font-size:.84rem; }
 .adm-table th{ text-align:left; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); padding:14px 16px; border-bottom:2px solid var(--crema); white-space:nowrap; }
 .adm-table td{ padding:13px 16px; border-bottom:1px solid var(--crema-claro); color:var(--texto-oscuro); vertical-align:middle; }
@@ -3087,8 +3085,8 @@ body.app-active { overflow: hidden; }
 .adm-bar-fill{ height:100%; border-radius:100px; background:linear-gradient(90deg,var(--salmon-rosa),var(--terracota)); min-width:2px; transition:width .4s ease; }
 .adm-bar-count{ flex:0 0 34px; text-align:right; font-size:.82rem; font-weight:700; color:var(--terracota); }
 .adm-uso-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-.adm-uso-card{ background:#fff; border-radius:20px; padding:22px; box-shadow:0 2px 8px rgba(58,40,32,0.07); transition:transform 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium); }
-.adm-uso-card:hover{ transform:translateY(-2px); box-shadow:0 8px 24px rgba(58,40,32,0.14); }
+.adm-uso-card{ background:#fff; border-radius:22px; padding:26px 24px; box-shadow:var(--highlight-top), var(--sombra-suave); transition:transform 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium); }
+.adm-uso-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
 .adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
 @media(max-width:640px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
 /* Entrada en cascada de las cards/secciones del panel admin (portado de SALA) */
@@ -3557,49 +3555,52 @@ body.app-active { overflow: hidden; }
     <div style="width:88px;"></div>
   </div>
   <div class="app-container" style="max-width:900px;">
-    <div style="text-align:center;margin-bottom:34px;">
-      <span class="app-eyebrow">Solo para ti</span>
-      <h1 class="app-title" style="font-size:40px;">Panel de <em>Andrea</em>.</h1>
-      <p class="app-subtitle" style="font-size:16px;">El pulso de HOGAR, en un vistazo.</p>
+    <div class="dash-header hogar-rise-in">
+      <div class="dash-header-top">
+        <div class="dash-meta">— PANEL DE ANDREA</div>
+        <p class="dash-hello">El pulso de tu</p>
+        <h1 class="dash-name">HOGAR.</h1>
+        <hr class="dash-rule">
+      </div>
     </div>
 
     <!-- HOY -->
     <div class="adm-section hogar-rise-in">
-      <div class="adm-section-title">Hoy</div>
+      <div class="adm-section-title">— HOY</div>
       <div class="adm-kpi-grid">
-        <div class="adm-kpi hogar-rise-in">
-          <div class="adm-kpi-eyebrow">Prácticas completadas</div>
-          <div class="adm-kpi-num" id="adm-hoy-practicas">—</div>
-          <div class="adm-kpi-sub">Sesiones de hoy</div>
+        <div class="stat-tile accent hogar-rise-in">
+          <div class="stat-tile-eyebrow">— PRÁCTICAS</div>
+          <div class="stat-tile-num" id="adm-hoy-practicas">—</div>
+          <div class="stat-tile-sub">completadas hoy</div>
         </div>
       </div>
     </div>
 
     <!-- ESTE MES -->
     <div class="adm-section hogar-rise-in">
-      <div class="adm-section-title">Este mes</div>
+      <div class="adm-section-title">— ESTE MES</div>
       <div class="adm-kpi-grid">
-        <div class="adm-kpi hogar-rise-in">
-          <div class="adm-kpi-eyebrow">Altas del mes</div>
-          <div class="adm-kpi-num" id="adm-mes-altas">—</div>
-          <div class="adm-kpi-sub">Nuevas usuarias</div>
+        <div class="stat-tile hogar-rise-in">
+          <div class="stat-tile-eyebrow">— ALTAS</div>
+          <div class="stat-tile-num" id="adm-mes-altas">—</div>
+          <div class="stat-tile-sub">nuevas usuarias este mes</div>
         </div>
-        <div class="adm-kpi hogar-rise-in">
-          <div class="adm-kpi-eyebrow">Prácticas del mes</div>
-          <div class="adm-kpi-num" id="adm-mes-practicas">—</div>
-          <div class="adm-kpi-sub">Sesiones este mes</div>
+        <div class="stat-tile salmon hogar-rise-in">
+          <div class="stat-tile-eyebrow">— PRÁCTICAS</div>
+          <div class="stat-tile-num" id="adm-mes-practicas">—</div>
+          <div class="stat-tile-sub">sesiones este mes</div>
         </div>
-        <div class="adm-kpi hogar-rise-in">
-          <div class="adm-kpi-eyebrow">Retención 7 días</div>
-          <div class="adm-kpi-num" id="adm-activas-7d">—</div>
-          <div class="adm-kpi-sub">Usuarias activas últimos 7 días</div>
+        <div class="stat-tile accent hogar-rise-in">
+          <div class="stat-tile-eyebrow">— RETENCIÓN 7 DÍAS</div>
+          <div class="stat-tile-num" id="adm-activas-7d">—</div>
+          <div class="stat-tile-sub">activas últimos 7 días</div>
         </div>
       </div>
     </div>
 
     <!-- USUARIAS -->
     <div class="adm-section hogar-rise-in">
-      <div class="adm-section-title">Usuarias</div>
+      <div class="adm-section-title">— USUARIAS</div>
       <div class="adm-filters">
         <input type="text" id="adm-search" placeholder="Buscar por nombre o email…" oninput="renderAdminUsuarias()">
         <select id="adm-estatus" onchange="renderAdminUsuarias()">
@@ -3623,7 +3624,7 @@ body.app-active { overflow: hidden; }
 
     <!-- USO -->
     <div class="adm-section hogar-rise-in">
-      <div class="adm-section-title">Uso</div>
+      <div class="adm-section-title">— USO</div>
       <div class="adm-uso-grid">
         <div class="adm-uso-card">
           <h4>Prácticas más usadas</h4>
@@ -3638,10 +3639,10 @@ body.app-active { overflow: hidden; }
 
     <!-- DINERO (placeholder — Stripe no conectado) -->
     <div class="adm-section hogar-rise-in">
-      <div class="adm-section-title">Dinero</div>
+      <div class="adm-section-title">— DINERO</div>
       <div class="adm-kpi-grid">
         <div class="adm-kpi muted hogar-rise-in">
-          <div class="adm-kpi-eyebrow">Ingresos</div>
+          <div class="adm-kpi-eyebrow">— INGRESOS</div>
           <div class="adm-kpi-num">Conecta Stripe — Próximamente</div>
         </div>
       </div>
