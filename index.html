@@ -1484,9 +1484,15 @@ body.app-active { overflow: hidden; }
 .stat-tile {
   background: #FFFFFF;
   border-radius: 22px;
-  padding: 26px 24px;
+  padding: 24px 18px;
   box-shadow: var(--highlight-top), var(--sombra-media);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Layout compacto (icono → número → eyebrow) como BASE en todos los tamaños,
+     antes solo vivía en @media(max-width:480px). */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 .stat-tile:hover {
   transform: translateY(-3px);
@@ -1522,6 +1528,21 @@ body.app-active { overflow: hidden; }
   margin-top: 8px;
   line-height: 1.4;
 }
+/* Icono de color arriba — visible en TODOS los tamaños (antes solo en móvil).
+   El orden fija: icono → número → eyebrow → descripción, igual que el móvil. */
+.stat-ico {
+  order: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 13px;
+  color: #fdf6ee; margin-bottom: 12px;
+  background: linear-gradient(135deg,#f3c5b5,#ec9c84);
+}
+.stat-ico svg { width: 23px; height: 23px; }
+.stat-tile.salmon .stat-ico { background: linear-gradient(135deg,#f0d0da,#d98aa6); }
+.stat-tile.accent .stat-ico { background: linear-gradient(135deg,#ec9c84,#c66b41); }
+.stat-tile-num { order: 1; }
+.stat-tile-eyebrow { order: 2; margin-bottom: 0; margin-top: 8px; }
+.stat-tile-sub { order: 3; }
 
 /* CHAT con Andrea */
 .dash-chat-section {
@@ -1927,8 +1948,9 @@ body.app-active { overflow: hidden; }
 /* RESPONSIVE móvil dashboard conversacional */
 @media (max-width: 720px) {
   .dash-avatar-circle { width: 48px; height: 48px; }
-  .dash-stats-gallery { grid-template-columns: 1fr; gap: 10px; }
-  .stat-tile { padding: 18px 20px; }
+  /* Se mantienen las 3 en fila (antes se apilaban a 1 columna aquí) */
+  .dash-stats-gallery { gap: 10px; }
+  .stat-tile { padding: 18px 12px; }
   .stat-tile-num { font-size: 32px; }
   .dash-chat-section { padding: 20px; }
   .pills-row { padding-left: 0; }
@@ -2931,7 +2953,7 @@ body.app-active { overflow: hidden; }
 
 /* ===== DASHBOARD #s-dash — rediseño SOLO movil (<=480px) ===== */
 .pill-ds{display:none;}
-.stat-ico{display:none;}
+/* (el icono .stat-ico ahora es visible en todos los tamaños; su estilo base está arriba) */
 @media(max-width:480px){
   /* B) ESTADISTICAS — 3 en una fila */
   .dash-stats-gallery{grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 22px;}
@@ -3057,7 +3079,9 @@ body.app-active { overflow: hidden; }
 .adm-section{ margin-bottom:36px; }
 /* Eyebrow de sección con el mismo tratamiento que la app (em-dash + terracota + tracking) */
 .adm-section-title{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--terracota-oscuro); margin-bottom:16px; }
-.adm-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:16px; }
+/* Columnas de ancho contenido (máx 200px): las cards no se estiran a todo lo ancho
+   cuando la sección tiene una sola (HOY, DINERO); quedan compactas y en fila. */
+.adm-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,200px)); gap:16px; }
 /* Las KPI del admin reusan .stat-tile del dashboard. DINERO queda como placeholder atenuado
    pero dentro del mismo sistema (radio y sombra de la app). */
 .adm-kpi.muted{ background:#efe7db; border-radius:22px; padding:26px 24px; box-shadow:var(--highlight-top), var(--sombra-suave); }
