@@ -5399,6 +5399,8 @@ async function refrescarHistorialYStats(){
 const ADMIN_EMAIL='andrealaso1997@hotmail.com';
 // Correos de prueba que se excluyen SIEMPRE de conteos y de la tabla de usuarias.
 const ADMIN_TEST_EMAILS=['magalyb.1804@gmail.com','magalybl.1804@gmail.com','magalyblltt@gmail.com'];
+// hogar_sesiones.path guarda la INICIAL de la duración, no la palabra completa.
+const ADMIN_PATH_LABELS={ M:'Micro', B:'Base', P:'Profundo' };
 let _admUsuarias=[]; // cache de la última carga, para filtrar en cliente sin re-consultar
 
 // Inicio del día / del mes en hora local, como ISO, para filtrar created_at con .gte()/.lt()
@@ -5477,8 +5479,9 @@ async function loadAdmin(){
       const rows=data||[];
       // Práctica (o ritmo si practica viene null)
       _admRenderBars('adm-uso-practicas', _admGroupCount(rows, r=> r.practica || r.ritmo));
-      // Duración por path (Micro/Base/Profundo)
-      _admRenderBars('adm-uso-duraciones', _admGroupCount(rows, r=> r.path));
+      // Duración por path: la inicial (M/B/P) se traduce a palabra completa antes de agrupar,
+      // así iniciales iguales se suman bajo una sola etiqueta. Valor desconocido → tal cual.
+      _admRenderBars('adm-uso-duraciones', _admGroupCount(rows, r=> ADMIN_PATH_LABELS[r.path] || r.path));
     }catch(e){
       console.warn('[HOGAR admin] uso falló:',e.message||e);
       ['adm-uso-practicas','adm-uso-duraciones'].forEach(id=>{
