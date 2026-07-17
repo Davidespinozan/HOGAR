@@ -3516,6 +3516,8 @@ body.app-active { overflow: hidden; }
         <span style="font-size:.62rem;color:#5a6e54;background:rgba(197,205,176,.18);border:1px solid rgba(197,205,176,.4);padding:.3rem .75rem;border-radius:50px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Activa</span>
       </div>
       <a id="perfil-stripe-btn" href="#" target="_blank" rel="noopener" class="btn btn-o" style="display:none;width:100%;margin-top:14px;">Gestionar suscripción</a>
+      <!-- Pago real (Stripe Checkout). Oculto hasta que STRIPE_PAGO_ACTIVO=true y la clienta no esté activa. -->
+      <button id="perfil-activar-btn" class="btn btn-r" style="display:none;width:100%;margin-top:14px;" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
     </div>
     <div class="perfil-section" style="display:none;">
       <div class="perfil-section-title">Tu práctica</div>
@@ -3661,13 +3663,27 @@ body.app-active { overflow: hidden; }
       </div>
     </div>
 
-    <!-- DINERO (placeholder — Stripe no conectado) -->
+    <!-- DINERO — datos reales de hogar_pagos si hay; si no, placeholder -->
     <div class="adm-section hogar-rise-in">
       <div class="adm-section-title">— DINERO</div>
-      <div class="adm-kpi-grid">
+      <!-- Placeholder: visible hasta que haya pagos reales o mientras Stripe no esté conectado -->
+      <div class="adm-kpi-grid" id="adm-dinero-placeholder">
         <div class="adm-kpi muted hogar-rise-in">
           <div class="adm-kpi-eyebrow">— INGRESOS</div>
           <div class="adm-kpi-num">Conecta Stripe — Próximamente</div>
+        </div>
+      </div>
+      <!-- Real: se muestra cuando hay al menos un pago registrado -->
+      <div class="adm-kpi-grid" id="adm-dinero-real" style="display:none;">
+        <div class="stat-tile accent hogar-rise-in">
+          <div class="stat-tile-eyebrow">— INGRESOS DEL MES</div>
+          <div class="stat-tile-num" id="adm-dinero-mes">—</div>
+          <div class="stat-tile-sub">pagos confirmados este mes</div>
+        </div>
+        <div class="stat-tile hogar-rise-in">
+          <div class="stat-tile-eyebrow">— PAGOS DEL MES</div>
+          <div class="stat-tile-num" id="adm-dinero-count">—</div>
+          <div class="stat-tile-sub">transacciones este mes</div>
         </div>
       </div>
     </div>
@@ -4517,6 +4533,21 @@ async function _authInit(){
       applyUser(data.session.user); hi=[]; go('dash');
     }
   }catch(err){ /* sin sesión válida → se queda en la landing */ }
+  // Retorno de Stripe Checkout: ?pago=exito | ?pago=cancelado
+  try{
+    const pago=new URLSearchParams(window.location.search).get('pago');
+    if(pago){
+      // Limpiar el query param para que no reaparezca al recargar
+      history.replaceState(null,'',window.location.pathname);
+      if(pago==='exito'){
+        // El webhook es quien marca 'activa'; refrescamos y avisamos.
+        if(typeof refrescarHistorialYStats==='function') refrescarHistorialYStats();
+        setTimeout(()=>alert('¡Pago recibido! Tu acceso a HOGAR ya está activo. 🌿'), 300);
+      }else if(pago==='cancelado'){
+        setTimeout(()=>alert('El pago se canceló. Puedes intentarlo de nuevo cuando quieras.'), 300);
+      }
+    }
+  }catch(_){}
 }
 function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
   // Botón "Panel" solo para Andrea (UX; la seguridad real vive en RLS del servidor)
@@ -4556,6 +4587,40 @@ function uD(){
 // Pegar aquí el link del Customer Portal de Stripe (dejar vacío oculta el botón "Gestionar suscripción").
 const STRIPE_PORTAL_URL = '';
 
+// ===== PAGO REAL (Stripe Checkout · pago único) =====
+// Andrea: pon STRIPE_PAGO_ACTIVO en true SOLO después de desplegar las Edge Functions
+// y configurar los secrets de Stripe (ver STRIPE_SETUP.md). Mientras esté en false,
+// el botón "Activar mi acceso" queda oculto y nada cambia en el sitio.
+const STRIPE_PAGO_ACTIVO = false;
+const STRIPE_CHECKOUT_FN = 'https://lxpgqhghxfqsahwrdmzo.supabase.co/functions/v1/create-checkout';
+
+// Llama a la Edge Function create-checkout con el JWT de la clienta y la manda a Stripe.
+async function iniciarPagoHogar(btn){
+  if(!STRIPE_PAGO_ACTIVO){ alert('El pago aún no está disponible. Estamos terminando de configurarlo.'); return; }
+  if(!window.sb){ alert('Sin conexión. Intenta de nuevo en un momento.'); return; }
+  const txt = btn ? btn.textContent : '';
+  try{
+    const { data:{ session } } = await window.sb.auth.getSession();
+    if(!session){ go('login'); return; }
+    if(btn){ btn.disabled=true; btn.textContent='Redirigiendo a pago seguro…'; }
+    const res = await fetch(STRIPE_CHECKOUT_FN, {
+      method:'POST',
+      headers:{
+        'Authorization':'Bearer '+session.access_token,
+        'apikey':'sb_publishable_1hb4cP4BLU6m5QqsrNX-Fw_CTBud1I7',
+        'Content-Type':'application/json',
+      },
+    });
+    const json = await res.json().catch(()=>({}));
+    if(res.ok && json.url){ window.location.href = json.url; return; }
+    throw new Error(json.error || ('HTTP '+res.status));
+  }catch(e){
+    console.error('[HOGAR] no se pudo iniciar el pago:', e);
+    if(btn){ btn.disabled=false; btn.textContent=txt||'Activar mi acceso'; }
+    alert('No pudimos iniciar el pago. Intenta de nuevo en un momento.');
+  }
+}
+
 function uP(){
   if(!U)return;
   const $=id=>document.getElementById(id);
@@ -4571,6 +4636,9 @@ function uP(){
     if(STRIPE_PORTAL_URL){ sb.href=STRIPE_PORTAL_URL; sb.style.display=''; }
     else { sb.style.display='none'; }
   }
+  // Botón de pago: solo si el pago está activo (Andrea afina "solo no-activas" más adelante).
+  const ab=$('perfil-activar-btn');
+  if(ab) ab.style.display = STRIPE_PAGO_ACTIVO ? '' : 'none';
 }
 
 // ============================================
@@ -5542,6 +5610,31 @@ async function loadAdmin(){
       ['adm-uso-practicas','adm-uso-duraciones'].forEach(id=>{
         const el=document.getElementById(id); if(el) el.innerHTML='<div class="adm-empty">—</div>';
       });
+    }
+  })();
+
+  // 7) DINERO — ingresos reales del mes desde hogar_pagos. Si la tabla no existe aún
+  //    (webhook sin desplegar) o no hay pagos, se queda el placeholder "Conecta Stripe".
+  (async()=>{
+    try{
+      const { data, error } = await window.sb.from('hogar_pagos')
+        .select('monto_centavos,moneda,created_at,status')
+        .eq('status','paid')
+        .gte('created_at',_admStartOfMonth());
+      if(error) throw error;
+      const rows=data||[];
+      if(!rows.length) return; // sin pagos → placeholder visible, no tocamos nada
+      const centavos=rows.reduce((a,r)=>a+(r.monto_centavos||0),0);
+      const moneda=(rows[0].moneda||'mxn').toUpperCase();
+      const monto=(centavos/100).toLocaleString('es-MX',{style:'currency',currency:moneda});
+      const $=id=>document.getElementById(id);
+      if($('adm-dinero-mes')) $('adm-dinero-mes').textContent=monto;
+      if($('adm-dinero-count')) $('adm-dinero-count').textContent=rows.length;
+      if($('adm-dinero-placeholder')) $('adm-dinero-placeholder').style.display='none';
+      if($('adm-dinero-real')) $('adm-dinero-real').style.display='';
+    }catch(e){
+      // Tabla inexistente / sin permiso → placeholder. No romper el panel.
+      console.warn('[HOGAR admin] dinero no disponible (placeholder):',e.message||e);
     }
   })();
 }

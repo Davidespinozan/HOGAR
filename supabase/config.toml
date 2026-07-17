@@ -1,0 +1,12 @@
+# Configuración de Supabase para HOGAR (solo Edge Functions de pago).
+# project_id = "ref del proyecto Base de datos Stryv" (lo pone Andrea al hacer `supabase link`).
+project_id = "lxpgqhghxfqsahwrdmzo"
+
+# create-checkout: la llama la clienta logueada; requiere JWT válido de Supabase.
+[functions.create-checkout]
+verify_jwt = true
+
+# stripe-webhook: la llama Stripe (no manda JWT de Supabase). La firma de Stripe
+# es la que autentica; por eso verify_jwt DEBE ser false.
+[functions.stripe-webhook]
+verify_jwt = false
