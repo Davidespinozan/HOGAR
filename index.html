@@ -3325,6 +3325,39 @@ body.app-active { overflow: hidden; }
   .adm-med-fila{ flex-direction:column; align-items:flex-start; gap:6px; }
   .adm-med-dur{ flex-basis:auto; font-weight:600; color:var(--terracota); }
 }
+/* ===== NOTAS DE ANDREA — editor ===== */
+.adm-nota{ background:#fff; border-radius:18px; padding:18px 18px 14px; margin-bottom:12px;
+  box-shadow:var(--highlight-top), var(--sombra-suave); transition:opacity .25s; }
+.adm-nota.inactiva{ opacity:.55; }
+.adm-nota-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.adm-nota-orden{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--tierra); }
+.adm-nota-estado{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:600; letter-spacing:.5px;
+  border-radius:100px; padding:4px 11px; white-space:nowrap; }
+.adm-nota-estado.si{ background:#e9f0e5; color:#4e7a48; }
+.adm-nota-estado.no{ background:var(--crema); color:var(--texto-medio); }
+.adm-nota textarea{ width:100%; font-family:'Montserrat',sans-serif; font-size:.88rem; line-height:1.6;
+  color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px;
+  padding:.7rem .9rem; outline:none; resize:vertical; min-height:66px; transition:border-color .2s; }
+.adm-nota textarea:focus{ border-color:var(--terracota); }
+.adm-nota-acciones{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+/* Botones chicos, para no competir con los CTA del panel */
+.adm-btn-mini{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px;
+  text-transform:uppercase; border-radius:100px; padding:8px 15px; cursor:pointer; border:1.5px solid transparent;
+  transition:background .25s, color .25s, border-color .25s, opacity .25s; }
+.adm-btn-mini[disabled]{ opacity:.5; cursor:default; }
+.adm-btn-mini.primario{ background:var(--terracota); color:var(--crema); }
+.adm-btn-mini.primario:hover:not([disabled]){ background:var(--terracota-oscuro); }
+.adm-btn-mini.suave{ background:transparent; border-color:var(--crema); color:var(--texto-medio); }
+.adm-btn-mini.suave:hover:not([disabled]){ border-color:var(--terracota); color:var(--terracota); }
+.adm-btn-mini.peligro{ background:transparent; border-color:transparent; color:var(--texto-medio); }
+.adm-btn-mini.peligro:hover:not([disabled]){ color:#9c3a2e; }
+.adm-nota-confirm{ font-family:'Montserrat',sans-serif; font-size:.8rem; color:#9c3a2e;
+  background:#f7e2dc; border:1px solid #eecbc0; border-radius:12px; padding:11px 14px; margin-top:10px; }
+.adm-nota-confirm .adm-nota-acciones{ margin-top:9px; }
+@media(max-width:480px){
+  .adm-nota-acciones .adm-btn-mini{ flex:1 1 auto; }
+}
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -3993,6 +4026,12 @@ body.app-active { overflow: hidden; }
       <div id="adm-contenido-body">
         <div class="adm-loading">Revisando tus archivos…</div>
       </div>
+
+      <!-- Notas de Andrea (editor). Contenedor aparte para que recargar el
+           inventario de medios no lo pise. -->
+      <div id="adm-notas-body" style="margin-top:28px;">
+        <div class="adm-loading">Cargando tus notas…</div>
+      </div>
     </section>
 
     <section class="adm-view" id="adm-view-landing">
@@ -4544,7 +4583,9 @@ function go(id){
   if(id==='profile'){uP();refrescarHistorialYStats();}
   if(id==='history')renderHistory(window._histFilter||'todos');
   if(id==='admin')loadAdmin();
-  if(id==='done'){const d=document.getElementById('donePhrase');if(d)d.textContent=PH[Math.floor(Math.random()*PH.length)];}
+  // La frase del cierre sale del mismo juego de notas que la del dashboard, para
+  // que lo que Andrea edite se vea en los dos lados (cae a PH igual que aquella).
+  if(id==='done'){const d=document.getElementById('donePhrase');if(d){const n=notasHogar();d.textContent=n[Math.floor(Math.random()*n.length)];}}
   uA();
 }
 
@@ -4564,7 +4605,7 @@ function goAdmin(section){
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
-  if(s==='contenido') loadContenido();
+  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); }
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -4576,6 +4617,10 @@ function esAdmin(email){ return (email||'').toLowerCase().trim()===ADMIN_EMAIL; 
 // Redirect por rol — patrón useRoleRedirect de EKKO/SALA adaptado a single-tenant:
 // Andrea entra directo al área administrativa, nunca al dashboard de usuaria.
 function irTrasAuth(){
+  // Precarga del contenido que vive en Supabase. Sin await a propósito: la
+  // navegación no espera a la red, y si la respuesta llega tarde el propio
+  // precargador repinta. Mientras tanto se ven las notas del código.
+  precargarNotasHogar();
   if(U && esAdmin(U.email)){ goAdmin('inicio'); return; }
   go('dash');
 }
@@ -4937,6 +4982,53 @@ function _greetingByTime(){
   return 'Buenas noches,';
 }
 // Índice determinístico por día LOCAL: misma nota durante 24h, cambia a medianoche local.
+// ============================================
+// NOTAS DE ANDREA — Supabase con fallback al código.
+//
+// PATRÓN (el mismo que usaremos al migrar prácticas y textos):
+//   1. Al iniciar sesión se precargan UNA vez a memoria.
+//   2. Los consumidores leen de memoria, SÍNCRONO, como leían la constante.
+//   3. Si la consulta falla, viene vacía o aún no termina, se usa la constante
+//      del código. PH se queda a propósito: es la red de seguridad.
+// La usuaria nunca ve un hueco ni un error; en el peor caso ve las originales.
+// ============================================
+let _notasNube=null; // null = todavía sin datos de la nube
+
+// Accesor SÍNCRONO. Los consumidores lo usan igual que usaban PH.
+function notasHogar(){
+  return (_notasNube && _notasNube.length) ? _notasNube : PH;
+}
+
+async function precargarNotasHogar(){
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_notas')
+      .select('texto').eq('activa',true).order('orden',{ascending:true});
+    if(error) throw error;
+    const textos=(data||[]).map(r=>String(r.texto||'').trim()).filter(Boolean);
+    if(!textos.length){
+      console.warn('[HOGAR notas] sin notas activas en Supabase: se usan las del código.');
+      return;
+    }
+    _notasNube=textos;
+    console.log('[HOGAR notas] '+textos.length+' notas cargadas desde Supabase ✓');
+    // El dashboard pudo haberse pintado antes de que llegara la respuesta.
+    pintarNotaDelDia();
+  }catch(e){
+    console.warn('[HOGAR notas] no se pudieron cargar; se usan las del código:', (e&&e.message)||e);
+  }
+}
+
+// Pinta la nota del día. Vive aparte de uD() para poder repintar cuando la
+// precarga termina después del primer render.
+function pintarNotaDelDia(){
+  const el=document.getElementById('dash-aside-cita');
+  if(!el) return;
+  const arr=notasHogar();
+  if(!arr || !arr.length) return;
+  el.textContent='"'+arr[_dailyNoteIndex(arr)]+'"';
+}
+
 function _dailyNoteIndex(arr){
   if(!arr || !arr.length) return 0;
   const now=new Date();
@@ -4953,7 +5045,7 @@ function uD(){
   if($('stat-sesiones'))$('stat-sesiones').textContent=U.sessions;
   if($('stat-racha'))$('stat-racha').textContent=U.streak;
   if($('dash-meta'))$('dash-meta').textContent='— HOY · DÍA '+(U.days||1);
-  if($('dash-aside-cita'))$('dash-aside-cita').textContent='"'+PH[_dailyNoteIndex(PH)]+'"';
+  pintarNotaDelDia();
   if($('dash-aside-meta'))$('dash-aside-meta').textContent='ANDREA · HOY';
   if($('dash-paisaje-meta'))$('dash-paisaje-meta').textContent=U.streak>0?'EN RACHA':'CONSTRUYENDO';
   renderPaisaje();
@@ -6585,6 +6677,183 @@ function _admContenidoHTML(esperados, presentes, parecidos, modo){
       +'el SQL está en SQL-CONTENIDO.md.</p>';
   }
   return html;
+}
+
+// ── CONTENIDO · notas de Andrea (editor) ────────────────────────────────────
+// Escribe en hogar_notas. Con RLS, un UPDATE/DELETE sin permiso NO da error:
+// devuelve 0 filas. Por eso todo lleva .select() y se comprueban las filas
+// afectadas antes de decir "Guardado".
+let _admNotas=[];
+let _admNotasCargando=false;
+
+function _admNotasMsg(texto, tipo){
+  const el=document.getElementById('adm-notas-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+
+// Mensaje único para cuando RLS bloquea en silencio.
+const ADM_NOTAS_SIN_PERMISO='No se pudo guardar: tu cuenta no tiene permiso de escritura en hogar_notas.';
+
+async function loadNotasAdmin(){
+  const cont=document.getElementById('adm-notas-body');
+  if(!cont || _admNotasCargando) return;
+  _admNotasCargando=true;
+  cont.innerHTML='<div class="adm-loading">Cargando tus notas…</div>';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_notas')
+      .select('id,texto,activa,orden').order('orden',{ascending:true});
+    if(error) throw error;
+    _admNotas=data||[];
+    cont.innerHTML=_admNotasHTML(_admNotas);
+  }catch(e){
+    console.warn('[HOGAR admin] notas:',(e&&e.message)||e);
+    cont.innerHTML='<div class="adm-card hogar-rise-in">'
+      +'<div class="adm-card-eyebrow">— TUS NOTAS</div>'
+      +'<p class="adm-card-text">No pudimos cargar tus notas. Intenta de nuevo en un momento.</p>'
+      +'<div class="adm-actions" style="margin-top:18px;">'
+      +'<button type="button" class="btn btn-o" onclick="loadNotasAdmin()">Reintentar</button></div></div>';
+  }finally{ _admNotasCargando=false; }
+}
+
+function _admNotasHTML(rows){
+  const activas=rows.filter(n=>n.activa===true).length;
+  let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TUS NOTAS</div>';
+  html+='<div class="adm-alert" id="adm-notas-msg"></div>';
+  html+='<p class="adm-card-text" style="margin-bottom:16px;">'
+    +'Son las frases que tus usuarias ven en su dashboard. Cambia sola cada día. '
+    +(rows.length
+      ? '<strong>'+activas+'</strong> activa'+(activas===1?'':'s')+' de '+rows.length+'.'
+      : 'Todavía no hay ninguna en la base: la app está usando las originales del código.')
+    +'</p>';
+
+  if(!rows.length){
+    html+='<div class="adm-vacio"><div class="adm-vacio-mark">✦</div>'
+      +'<p>Aún no hay notas guardadas. Agrega la primera o corre el SQL de SQL-NOTAS.md '
+      +'para sembrar las diez originales.</p></div>';
+  }else{
+    html+=rows.map(n=>{
+      const activa=(n.activa===true);
+      return '<div class="adm-nota'+(activa?'':' inactiva')+'" id="adm-nota-'+n.id+'">'
+        +'<div class="adm-nota-top">'
+          +'<span class="adm-nota-orden">— NOTA '+_admEsc(n.orden)+'</span>'
+          +'<span class="adm-nota-estado '+(activa?'si':'no')+'">'+(activa?'Activa':'Oculta')+'</span>'
+        +'</div>'
+        +'<textarea id="adm-nota-txt-'+n.id+'" maxlength="280">'+_admEsc(n.texto||'')+'</textarea>'
+        +'<div class="adm-nota-acciones">'
+          +'<button type="button" class="adm-btn-mini primario" onclick="guardarNotaHogar('+n.id+',this)">Guardar</button>'
+          +'<button type="button" class="adm-btn-mini suave" onclick="alternarNotaHogar('+n.id+','+(activa?'false':'true')+',this)">'
+            +(activa?'Ocultar':'Activar')+'</button>'
+          +'<button type="button" class="adm-btn-mini peligro" onclick="pedirBorrarNotaHogar('+n.id+')">Borrar</button>'
+        +'</div>'
+        +'<div id="adm-nota-confirm-'+n.id+'"></div>'
+        +'</div>';
+    }).join('');
+  }
+
+  // Alta de nota nueva
+  html+='<div class="adm-nota hogar-rise-in" style="margin-top:18px;">'
+    +'<div class="adm-nota-top"><span class="adm-nota-orden">— NOTA NUEVA</span></div>'
+    +'<textarea id="adm-nota-nueva" maxlength="280" placeholder="Escribe una nota para tus usuarias…"></textarea>'
+    +'<div class="adm-nota-acciones">'
+    +'<button type="button" class="adm-btn-mini primario" onclick="agregarNotaHogar(this)">Agregar</button>'
+    +'</div></div>';
+  return html;
+}
+
+// Corre una escritura y distingue "no se guardó" de "falló". Con RLS, 0 filas
+// afectadas y sin error significa bloqueado por permisos.
+async function _admEscribirNota(fn, btn, textoOk){
+  const previo=btn?btn.textContent:'';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    if(btn){ btn.disabled=true; btn.textContent='…'; }
+    const { data, error } = await fn();
+    if(error) throw error;
+    if(!data || !data.length){ _admNotasMsg(ADM_NOTAS_SIN_PERMISO,'error'); return false; }
+    _admNotasMsg(textoOk,'ok');
+    return true;
+  }catch(e){
+    console.warn('[HOGAR admin] escribir nota:',(e&&e.message)||e);
+    const m=(e&&e.message)||'';
+    _admNotasMsg(/permission|denied|policy|42501/i.test(m) ? ADM_NOTAS_SIN_PERMISO
+      : 'No pudimos guardar el cambio. Intenta de nuevo en un momento.','error');
+    return false;
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
+  }
+}
+
+async function guardarNotaHogar(id, btn){
+  _admNotasMsg('');
+  const ta=document.getElementById('adm-nota-txt-'+id);
+  const texto=((ta&&ta.value)||'').trim();
+  if(!texto){ _admNotasMsg('La nota no puede quedar vacía.','error'); return; }
+  const ok=await _admEscribirNota(
+    ()=>window.sb.from('hogar_notas').update({texto}).eq('id',id).select('id'),
+    btn, 'Guardado');
+  if(ok) await _refrescarNotas();
+}
+
+async function alternarNotaHogar(id, activa, btn){
+  _admNotasMsg('');
+  const ok=await _admEscribirNota(
+    ()=>window.sb.from('hogar_notas').update({activa}).eq('id',id).select('id'),
+    btn, activa?'Nota activada':'Nota oculta');
+  if(ok) await _refrescarNotas();
+}
+
+// Borrar pide confirmación explícita: se pinta en la propia tarjeta.
+function pedirBorrarNotaHogar(id){
+  const slot=document.getElementById('adm-nota-confirm-'+id);
+  if(!slot) return;
+  slot.innerHTML='<div class="adm-nota-confirm">¿Borrar esta nota? No se puede deshacer.'
+    +'<div class="adm-nota-acciones">'
+    +'<button type="button" class="adm-btn-mini primario" onclick="borrarNotaHogar('+id+',this)">Sí, borrar</button>'
+    +'<button type="button" class="adm-btn-mini suave" onclick="cancelarBorrarNotaHogar('+id+')">Cancelar</button>'
+    +'</div></div>';
+}
+function cancelarBorrarNotaHogar(id){
+  const slot=document.getElementById('adm-nota-confirm-'+id);
+  if(slot) slot.innerHTML='';
+}
+
+async function borrarNotaHogar(id, btn){
+  _admNotasMsg('');
+  const ok=await _admEscribirNota(
+    ()=>window.sb.from('hogar_notas').delete().eq('id',id).select('id'),
+    btn, 'Nota borrada');
+  if(ok) await _refrescarNotas();
+}
+
+async function agregarNotaHogar(btn){
+  _admNotasMsg('');
+  const ta=document.getElementById('adm-nota-nueva');
+  const texto=((ta&&ta.value)||'').trim();
+  if(!texto){ _admNotasMsg('Escribe la nota antes de agregarla.','error'); return; }
+  // Va al final: el orden más alto que haya, +1.
+  const maxOrden=_admNotas.reduce((a,n)=>Math.max(a, Number(n.orden)||0), 0);
+  const ok=await _admEscribirNota(
+    ()=>window.sb.from('hogar_notas').insert({texto, activa:true, orden:maxOrden+1}).select('id'),
+    btn, 'Nota agregada');
+  if(ok) await _refrescarNotas();
+}
+
+// Tras cualquier cambio: repintar el editor y refrescar la copia en memoria
+// que usa la app, para que el dashboard quede al día sin recargar.
+async function _refrescarNotas(){
+  const msg=document.getElementById('adm-notas-msg');
+  const guardado=msg?{texto:msg.textContent, clase:msg.className}:null;
+  await loadNotasAdmin();
+  if(guardado && guardado.texto){
+    const nuevo=document.getElementById('adm-notas-msg');
+    if(nuevo){ nuevo.textContent=guardado.texto; nuevo.className=guardado.clase; }
+  }
+  _notasNube=null;
+  await precargarNotasHogar();
 }
 
 // ── PLANES ──────────────────────────────────────────────────────────────────
