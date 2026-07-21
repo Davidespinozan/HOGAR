@@ -1,0 +1,9 @@
+# Dependencias de las Netlify Functions (Netlify las instala en cada deploy)
+node_modules/
+
+# Artefactos de Netlify
+.netlify/
+
+# Variables de entorno locales — NUNCA subir llaves al repo
+.env
+.env.*

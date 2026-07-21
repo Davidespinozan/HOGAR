@@ -1,0 +1,13 @@
+{
+  "name": "hogar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HOGAR — sitio estático (index.html) + Netlify Functions para los cobros con Stripe Connect. NO hay build del frontend: estas dependencias son SOLO para las funciones.",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "stripe": "^18.5.0"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.8.0"
+  }
+}

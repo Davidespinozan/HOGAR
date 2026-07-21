@@ -1,0 +1,19 @@
+# HOGAR — configuración de Netlify.
+#
+# IMPORTANTE: HOGAR es un sitio ESTÁTICO. No hay paso de build del frontend:
+# index.html, sw.js y los assets se publican tal cual desde la raíz, igual que
+# antes de que existiera este archivo. Lo único que Netlify construye son las
+# funciones de netlify/functions (Stripe Connect + checkout).
+#
+# Por eso NO hay `command` aquí: si se agrega uno, Netlify intentaría compilar
+# el sitio y rompería el estático.
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  node_bundler = "esbuild"
