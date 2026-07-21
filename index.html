@@ -3247,6 +3247,48 @@ body.app-active { overflow: hidden; }
   .adm-info-value{ text-align:left; }
   .adm-actions .btn{ width:100%; }
 }
+/* ===== FICHA DE USUARIA ===== */
+/* .stat-tile-num está dimensionado para números; una fecha o el nombre de una
+   práctica a ese tamaño desbalancea la fila. Estos valores de texto van más chicos. */
+.stat-tile-num.adm-num-texto{ font-size:19px; line-height:1.25; }
+@media(max-width:480px){ .stat-tile-num.adm-num-texto{ font-size:17px; } }
+/* Filas clickeables de la tabla */
+.adm-row-link{ cursor:pointer; transition:background .2s var(--ease-premium); }
+.adm-row-link:hover, .adm-row-link:focus-visible{ background:#fdf6ee; outline:none; }
+.adm-row-link:focus-visible td:first-child{ box-shadow:inset 3px 0 0 var(--terracota); }
+.adm-row-chevron{ text-align:right; white-space:nowrap; font-size:11px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; color:var(--terracota); opacity:.55; transition:opacity .2s; }
+.adm-row-link:hover .adm-row-chevron{ opacity:1; }
+/* Volver */
+.adm-back{ display:inline-flex; align-items:center; gap:7px; background:none; border:none; cursor:pointer;
+  font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; letter-spacing:.06em;
+  color:var(--terracota); padding:8px 0; margin-bottom:14px; transition:opacity .2s; }
+.adm-back:hover{ opacity:.7; }
+/* Encabezado de la ficha */
+.adm-ficha-head{ margin-bottom:20px; }
+.adm-ficha-nombre{ font-family:'Montserrat',sans-serif; font-size:26px; font-weight:600;
+  color:var(--tierra); line-height:1.2; margin-bottom:5px; word-break:break-word; }
+.adm-ficha-email{ font-family:'Montserrat',sans-serif; font-size:.86rem; color:var(--texto-medio); word-break:break-word; }
+/* Historial */
+.adm-hist-item{ display:flex; align-items:flex-start; gap:14px; padding:14px 0; border-bottom:1px solid var(--crema-claro); }
+.adm-hist-item:last-child{ border-bottom:none; }
+.adm-hist-fecha{ flex:0 0 74px; font-family:'Montserrat',sans-serif; font-size:.76rem; font-weight:600;
+  color:var(--terracota); padding-top:2px; }
+.adm-hist-cuerpo{ flex:1; min-width:0; }
+.adm-hist-practica{ font-family:'Montserrat',sans-serif; font-size:.9rem; font-weight:500;
+  color:var(--texto-oscuro); margin-bottom:3px; }
+.adm-hist-meta{ font-family:'Montserrat',sans-serif; font-size:.78rem; color:var(--texto-medio); }
+.adm-hist-nota{ font-size:.78rem; color:var(--texto-medio); font-style:italic; text-align:center; padding-top:16px; }
+.adm-vacio{ text-align:center; padding:34px 16px; }
+.adm-vacio-mark{ width:42px; height:42px; margin:0 auto 14px; border-radius:13px;
+  background:linear-gradient(135deg,#e8d5c2,#d9b896); display:flex; align-items:center; justify-content:center;
+  font-size:15px; color:#fdf6ee; }
+.adm-vacio p{ font-family:'Montserrat',sans-serif; font-size:.86rem; color:var(--texto-medio); }
+@media(max-width:480px){
+  .adm-ficha-nombre{ font-size:22px; }
+  .adm-hist-item{ flex-direction:column; gap:4px; }
+  .adm-hist-fecha{ flex-basis:auto; }
+}
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -3806,28 +3848,35 @@ body.app-active { overflow: hidden; }
           <hr class="dash-rule">
         </div>
       </div>
-      <div class="adm-section hogar-rise-in">
-        <div class="adm-section-title">— USUARIAS</div>
-        <div class="adm-filters">
-          <input type="text" id="adm-search" placeholder="Buscar por nombre o email…" oninput="renderAdminUsuarias()">
-          <select id="adm-estatus" onchange="renderAdminUsuarias()">
-            <option value="">Todos los estatus</option>
-            <option value="activa">Activa</option>
-            <option value="cancelada">Cancelada</option>
-            <option value="baja">Baja</option>
-          </select>
-        </div>
-        <div class="adm-table-wrap">
-          <table class="adm-table">
-            <thead>
-              <tr><th>Nombre</th><th>Email</th><th>Alta</th><th>Plan</th><th>Estatus</th></tr>
-            </thead>
-            <tbody id="adm-usuarias-body">
-              <tr><td colspan="5" class="adm-empty">Cargando…</td></tr>
-            </tbody>
-          </table>
+      <!-- Lista. Se oculta al abrir una ficha; los filtros conservan su valor
+           porque el DOM no se recrea, solo se esconde. -->
+      <div id="adm-usuarias-lista">
+        <div class="adm-section hogar-rise-in">
+          <div class="adm-section-title">— USUARIAS</div>
+          <div class="adm-filters">
+            <input type="text" id="adm-search" placeholder="Buscar por nombre o email…" oninput="renderAdminUsuarias()">
+            <select id="adm-estatus" onchange="renderAdminUsuarias()">
+              <option value="">Todos los estatus</option>
+              <option value="activa">Activa</option>
+              <option value="cancelada">Cancelada</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+          <div class="adm-table-wrap">
+            <table class="adm-table">
+              <thead>
+                <tr><th>Nombre</th><th>Email</th><th>Alta</th><th>Plan</th><th>Estatus</th><th></th></tr>
+              </thead>
+              <tbody id="adm-usuarias-body">
+                <tr><td colspan="6" class="adm-empty">Cargando…</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
+      <!-- Ficha de una usuaria (la pinta verUsuariaHogar) -->
+      <div id="adm-usuaria-detalle" style="display:none;"></div>
     </section>
 
     <!-- ===== COBROS — Stripe Connect (el contenido lo pinta loadCobros()) ===== -->
@@ -4482,6 +4531,8 @@ function goAdmin(section){
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
+  // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
+  if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 
@@ -5871,7 +5922,10 @@ async function loadAdmin(){
   (async()=>{
     const body=document.getElementById('adm-usuarias-body');
     try{
-      let q=window.sb.from('hogar_usuarias').select('nombre,email,created_at,plan,estatus').order('created_at',{ascending:false});
+      // id + datos de compra: la ficha de detalle los necesita y así no se re-consulta.
+      let q=window.sb.from('hogar_usuarias')
+        .select('id,nombre,email,created_at,plan,estatus,pagado,fecha_compra,monto_centavos')
+        .order('created_at',{ascending:false});
       if(ADMIN_TEST_EMAILS.length) q=q.not('email','in','('+ADMIN_TEST_EMAILS.map(e=>'"'+e+'"').join(',')+')');
       const { data, error } = await q;
       if(error) throw error;
@@ -5879,7 +5933,7 @@ async function loadAdmin(){
       renderAdminUsuarias();
     }catch(e){
       console.warn('[HOGAR admin] tabla usuarias falló:',e.message||e);
-      if(body) body.innerHTML='<tr><td colspan="5" class="adm-empty">No se pudieron cargar las usuarias.</td></tr>';
+      if(body) body.innerHTML='<tr><td colspan="6" class="adm-empty">No se pudieron cargar las usuarias.</td></tr>';
     }
   })();
 
@@ -5972,23 +6026,167 @@ function renderAdminUsuarias(){
   let rows=_admUsuarias.slice();
   if(term) rows=rows.filter(r=> (r.nombre||'').toLowerCase().includes(term) || (r.email||'').toLowerCase().includes(term));
   if(est) rows=rows.filter(r=> (r.estatus||'').toLowerCase()===est);
-  if(!rows.length){ body.innerHTML='<tr><td colspan="5" class="adm-empty">Sin usuarias que coincidan.</td></tr>'; return; }
+  if(!rows.length){ body.innerHTML='<tr><td colspan="6" class="adm-empty">Sin usuarias que coincidan.</td></tr>'; return; }
   body.innerHTML=rows.map(r=>{
     const estRaw=(r.estatus||'').toLowerCase();
     const estCell = (r.estatus&&String(r.estatus).trim()!=='')
       ? '<span class="adm-badge '+_admEsc(estRaw)+'">'+_admEsc(r.estatus)+'</span>' : '—';
-    return '<tr>'
+    // Toda la fila abre la ficha; la última celda es solo la señal visual.
+    return '<tr class="adm-row-link" onclick="verUsuariaHogar(\''+_admEsc(r.id)+'\')" tabindex="0"'
+      +' onkeydown="if(event.key===\'Enter\')verUsuariaHogar(\''+_admEsc(r.id)+'\')">'
       +'<td>'+_admEsc(_admDash(r.nombre))+'</td>'
       +'<td>'+_admEsc(_admDash(r.email))+'</td>'
       +'<td>'+_admFmtDate(r.created_at)+'</td>'
       +'<td>'+_admEsc(_admDash(r.plan))+'</td>'
       +'<td>'+estCell+'</td>'
+      +'<td class="adm-row-chevron">Ver ›</td>'
     +'</tr>';
   }).join('');
 }
 
 // Escape mínimo para texto que viene de la BD (nombres, emails) antes de meterlo en innerHTML.
 function _admEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ============================================
+// ADMIN · FICHA DE USUARIA (solo lectura)
+// Vive DENTRO de la sección Usuarias: se muestra/oculta contra la lista, así
+// que la búsqueda y el filtro conservan su valor al volver.
+// ============================================
+
+// Días completos transcurridos desde una fecha ISO. null si no hay fecha válida.
+function _admDiasDesde(iso){
+  if(!iso) return null;
+  const d=new Date(iso);
+  if(isNaN(d.getTime())) return null;
+  return Math.max(0, Math.floor((Date.now()-d.getTime())/86400000));
+}
+
+function volverAUsuariasHogar(){
+  const lista=document.getElementById('adm-usuarias-lista');
+  const det=document.getElementById('adm-usuaria-detalle');
+  if(det){ det.style.display='none'; det.innerHTML=''; }
+  if(lista) lista.style.display='';
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+}
+
+async function verUsuariaHogar(id){
+  const lista=document.getElementById('adm-usuarias-lista');
+  const det=document.getElementById('adm-usuaria-detalle');
+  if(!det) return;
+  // Solo se abre lo que está en el cache de la tabla. Las cuentas de prueba
+  // nunca entran ahí, así que tampoco son accesibles por su ficha.
+  const u=_admUsuarias.find(r=>String(r.id)===String(id));
+  if(!u){ console.warn('[HOGAR admin] usuaria no encontrada en el cache:',id); return; }
+
+  if(lista) lista.style.display='none';
+  det.style.display='';
+  det.innerHTML='<button type="button" class="adm-back" onclick="volverAUsuariasHogar()">← Volver a usuarias</button>'
+    +'<div class="adm-loading">Cargando su actividad…</div>';
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+
+  // null = la consulta falló (distinto de [] = no tiene sesiones).
+  let sesiones=null;
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_sesiones')
+      .select('practica,ritmo,path,emo_name,created_at')
+      .eq('user_id', u.id)
+      .order('created_at',{ascending:false});
+    if(error) throw error;
+    sesiones=data||[];
+  }catch(e){
+    console.warn('[HOGAR admin] sesiones de la usuaria fallaron:',e.message||e);
+  }
+  det.innerHTML=_admFichaHTML(u, sesiones);
+}
+
+function _admFichaHTML(u, ses){
+  const fallo = (ses===null);
+  const rows = fallo ? [] : ses;
+  const total = rows.length;
+  const ultimaISO = total ? rows[0].created_at : null;
+  const dias = _admDiasDesde(ultimaISO);
+
+  // Práctica favorita: la más repetida (cae a ritmo si practica viene vacía).
+  let favorita='—';
+  if(total){
+    const g=_admGroupCount(rows, r=> r.practica || r.ritmo);
+    if(g.length) favorita=g[0].label;
+  }
+
+  let html='<button type="button" class="adm-back" onclick="volverAUsuariasHogar()">← Volver a usuarias</button>';
+
+  // ── Identidad ──
+  html+='<div class="adm-ficha-head hogar-rise-in">'
+    +'<div class="dash-meta">— FICHA DE USUARIA</div>'
+    +'<div class="adm-ficha-nombre">'+_admEsc(_admDash(u.nombre))+'</div>'
+    +'<div class="adm-ficha-email">'+_admEsc(_admDash(u.email))+'</div>'
+    +'</div>';
+
+  // ── Señales accionables (solo cuando aplican) ──
+  if(!fallo && u.pagado===true && total===0){
+    html+='<div class="adm-alert warn show">Compró y aún no ha practicado.</div>';
+  }else if(!fallo && dias!==null && dias>30){
+    html+='<div class="adm-alert warn show">Sin actividad hace '+dias+' días.</div>';
+  }
+
+  // ── Cuenta ──
+  const pagoValor = (u.pagado===true)
+    ? 'Pagada'+(u.fecha_compra?' · '+_admFmtDate(u.fecha_compra):'')
+      +(u.monto_centavos?' · '+_admEsc(_admDinero(u.monto_centavos,'MXN')):'')
+    : 'Sin compra';
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— CUENTA</div>'
+    +_admFila('Fecha de alta', _admFmtDate(u.created_at))
+    +_admFila('Pago', _admEsc(pagoValor), u.pagado===true?'ok':'')
+    +_admFila('Plan', _admEsc(_admDash(u.plan)))
+    +_admFila('Estatus', _admEsc(_admDash(u.estatus)))
+    +'</div>';
+
+  // ── Métricas ──
+  // esTexto: los valores no numéricos (fecha, nombre de práctica) van más chicos.
+  const tile=(clase,eyebrow,num,sub,esTexto)=>
+    '<div class="stat-tile '+clase+' hogar-rise-in">'
+    +'<div class="stat-tile-eyebrow">— '+eyebrow+'</div>'
+    +'<div class="stat-tile-num'+(esTexto?' adm-num-texto':'')+'">'+num+'</div>'
+    +'<div class="stat-tile-sub">'+sub+'</div></div>';
+
+  html+='<div class="adm-section hogar-rise-in" style="margin-top:24px;">'
+    +'<div class="adm-section-title">— SU ACTIVIDAD</div>'
+    +'<div class="adm-kpi-grid">'
+    +tile('accent','PRÁCTICAS', fallo?'—':total, 'sesiones completadas')
+    +tile('','ÚLTIMA', fallo?'—':(ultimaISO?_admFmtDate(ultimaISO):'Nunca'), ultimaISO?'su práctica más reciente':'nunca ha practicado', true)
+    +tile('salmon','DÍAS SIN PRACTICAR', (fallo||dias===null)?'—':dias, 'desde su última sesión')
+    +tile('','FAVORITA', fallo?'—':_admEsc(favorita), 'su práctica más repetida', true)
+    +'</div></div>';
+
+  // ── Historial ──
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— HISTORIAL</div>';
+  if(fallo){
+    html+='<p class="adm-card-text">No pudimos cargar su historial. Intenta de nuevo en un momento.</p>';
+  }else if(!total){
+    html+='<div class="adm-vacio"><div class="adm-vacio-mark">✦</div>'
+      +'<p>Aún no ha practicado.</p></div>';
+  }else{
+    html+=rows.slice(0,50).map(s=>{
+      const dur=ADMIN_PATH_LABELS[s.path]||s.path;
+      const meta=[dur, s.emo_name].filter(x=>x&&String(x).trim()!=='').map(x=>_admEsc(x)).join(' · ');
+      return '<div class="adm-hist-item">'
+        +'<div class="adm-hist-fecha">'+_admFmtDate(s.created_at)+'</div>'
+        +'<div class="adm-hist-cuerpo">'
+          +'<div class="adm-hist-practica">'+_admEsc(_admDash(s.practica||s.ritmo))+'</div>'
+          +(meta?'<div class="adm-hist-meta">'+meta+'</div>':'')
+        +'</div></div>';
+    }).join('');
+    if(total>50){
+      html+='<div class="adm-hist-nota">Mostrando sus 50 prácticas más recientes de '+total+'.</div>';
+    }
+  }
+  html+='</div>';
+
+  return html;
+}
 
 // ============================================
 // ADMIN · COBROS (Stripe Connect) y PLANES (producto de pago único)
