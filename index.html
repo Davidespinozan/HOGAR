@@ -3132,6 +3132,67 @@ body.app-active { overflow: hidden; }
   background: rgba(253,246,238,0.75);
   border-bottom: 0.5px solid rgba(58,40,32,0.08);
 }
+/* ===== ÁREA ADMINISTRATIVA — layout con sidebar (patrón AdminLayout de EKKO/SALA,
+   adaptado a single-tenant y al lenguaje visual de HOGAR: terracota + crema) ===== */
+.adm-layout{ display:grid; grid-template-columns:236px 1fr; gap:34px; align-items:start;
+  max-width:1200px; margin:0 auto; padding:28px 22px 60px; }
+/* min-width:0 — sin esto una tabla o una fila de tabs ancha estira la columna y desborda */
+.adm-side,.adm-content{ min-width:0; }
+/* — Sidebar — */
+/* El .app-nav es position:relative (se va con el scroll), así que el sidebar se pega arriba */
+.adm-side{ position:sticky; top:24px; }
+.adm-side-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--texto-medio); margin:0 0 14px 14px; }
+.adm-nav{ display:flex; flex-direction:column; gap:4px; }
+.adm-nav-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  font-family:'Montserrat',sans-serif; font-size:.86rem; font-weight:500; letter-spacing:.01em;
+  color:var(--texto-oscuro); background:transparent; border:none; border-radius:14px; padding:11px 14px;
+  transition:background .25s var(--ease-premium), color .25s var(--ease-premium), transform .25s var(--ease-premium); }
+.adm-nav-item:hover{ background:rgba(198,107,65,.09); color:var(--terracota-oscuro); }
+.adm-nav-item.active{ background:linear-gradient(135deg,#d2774a,#b55836); color:#fff; font-weight:600;
+  box-shadow:0 8px 20px -8px rgba(181,88,54,.55); }
+.adm-nav-item.active .adm-nav-dot{ background:#fff; opacity:.9; }
+.adm-nav-dot{ width:6px; height:6px; border-radius:50%; background:var(--terracota); opacity:.42; flex-shrink:0;
+  transition:background .25s, opacity .25s; }
+.adm-nav-item.soon{ color:var(--texto-medio); }
+/* Escape hatch — secundario, nunca protagonista */
+.adm-side-foot{ margin-top:22px; padding-top:16px; border-top:1px solid var(--crema); }
+.adm-ghost-link{ display:inline-block; background:none; border:none; cursor:pointer;
+  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:500; letter-spacing:.04em;
+  color:var(--texto-medio); padding:6px 14px; text-decoration:underline; text-underline-offset:3px;
+  transition:color .25s; }
+.adm-ghost-link:hover{ color:var(--terracota); }
+/* — Área de contenido — */
+.adm-view{ display:none; }
+.adm-view.on{ display:block; animation:hogar-rise-in .45s var(--ease-premium); }
+/* — Placeholder "Próximamente": atenuado pero intencional — */
+.adm-soon{ background:#efe7db; border-radius:22px; padding:52px 32px; text-align:center;
+  box-shadow:var(--highlight-top), var(--sombra-suave); }
+.adm-soon-mark{ width:46px; height:46px; margin:0 auto 18px; border-radius:14px;
+  background:linear-gradient(135deg,#e8d5c2,#d9b896); display:flex; align-items:center; justify-content:center;
+  font-size:17px; color:#fdf6ee; }
+.adm-soon h3{ font-family:'Montserrat',sans-serif; font-size:20px; font-weight:600; color:var(--tierra); margin-bottom:8px; }
+.adm-soon p{ font-family:'Montserrat',sans-serif; font-size:.85rem; color:var(--texto-medio); max-width:340px; margin:0 auto; }
+.adm-soon-tag{ display:inline-block; margin-top:18px; font-size:9px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--terracota-oscuro); background:var(--crema); border-radius:100px; padding:6px 16px; }
+/* — Responsive: en móvil el sidebar colapsa a tabs superiores deslizables — */
+@media(max-width:900px){
+  /* El padding lateral pasa al contenido: así la barra de tabs va a sangre y no desborda */
+  .adm-layout{ grid-template-columns:1fr; gap:14px; padding:0 0 48px; }
+  .adm-content{ padding:0 16px; }
+  .adm-side{ position:static; }
+  .adm-side-eyebrow{ display:none; }
+  /* Aquí lo pegajoso es la barra de tabs, no el sidebar entero */
+  .adm-nav{ position:sticky; top:0; z-index:5; flex-direction:row; gap:8px;
+    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    padding:12px 16px; background:rgba(253,246,238,.92);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-bottom:0.5px solid rgba(58,40,32,.08); }
+  .adm-nav::-webkit-scrollbar{ display:none; }
+  .adm-nav-item{ width:auto; flex:0 0 auto; padding:9px 15px; border-radius:100px; font-size:.78rem; white-space:nowrap; }
+  .adm-nav-dot{ display:none; }
+  .adm-side-foot{ margin:0; padding:12px 16px 0; border-top:none; text-align:center; }
+}
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -3205,7 +3266,7 @@ body.app-active { overflow: hidden; }
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
     </div>
     <div class="nav-actions">
-      <button id="nav-admin-btn" class="nav-icon-btn" onclick="go('admin')" title="Panel de Andrea" style="display:none;width:auto;border-radius:100px;padding:0 16px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Panel</button>
+      <button id="nav-admin-btn" class="nav-icon-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;width:auto;border-radius:100px;padding:0 16px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">Panel</button>
       <button class="nav-icon-btn" onclick="go('history')" title="Mi historial">
         <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
           <path d="M3 8H21M3 16H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -3571,16 +3632,39 @@ body.app-active { overflow: hidden; }
   </div>
 </div>
 
-<!-- ===== PANEL ADMIN (solo Andrea; entrada por email, seguridad real en RLS) ===== -->
+<!-- ===== ÁREA ADMINISTRATIVA (solo Andrea; entrada por email, seguridad real en RLS) =====
+     Layout con sidebar + secciones. El sidebar colapsa a tabs en móvil. -->
 <div id="s-admin" class="scr">
   <div class="app-nav">
-    <button class="app-nav-back" onclick="go('dash')">← Volver</button>
+    <div style="width:88px;"></div>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
     </div>
     <div style="width:88px;"></div>
   </div>
-  <div class="app-container" style="max-width:900px;">
+
+  <div class="adm-layout">
+    <!-- SIDEBAR (tabs superiores en móvil) -->
+    <aside class="adm-side">
+      <div class="adm-side-eyebrow">— ADMINISTRACIÓN</div>
+      <nav class="adm-nav" id="adm-nav">
+        <button class="adm-nav-item active" data-adm="inicio"    onclick="goAdmin('inicio')"><span class="adm-nav-dot"></span>Inicio</button>
+        <button class="adm-nav-item"        data-adm="usuarias"  onclick="goAdmin('usuarias')"><span class="adm-nav-dot"></span>Usuarias</button>
+        <button class="adm-nav-item soon"   data-adm="cobros"    onclick="goAdmin('cobros')"><span class="adm-nav-dot"></span>Cobros</button>
+        <button class="adm-nav-item soon"   data-adm="planes"    onclick="goAdmin('planes')"><span class="adm-nav-dot"></span>Planes</button>
+        <button class="adm-nav-item soon"   data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-dot"></span>Contenido</button>
+        <button class="adm-nav-item soon"   data-adm="landing"   onclick="goAdmin('landing')"><span class="adm-nav-dot"></span>Landing</button>
+      </nav>
+      <div class="adm-side-foot">
+        <button class="adm-ghost-link" onclick="go('dash')">Ver la app como usuaria</button>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <div class="adm-content">
+
+    <!-- ===== INICIO — métricas ===== -->
+    <section class="adm-view on" id="adm-view-inicio">
     <div class="dash-header hogar-rise-in">
       <div class="dash-header-top">
         <div class="dash-meta">— PANEL DE ANDREA</div>
@@ -3624,30 +3708,6 @@ body.app-active { overflow: hidden; }
       </div>
     </div>
 
-    <!-- USUARIAS -->
-    <div class="adm-section hogar-rise-in">
-      <div class="adm-section-title">— USUARIAS</div>
-      <div class="adm-filters">
-        <input type="text" id="adm-search" placeholder="Buscar por nombre o email…" oninput="renderAdminUsuarias()">
-        <select id="adm-estatus" onchange="renderAdminUsuarias()">
-          <option value="">Todos los estatus</option>
-          <option value="activa">Activa</option>
-          <option value="cancelada">Cancelada</option>
-          <option value="baja">Baja</option>
-        </select>
-      </div>
-      <div class="adm-table-wrap">
-        <table class="adm-table">
-          <thead>
-            <tr><th>Nombre</th><th>Email</th><th>Alta</th><th>Plan</th><th>Estatus</th></tr>
-          </thead>
-          <tbody id="adm-usuarias-body">
-            <tr><td colspan="5" class="adm-empty">Cargando…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
     <!-- USO -->
     <div class="adm-section hogar-rise-in">
       <div class="adm-section-title">— USO</div>
@@ -3687,7 +3747,113 @@ body.app-active { overflow: hidden; }
         </div>
       </div>
     </div>
-  </div>
+    </section>
+
+    <!-- ===== USUARIAS ===== -->
+    <section class="adm-view" id="adm-view-usuarias">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">Las mujeres de tu</p>
+          <h1 class="dash-name">HOGAR.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+      <div class="adm-section hogar-rise-in">
+        <div class="adm-section-title">— USUARIAS</div>
+        <div class="adm-filters">
+          <input type="text" id="adm-search" placeholder="Buscar por nombre o email…" oninput="renderAdminUsuarias()">
+          <select id="adm-estatus" onchange="renderAdminUsuarias()">
+            <option value="">Todos los estatus</option>
+            <option value="activa">Activa</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+        <div class="adm-table-wrap">
+          <table class="adm-table">
+            <thead>
+              <tr><th>Nombre</th><th>Email</th><th>Alta</th><th>Plan</th><th>Estatus</th></tr>
+            </thead>
+            <tbody id="adm-usuarias-body">
+              <tr><td colspan="5" class="adm-empty">Cargando…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECCIONES POR CONSTRUIR (FASE 2) — placeholders intencionales ===== -->
+    <section class="adm-view" id="adm-view-cobros">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">Los cobros de tu</p>
+          <h1 class="dash-name">HOGAR.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+      <div class="adm-soon hogar-rise-in">
+        <div class="adm-soon-mark">✦</div>
+        <h3>Cobros</h3>
+        <p>Aquí verás los pagos de tus usuarias, su estado y el historial de cada cobro.</p>
+        <div class="adm-soon-tag">Próximamente</div>
+      </div>
+    </section>
+
+    <section class="adm-view" id="adm-view-planes">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">Los planes de tu</p>
+          <h1 class="dash-name">HOGAR.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+      <div class="adm-soon hogar-rise-in">
+        <div class="adm-soon-mark">✦</div>
+        <h3>Planes</h3>
+        <p>Aquí definirás los planes de acceso, sus precios y qué incluye cada uno.</p>
+        <div class="adm-soon-tag">Próximamente</div>
+      </div>
+    </section>
+
+    <section class="adm-view" id="adm-view-contenido">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">El contenido de tu</p>
+          <h1 class="dash-name">HOGAR.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+      <div class="adm-soon hogar-rise-in">
+        <div class="adm-soon-mark">✦</div>
+        <h3>Contenido</h3>
+        <p>Aquí administrarás las prácticas, sus duraciones y los videos que las acompañan.</p>
+        <div class="adm-soon-tag">Próximamente</div>
+      </div>
+    </section>
+
+    <section class="adm-view" id="adm-view-landing">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">La cara pública de tu</p>
+          <h1 class="dash-name">HOGAR.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+      <div class="adm-soon hogar-rise-in">
+        <div class="adm-soon-mark">✦</div>
+        <h3>Landing</h3>
+        <p>Aquí editarás los textos y las imágenes de la página que ven quienes aún no entran.</p>
+        <div class="adm-soon-tag">Próximamente</div>
+      </div>
+    </section>
+
+    </div><!-- /.adm-content -->
+  </div><!-- /.adm-layout -->
 </div>
 
 <script>
@@ -4222,6 +4388,32 @@ function go(id){
   uA();
 }
 
+// ============================================
+// ÁREA ADMINISTRATIVA — navegación entre secciones (mostrar/ocultar, sin recarga)
+// ============================================
+function goAdmin(section){
+  const s=section||'inicio';
+  const scr=document.getElementById('s-admin');
+  if(scr && !scr.classList.contains('on')) go('admin');
+  document.querySelectorAll('#adm-nav .adm-nav-item').forEach(b=>{
+    b.classList.toggle('active', b.dataset.adm===s);
+  });
+  document.querySelectorAll('#s-admin .adm-view').forEach(v=>{
+    v.classList.toggle('on', v.id==='adm-view-'+s);
+  });
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+}
+
+// ¿La sesión es la de Andrea? (UX; la seguridad real vive en las políticas RLS)
+function esAdmin(email){ return (email||'').toLowerCase().trim()===ADMIN_EMAIL; }
+
+// Redirect por rol — patrón useRoleRedirect de EKKO/SALA adaptado a single-tenant:
+// Andrea entra directo al área administrativa, nunca al dashboard de usuaria.
+function irTrasAuth(){
+  if(U && esAdmin(U.email)){ goAdmin('inicio'); return; }
+  go('dash');
+}
+
 // NAV v2 — drawer lateral
 function openHeroMenu(){
   document.getElementById('hero-menu-drawer')?.classList.add('open');
@@ -4358,7 +4550,7 @@ async function doSign(){
       authMsg('signup-msg', authError(error.message),'error'); return;
     }
     if(data && data.session){
-      applyUser(data.user); hi=[]; go('dash');
+      applyUser(data.user); hi=[]; irTrasAuth();
     } else if(_isDuplicateEmail(null, data)){
       showSignupDuplicate();
     } else {
@@ -4465,7 +4657,7 @@ async function doNewPass(){
     try{
       const { data:sess } = await window.sb.auth.getSession();
       if(sess && sess.session && sess.session.user){
-        setTimeout(()=>{ applyUser(sess.session.user); hi=[]; go('dash'); }, 900);
+        setTimeout(()=>{ applyUser(sess.session.user); hi=[]; irTrasAuth(); }, 900);
         return;
       }
     }catch(_){}
@@ -4489,7 +4681,7 @@ async function doLog(){
   try{
     const { data, error } = await window.sb.auth.signInWithPassword({ email:e, password:p });
     if(error){ authMsg('login-msg', authError(error.message),'error'); return; }
-    applyUser(data.user); hi=[]; go('dash');
+    applyUser(data.user); hi=[]; irTrasAuth();
   }catch(err){
     authMsg('login-msg', authError(err&&err.message),'error');
   }finally{
@@ -4530,7 +4722,8 @@ async function _authInit(){
   try{
     const { data } = await window.sb.auth.getSession();
     if(data && data.session && data.session.user){
-      applyUser(data.session.user); hi=[]; go('dash');
+      // Al restaurar sesión también aplica el redirect por rol: si Andrea recarga, sigue en admin.
+      applyUser(data.session.user); hi=[]; irTrasAuth();
     }
   }catch(err){ /* sin sesión válida → se queda en la landing */ }
   // Retorno de Stripe Checkout: ?pago=exito | ?pago=cancelado
@@ -4552,7 +4745,7 @@ async function _authInit(){
 function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
   // Botón "Panel" solo para Andrea (UX; la seguridad real vive en RLS del servidor)
   const ab=document.getElementById('nav-admin-btn');
-  if(ab) ab.style.display = (U.email||'').toLowerCase()===ADMIN_EMAIL ? 'flex' : 'none';
+  if(ab) ab.style.display = esAdmin(U.email) ? 'flex' : 'none';
 }
 // Saludo según hora LOCAL del dispositivo. Sin coma — la HTML añade el nombre.
 function _greetingByTime(){
