@@ -7,28 +7,16 @@ webhook en Stripe. El código ya está en el repo (`netlify/functions/`).
 
 ## ⚠️ Antes de empezar: lee esto
 
-**1. Hay DOS implementaciones de cobro en este repo.** La nueva (Netlify Functions,
-Stripe Connect, esta guía) y una anterior (Supabase Edge Functions, cuenta Stripe
-simple, documentada en `STRIPE_SETUP.md`). **Son incompatibles entre sí** y no deben
-estar activas al mismo tiempo:
+**Este es el ÚNICO camino de cobro de HOGAR.** Hubo una implementación anterior
+(Supabase Edge Functions, cuenta Stripe simple, sin Connect) que quedó a medias y
+nunca se desplegó; se eliminó del repo junto con su guía `STRIPE_SETUP.md`. Si en el
+dashboard de Stripe existiera un endpoint de webhook apuntando a
+`…supabase.co/functions/v1/stripe-webhook`, **bórralo**: ya no hay nada del otro lado.
 
-| | Anterior (`supabase/functions/`) | Nueva (`netlify/functions/`) |
-|---|---|---|
-| Modelo | Cuenta Stripe simple, STRYV cobra | Connect Express, **Andrea** cobra directo |
-| Precio | `STRIPE_PRICE_ID` (fijo en Stripe) | `hogar_config.precio_centavos` (lo edita Andrea) |
-| Escribe | `estatus`, `paid_at`, `hogar_pagos` | `pagado`, `fecha_compra`, `monto_centavos`, `plan`, `estatus` |
-| Filtra EKKO | ❌ no | ✅ sí (`metadata.app`) |
-
-Si registras el webhook nuevo **sin dar de baja el viejo**, un mismo pago se procesa
-dos veces por caminos distintos. Antes de pasar a producción: decide cuál se queda y
-borra el endpoint del otro en el dashboard de Stripe.
-
-**2. `STRIPE_SETUP.md` quedó obsoleto** con esta guía (dice literalmente "No usamos
-Stripe Connect"). Cuando confirmes que te quedas con Connect, hay que borrarlo.
-
-**3. La UI todavía no llama a estas funciones.** `index.html` sigue apuntando a la
-Edge Function anterior. El cableado del panel (secciones Cobros y Planes) va en un
-paso aparte.
+**El botón de pago sigue apagado.** `index.html` tiene `STRIPE_PAGO_ACTIVO = false`;
+ya apunta a la función nueva, pero el botón "Activar mi acceso" no se muestra hasta
+que lo pongas en `true` (después de completar esta guía). El panel de Andrea aún no
+tiene las secciones Cobros y Planes: ese cableado va en un paso aparte.
 
 ---
 
@@ -120,12 +108,14 @@ Haz todo el circuito con llaves `sk_test_…` **antes** de tocar dinero real.
 
 ## Pendientes conocidos
 
-- **La card DINERO del panel lee `hogar_pagos`**, tabla que llenaba el webhook
-  anterior. El webhook nuevo **no la escribe** (no estaba en el alcance), así que esa
-  card se queda en "Conecta Stripe" aunque haya pagos reales. Hay que decidir si el
-  webhook nuevo también escribe el journal o si la card pasa a leer `hogar_usuarias`.
-- **Dar de baja la implementación anterior** (ver el aviso del inicio).
-- **Cablear la UI** de Cobros y Planes en `index.html`.
+- **Encender el botón**: `STRIPE_PAGO_ACTIVO = true` en `index.html` cuando el
+  circuito esté probado.
+- **Cablear la UI** de Cobros y Planes en el panel de Andrea.
+- **No hay journal de pagos.** El acceso se registra en `hogar_usuarias`
+  (`pagado`, `fecha_compra`, `monto_centavos`), que es lo que lee la card DINERO. Si
+  algún día hace falta el detalle transacción por transacción (reembolsos, historial),
+  hay que crear la tabla y escribirla desde el webhook. Stripe, mientras tanto, es la
+  fuente de verdad.
 
 ---
 

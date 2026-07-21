@@ -3723,27 +3723,20 @@ body.app-active { overflow: hidden; }
       </div>
     </div>
 
-    <!-- DINERO — datos reales de hogar_pagos si hay; si no, placeholder -->
+    <!-- DINERO — compras del mes, leídas de hogar_usuarias (donde el webhook
+         de Netlify marca pagado/fecha_compra/monto_centavos). Sin pagos: 0. -->
     <div class="adm-section hogar-rise-in">
       <div class="adm-section-title">— DINERO</div>
-      <!-- Placeholder: visible hasta que haya pagos reales o mientras Stripe no esté conectado -->
-      <div class="adm-kpi-grid" id="adm-dinero-placeholder">
-        <div class="adm-kpi muted hogar-rise-in">
-          <div class="adm-kpi-eyebrow">— INGRESOS</div>
-          <div class="adm-kpi-num">Conecta Stripe — Próximamente</div>
-        </div>
-      </div>
-      <!-- Real: se muestra cuando hay al menos un pago registrado -->
-      <div class="adm-kpi-grid" id="adm-dinero-real" style="display:none;">
+      <div class="adm-kpi-grid">
         <div class="stat-tile accent hogar-rise-in">
           <div class="stat-tile-eyebrow">— INGRESOS DEL MES</div>
           <div class="stat-tile-num" id="adm-dinero-mes">—</div>
-          <div class="stat-tile-sub">pagos confirmados este mes</div>
+          <div class="stat-tile-sub">compras confirmadas este mes</div>
         </div>
         <div class="stat-tile hogar-rise-in">
-          <div class="stat-tile-eyebrow">— PAGOS DEL MES</div>
+          <div class="stat-tile-eyebrow">— VENTAS DEL MES</div>
           <div class="stat-tile-num" id="adm-dinero-count">—</div>
-          <div class="stat-tile-sub">transacciones este mes</div>
+          <div class="stat-tile-sub">accesos vendidos este mes</div>
         </div>
       </div>
     </div>
@@ -4781,13 +4774,15 @@ function uD(){
 const STRIPE_PORTAL_URL = '';
 
 // ===== PAGO REAL (Stripe Checkout · pago único) =====
-// Andrea: pon STRIPE_PAGO_ACTIVO en true SOLO después de desplegar las Edge Functions
-// y configurar los secrets de Stripe (ver STRIPE_SETUP.md). Mientras esté en false,
-// el botón "Activar mi acceso" queda oculto y nada cambia en el sitio.
+// Andrea: pon STRIPE_PAGO_ACTIVO en true SOLO después de configurar Stripe en
+// Netlify (ver README-STRIPE.md). Mientras esté en false, el botón "Activar mi
+// acceso" queda oculto y nada cambia en el sitio.
 const STRIPE_PAGO_ACTIVO = false;
-const STRIPE_CHECKOUT_FN = 'https://lxpgqhghxfqsahwrdmzo.supabase.co/functions/v1/create-checkout';
+// Netlify Function (Stripe Connect · direct charges). Misma URL que el sitio,
+// así que no hace falta apikey: la función autentica con el Bearer de Supabase.
+const STRIPE_CHECKOUT_FN = '/.netlify/functions/crear-checkout';
 
-// Llama a la Edge Function create-checkout con el JWT de la clienta y la manda a Stripe.
+// Llama a crear-checkout con el JWT de la clienta y la manda a Stripe.
 async function iniciarPagoHogar(btn){
   if(!STRIPE_PAGO_ACTIVO){ alert('El pago aún no está disponible. Estamos terminando de configurarlo.'); return; }
   if(!window.sb){ alert('Sin conexión. Intenta de nuevo en un momento.'); return; }
@@ -4800,7 +4795,6 @@ async function iniciarPagoHogar(btn){
       method:'POST',
       headers:{
         'Authorization':'Bearer '+session.access_token,
-        'apikey':'sb_publishable_1hb4cP4BLU6m5QqsrNX-Fw_CTBud1I7',
         'Content-Type':'application/json',
       },
     });
@@ -5806,28 +5800,29 @@ async function loadAdmin(){
     }
   })();
 
-  // 7) DINERO — ingresos reales del mes desde hogar_pagos. Si la tabla no existe aún
-  //    (webhook sin desplegar) o no hay pagos, se queda el placeholder "Conecta Stripe".
+  // 7) DINERO — compras del mes desde hogar_usuarias, que es donde el webhook de
+  //    Netlify marca pagado/fecha_compra/monto_centavos. Sin compras → 0 (no es un
+  //    error: es que aún no vende). Si la consulta falla → '—', como el resto del panel.
   (async()=>{
+    const $=id=>document.getElementById(id);
     try{
-      const { data, error } = await window.sb.from('hogar_pagos')
-        .select('monto_centavos,moneda,created_at,status')
-        .eq('status','paid')
-        .gte('created_at',_admStartOfMonth());
+      let q=window.sb.from('hogar_usuarias')
+        .select('monto_centavos,fecha_compra')
+        .eq('pagado',true)
+        .gte('fecha_compra',_admStartOfMonth());
+      if(ADMIN_TEST_EMAILS.length) q=q.not('email','in','('+ADMIN_TEST_EMAILS.map(e=>'"'+e+'"').join(',')+')');
+      const { data, error } = await q;
       if(error) throw error;
       const rows=data||[];
-      if(!rows.length) return; // sin pagos → placeholder visible, no tocamos nada
       const centavos=rows.reduce((a,r)=>a+(r.monto_centavos||0),0);
-      const moneda=(rows[0].moneda||'mxn').toUpperCase();
-      const monto=(centavos/100).toLocaleString('es-MX',{style:'currency',currency:moneda});
-      const $=id=>document.getElementById(id);
+      // hogar_usuarias no guarda moneda por fila: el cobro es en MXN (hogar_config.moneda).
+      const monto=(centavos/100).toLocaleString('es-MX',{style:'currency',currency:'MXN'});
       if($('adm-dinero-mes')) $('adm-dinero-mes').textContent=monto;
       if($('adm-dinero-count')) $('adm-dinero-count').textContent=rows.length;
-      if($('adm-dinero-placeholder')) $('adm-dinero-placeholder').style.display='none';
-      if($('adm-dinero-real')) $('adm-dinero-real').style.display='';
     }catch(e){
-      // Tabla inexistente / sin permiso → placeholder. No romper el panel.
-      console.warn('[HOGAR admin] dinero no disponible (placeholder):',e.message||e);
+      console.warn('[HOGAR admin] dinero falló:',e.message||e);
+      if($('adm-dinero-mes')) $('adm-dinero-mes').textContent='—';
+      if($('adm-dinero-count')) $('adm-dinero-count').textContent='—';
     }
   })();
 }
