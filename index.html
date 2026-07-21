@@ -5864,8 +5864,6 @@ async function refrescarHistorialYStats(){
 const ADMIN_EMAIL='andrealaso1997@hotmail.com';
 // Correos de prueba que se excluyen SIEMPRE de conteos y de la tabla de usuarias.
 const ADMIN_TEST_EMAILS=['magalyb.1804@gmail.com','magalybl.1804@gmail.com','magalyblltt@gmail.com','daen97@hotmail.com'];
-// hogar_sesiones.path guarda la INICIAL de la duración, no la palabra completa.
-const ADMIN_PATH_LABELS={ M:'Micro', B:'Base', P:'Profundo' };
 let _admUsuarias=[]; // cache de la última carga, para filtrar en cliente sin re-consultar
 
 // Inicio del día / del mes en hora local, como ISO, para filtrar created_at con .gte()/.lt()
@@ -5875,6 +5873,18 @@ function _admDaysAgo(n){ const d=new Date(); d.setDate(d.getDate()-n); return d.
 function _admFmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); if(isNaN(d)) return '—';
   const p=n=>String(n).padStart(2,'0'); return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
 function _admDash(v){ return (v===null||v===undefined||String(v).trim()==='') ? '—' : v; }
+
+// Duración de una práctica, para mostrar. La fuente es hogar_sesiones.ritmo
+// ('Ritmo Micro' | 'Ritmo Base' | 'Ritmo Profundo'); solo se le quita el prefijo.
+// OJO: la columna `path` NO es la duración — es la rama del cuestionario
+// post-práctica ('A'|'B'|'C'|'D', ver answers.path). No usarla para esto.
+// Un valor inesperado se devuelve tal cual; vacío devuelve '' para que quien
+// agrupa o pinta lo omita en vez de inventar una categoría.
+function _admDuracion(ritmo){
+  const r=String(ritmo==null?'':ritmo).trim();
+  if(!r) return '';
+  return r.replace(/^Ritmo\s+/i,'').trim() || r;
+}
 
 // Carga todo el panel. Cada bloque falla de forma aislada: un error deja '—' en su card,
 // nunca rompe la pantalla. Los conteos excluyen los ids de las usuarias de prueba.
@@ -5941,15 +5951,15 @@ async function loadAdmin(){
   (async()=>{
     try{
       const { data, error } = await notTest(
-        window.sb.from('hogar_sesiones').select('practica,ritmo,path')
+        window.sb.from('hogar_sesiones').select('practica,ritmo')
       );
       if(error) throw error;
       const rows=data||[];
       // Práctica (o ritmo si practica viene null)
       _admRenderBars('adm-uso-practicas', _admGroupCount(rows, r=> r.practica || r.ritmo));
-      // Duración por path: la inicial (M/B/P) se traduce a palabra completa antes de agrupar,
-      // así iniciales iguales se suman bajo una sola etiqueta. Valor desconocido → tal cual.
-      _admRenderBars('adm-uso-duraciones', _admGroupCount(rows, r=> ADMIN_PATH_LABELS[r.path] || r.path));
+      // Duración: se normaliza ANTES de agrupar, así 'Ritmo Base' y un eventual
+      // 'Base' suman en la misma barra en vez de abrir dos.
+      _admRenderBars('adm-uso-duraciones', _admGroupCount(rows, r=> _admDuracion(r.ritmo)));
     }catch(e){
       console.warn('[HOGAR admin] uso falló:',e.message||e);
       ['adm-uso-practicas','adm-uso-duraciones'].forEach(id=>{
@@ -6089,7 +6099,7 @@ async function verUsuariaHogar(id){
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
     const { data, error } = await window.sb.from('hogar_sesiones')
-      .select('practica,ritmo,path,emo_name,created_at')
+      .select('practica,ritmo,emo_name,created_at')
       .eq('user_id', u.id)
       .order('created_at',{ascending:false});
     if(error) throw error;
@@ -6170,7 +6180,7 @@ function _admFichaHTML(u, ses){
       +'<p>Aún no ha practicado.</p></div>';
   }else{
     html+=rows.slice(0,50).map(s=>{
-      const dur=ADMIN_PATH_LABELS[s.path]||s.path;
+      const dur=_admDuracion(s.ritmo);
       const meta=[dur, s.emo_name].filter(x=>x&&String(x).trim()!=='').map(x=>_admEsc(x)).join(' · ');
       return '<div class="adm-hist-item">'
         +'<div class="adm-hist-fecha">'+_admFmtDate(s.created_at)+'</div>'
