@@ -3289,6 +3289,42 @@ body.app-active { overflow: hidden; }
   .adm-hist-item{ flex-direction:column; gap:4px; }
   .adm-hist-fecha{ flex-basis:auto; }
 }
+/* ===== CONTENIDO — inventario de medios (solo lectura) ===== */
+.adm-med-resumen{ display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px; }
+.adm-med-num{ font-family:'Montserrat',sans-serif; font-size:30px; font-weight:600; color:var(--tierra); line-height:1; }
+.adm-med-num.completo{ color:#4e7a48; }
+.adm-med-de{ font-family:'Montserrat',sans-serif; font-size:.86rem; color:var(--texto-medio); }
+/* Lista de archivos que faltan: el nombre exacto es lo accionable */
+.adm-med-faltan{ margin-top:16px; padding-top:16px; border-top:1px solid var(--crema-claro); }
+.adm-med-faltan-tit{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--terracota-oscuro); margin-bottom:12px; }
+.adm-med-archivo{ display:inline-block; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:.8rem;
+  color:var(--terracota-oscuro); background:#f8ece2; border:1px solid #f0d6c4; border-radius:9px;
+  padding:5px 11px; margin:0 7px 7px 0; }
+/* Cuadrícula de prácticas */
+.adm-med-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:16px; }
+.adm-med-card{ background:#fff; border-radius:22px; padding:22px 20px;
+  box-shadow:var(--highlight-top), var(--sombra-suave);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
+.adm-med-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
+.adm-med-card-tit{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
+.adm-med-fila{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--crema-claro); }
+.adm-med-fila:last-child{ border-bottom:none; }
+.adm-med-dur{ flex:0 0 84px; font-family:'Montserrat',sans-serif; font-size:.8rem; color:var(--texto-medio); }
+.adm-med-chips{ display:flex; gap:7px; flex-wrap:wrap; }
+.adm-med-chip{ display:inline-flex; align-items:center; gap:5px; font-family:'Montserrat',sans-serif;
+  font-size:10px; font-weight:600; letter-spacing:.5px; border-radius:100px; padding:5px 10px; white-space:nowrap; }
+.adm-med-chip.ok{ background:#e9f0e5; color:#4e7a48; }
+.adm-med-chip.falta{ background:#f8ece2; color:#9c4a2e; }
+.adm-med-chip::before{ font-size:9px; }
+.adm-med-chip.ok::before{ content:'●'; }
+.adm-med-chip.falta::before{ content:'○'; }
+@media(max-width:480px){
+  .adm-med-grid{ grid-template-columns:1fr; }
+  .adm-med-fila{ flex-direction:column; align-items:flex-start; gap:6px; }
+  .adm-med-dur{ flex-basis:auto; font-weight:600; color:var(--terracota); }
+}
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -3954,11 +3990,8 @@ body.app-active { overflow: hidden; }
           <hr class="dash-rule">
         </div>
       </div>
-      <div class="adm-soon hogar-rise-in">
-        <div class="adm-soon-mark">✦</div>
-        <h3>Contenido</h3>
-        <p>Aquí administrarás las prácticas, sus duraciones y los videos que las acompañan.</p>
-        <div class="adm-soon-tag">Próximamente</div>
+      <div id="adm-contenido-body">
+        <div class="adm-loading">Revisando tus archivos…</div>
       </div>
     </section>
 
@@ -4531,6 +4564,7 @@ function goAdmin(section){
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
+  if(s==='contenido') loadContenido();
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -6366,6 +6400,191 @@ async function activarCobrosHogar(btn){
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=txt||'Activar mis cobros'; }
   }
+}
+
+// ── CONTENIDO · inventario de medios (SOLO LECTURA) ─────────────────────────
+// Cruza los 30 archivos esperados (5 prácticas × 3 duraciones × video+audio)
+// contra lo que hay de verdad en el bucket "hogar".
+//
+// Dos modos, porque listar el bucket depende de una policy que hoy puede no
+// existir (storage.objects sin SELECT devuelve 200 con [] — silencioso):
+//   1) LISTADO: si list() trae archivos, se usa. Es el único modo que puede
+//      detectar nombres casi-correctos ("DESCARGASEGURA30 (1).mp4").
+//   2) SONDEO: si list() viene vacío, se pregunta por cada archivo esperado a
+//      la URL pública (HEAD, sin descargar). Dice con certeza qué falta, pero
+//      es ciego a los nombres casi-correctos: no sabe qué buscar.
+const ADM_MED_DURACIONES=[{min:'15',label:'Micro'},{min:'30',label:'Base'},{min:'45',label:'Profundo'}];
+let _admContenidoCargando=false;
+
+// Nombre comparable: minúsculas, sin espacios y sin el sufijo " (1)" que
+// agregan los navegadores al descargar dos veces el mismo archivo.
+function _admNormArchivo(n){
+  return String(n||'').toLowerCase()
+    .replace(/\s*\((\d+)\)(?=\.[a-z0-9]+$)/,'')
+    .replace(/\s+/g,'');
+}
+
+// Los 30 esperados, en orden de práctica y duración.
+function _admMediosEsperados(){
+  const out=[];
+  Object.keys(VIDEO_SLUG).forEach(practica=>{
+    const slug=VIDEO_SLUG[practica];
+    ADM_MED_DURACIONES.forEach(d=>{
+      out.push({practica, slug, min:d.min, dur:d.label, tipo:'Video', archivo:slug+d.min+'.mp4'});
+      out.push({practica, slug, min:d.min, dur:d.label, tipo:'Audio', archivo:slug+d.min+'.mp3'});
+    });
+  });
+  return out;
+}
+
+// MODO 1 — listar el bucket (paginado: trae también imágenes y otros assets).
+async function _admListarBucket(){
+  const nombres=[];
+  const PAGINA=1000;
+  let offset=0;
+  // Se avanza por lo REALMENTE recibido, no por lo pedido: el servidor puede
+  // devolver menos de PAGINA sin que se haya acabado la lista, y cortar ahí
+  // dejaría archivos fuera. Se corta en lote vacío, con tope por seguridad.
+  for(let i=0;i<20;i++){
+    const { data, error } = await window.sb.storage.from('hogar')
+      .list('', { limit:PAGINA, offset, sortBy:{column:'name',order:'asc'} });
+    if(error) throw error;
+    const lote=data||[];
+    if(!lote.length) break;
+    lote.forEach(o=>{ if(o && o.name) nombres.push(o.name); });
+    offset+=lote.length;
+  }
+  return nombres;
+}
+
+// MODO 2 — preguntar por cada archivo esperado. HEAD: responde content-length
+// sin descargar el cuerpo (hay videos de 400+ MB; jamás usar GET aquí).
+async function _admSondearMedios(esperados){
+  const presentes=new Set();
+  const LOTE=6; // de a poco, para no abrir 30 conexiones de golpe
+  for(let i=0;i<esperados.length;i+=LOTE){
+    const grupo=esperados.slice(i,i+LOTE);
+    await Promise.all(grupo.map(async m=>{
+      try{
+        const res=await fetch(VIDEO_BASE+encodeURIComponent(m.archivo), { method:'HEAD' });
+        if(res.ok) presentes.add(m.archivo);
+      }catch(_){ /* red caída → cuenta como ausente; el resumen lo refleja */ }
+    }));
+  }
+  return presentes;
+}
+
+async function loadContenido(){
+  const cont=document.getElementById('adm-contenido-body');
+  if(!cont || _admContenidoCargando) return;
+  _admContenidoCargando=true;
+  cont.innerHTML='<div class="adm-loading">Revisando tus archivos…</div>';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const esperados=_admMediosEsperados();
+    const esperadosNorm=new Set(esperados.map(m=>_admNormArchivo(m.archivo)));
+
+    let presentes=new Set();   // nombres EXACTOS que existen
+    let parecidos=[];          // {real, esperado}
+    let modo='listado';
+
+    let delBucket=[];
+    try{ delBucket=await _admListarBucket(); }
+    catch(e){ console.warn('[HOGAR admin] list del bucket falló:',e.message||e); }
+
+    // ¿El listado sirve? Solo si trajo alguno de NUESTROS medios. Un bucket con
+    // puras imágenes (o un [] por falta de policy) no permite concluir nada.
+    const medios=delBucket.filter(n=>/\.(mp4|mp3)$/i.test(n));
+    const utiles=medios.filter(n=>esperadosNorm.has(_admNormArchivo(n)));
+
+    if(utiles.length){
+      const exactos=new Set(esperados.map(m=>m.archivo));
+      medios.forEach(real=>{
+        if(exactos.has(real)){ presentes.add(real); return; }
+        // No coincide exacto: ¿se parece a alguno de los esperados?
+        const norm=_admNormArchivo(real);
+        const match=esperados.find(m=>_admNormArchivo(m.archivo)===norm);
+        if(match) parecidos.push({real, esperado:match.archivo});
+      });
+    }else{
+      modo='sondeo';
+      presentes=await _admSondearMedios(esperados);
+    }
+    cont.innerHTML=_admContenidoHTML(esperados, presentes, parecidos, modo);
+  }catch(e){
+    console.warn('[HOGAR admin] contenido:',e.message||e);
+    cont.innerHTML='<div class="adm-card hogar-rise-in">'
+      +'<div class="adm-card-eyebrow">— CONTENIDO</div>'
+      +'<p class="adm-card-text">No pudimos revisar tus archivos. Intenta de nuevo en un momento.</p>'
+      +'<div class="adm-actions" style="margin-top:18px;">'
+      +'<button type="button" class="btn btn-o" onclick="loadContenido()">Reintentar</button></div></div>';
+  }finally{ _admContenidoCargando=false; }
+}
+
+function _admContenidoHTML(esperados, presentes, parecidos, modo){
+  const total=esperados.length;
+  const hay=esperados.filter(m=>presentes.has(m.archivo)).length;
+  const faltan=esperados.filter(m=>!presentes.has(m.archivo));
+  const completo=(hay===total);
+
+  let html='';
+
+  // Resumen
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— TUS ARCHIVOS</div>'
+    +'<div class="adm-med-resumen">'
+      +'<span class="adm-med-num'+(completo?' completo':'')+'">'+hay+'</span>'
+      +'<span class="adm-med-de">de '+total+' archivos subidos</span>'
+    +'</div>'
+    +'<p class="adm-card-text">'
+    +(completo
+      ? 'Está todo. Cada práctica tiene su video y su audio en las tres duraciones.'
+      : 'Te faltan '+faltan.length+(faltan.length===1?' archivo':' archivos')+'. Estos son los nombres exactos que deben tener al subirlos:')
+    +'</p>';
+  if(!completo){
+    html+='<div class="adm-med-faltan">'
+      +'<div class="adm-med-faltan-tit">— POR SUBIR</div>'
+      +faltan.map(m=>'<span class="adm-med-archivo">'+_admEsc(m.archivo)+'</span>').join('')
+      +'</div>';
+  }
+  html+='</div>';
+
+  // Nombres casi-correctos: el diagnóstico más confuso, primero.
+  if(parecidos.length){
+    html+=parecidos.map(p=>
+      '<div class="adm-alert warn show">Existe un archivo parecido: <strong>'+_admEsc(p.real)+'</strong>. '
+      +'Debe llamarse exactamente <strong>'+_admEsc(p.esperado)+'</strong> para que la app lo encuentre.</div>'
+    ).join('');
+  }
+
+  // Cuadrícula por práctica
+  html+='<div class="adm-med-grid">';
+  Object.keys(VIDEO_SLUG).forEach(practica=>{
+    html+='<div class="adm-med-card hogar-rise-in">'
+      +'<div class="adm-med-card-tit">'+_admEsc(practica)+'</div>';
+    ADM_MED_DURACIONES.forEach(d=>{
+      const chip=(tipo,ext)=>{
+        const archivo=VIDEO_SLUG[practica]+d.min+ext;
+        const ok=presentes.has(archivo);
+        return '<span class="adm-med-chip '+(ok?'ok':'falta')+'" title="'+_admEsc(archivo)+'">'+tipo+'</span>';
+      };
+      html+='<div class="adm-med-fila">'
+        +'<span class="adm-med-dur">'+d.label+' · '+d.min+'</span>'
+        +'<span class="adm-med-chips">'+chip('Video','.mp4')+chip('Audio','.mp3')+'</span>'
+        +'</div>';
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+
+  // En modo sondeo no se puede ver el nombre real de un archivo mal nombrado.
+  if(modo==='sondeo'){
+    html+='<p class="adm-field-hint" style="margin-top:16px;">'
+      +'Revisado archivo por archivo. Para que además se detecten archivos con el nombre '
+      +'equivocado (por ejemplo «… (1).mp4»), hace falta habilitar el listado del bucket: '
+      +'el SQL está en SQL-CONTENIDO.md.</p>';
+  }
+  return html;
 }
 
 // ── PLANES ──────────────────────────────────────────────────────────────────
