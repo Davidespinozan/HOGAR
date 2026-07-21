@@ -3193,6 +3193,60 @@ body.app-active { overflow: hidden; }
   .adm-nav-dot{ display:none; }
   .adm-side-foot{ margin:0; padding:12px 16px 0; border-top:none; text-align:center; }
 }
+/* ===== COBROS y PLANES — tarjetas de información y formulario del admin ===== */
+.adm-card{ background:#fff; border-radius:22px; padding:26px 24px; margin-bottom:16px;
+  box-shadow:var(--highlight-top), var(--sombra-suave);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
+.adm-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
+.adm-card-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--tierra); margin-bottom:14px; }
+.adm-card-title{ font-family:'Montserrat',sans-serif; font-size:17px; font-weight:600; color:var(--tierra); margin-bottom:8px; }
+.adm-card-text{ font-family:'Montserrat',sans-serif; font-size:.86rem; line-height:1.65; color:var(--texto-medio); }
+.adm-card-text strong{ color:var(--texto-oscuro); font-weight:600; }
+.adm-card-list{ list-style:none; margin:14px 0 18px; padding:0; }
+.adm-card-list li{ position:relative; padding-left:20px; margin-bottom:9px;
+  font-size:.84rem; line-height:1.6; color:var(--texto-medio); }
+.adm-card-list li::before{ content:'✦'; position:absolute; left:0; top:0; color:var(--terracota); font-size:11px; }
+/* Fila etiqueta → valor */
+.adm-info-row{ display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  padding:10px 0; border-bottom:1px solid var(--crema-claro); }
+.adm-info-row:last-child{ border-bottom:none; }
+.adm-info-label{ font-family:'Montserrat',sans-serif; font-size:.8rem; color:var(--texto-medio); flex-shrink:0; }
+.adm-info-value{ font-family:'Montserrat',sans-serif; font-size:.86rem; font-weight:500; color:var(--texto-oscuro);
+  text-align:right; word-break:break-word; }
+.adm-info-value.ok{ color:#4e7a48; font-weight:600; }
+.adm-info-value.warn{ color:var(--terracota-oscuro); font-weight:600; }
+/* Avisos (precio sin definir, guardado, errores) */
+.adm-alert{ display:none; border-radius:16px; padding:14px 18px; margin-bottom:16px;
+  font-family:'Montserrat',sans-serif; font-size:.84rem; line-height:1.6; }
+.adm-alert.show{ display:block; }
+.adm-alert.warn{ background:#f8ece2; border:1px solid #f0d6c4; color:#9c4a2e; }
+.adm-alert.ok{ background:#e9f0e5; border:1px solid #d5e3ce; color:#4e7a48; }
+.adm-alert.error{ background:#f7e2dc; border:1px solid #eecbc0; color:#9c3a2e; }
+/* Formulario */
+.adm-field{ margin-bottom:18px; }
+.adm-field label{ display:block; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:var(--tierra); margin-bottom:8px; }
+.adm-field input, .adm-field textarea{ width:100%; font-family:'Montserrat',sans-serif; font-size:.9rem;
+  color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:14px;
+  padding:.8rem 1rem; outline:none; transition:border-color .2s; }
+.adm-field input:focus, .adm-field textarea:focus{ border-color:var(--terracota); }
+.adm-field textarea{ resize:vertical; min-height:82px; line-height:1.6; }
+.adm-field-hint{ font-size:.76rem; color:var(--texto-medio); margin-top:7px; line-height:1.5; }
+.adm-precio-wrap{ display:flex; align-items:center; gap:10px; }
+.adm-precio-sign{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600; color:var(--terracota); }
+.adm-precio-wrap input{ flex:1; min-width:0; }
+.adm-moneda-fija{ flex-shrink:0; font-family:'Montserrat',sans-serif; font-size:.76rem; font-weight:700;
+  letter-spacing:1.5px; color:var(--texto-medio); background:var(--crema); border-radius:100px; padding:9px 15px; }
+.adm-actions{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:4px; }
+.adm-actions .btn{ padding:.85rem 2rem; }
+.adm-loading{ text-align:center; font-style:italic; color:var(--texto-medio); font-size:.85rem; padding:34px 16px; }
+@media(max-width:480px){
+  /* Etiqueta arriba y valor abajo: en pantallas angostas la fila se parte fea */
+  .adm-info-row{ flex-direction:column; align-items:flex-start; gap:3px; }
+  .adm-info-value{ text-align:left; }
+  .adm-actions .btn{ width:100%; }
+}
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -3776,7 +3830,7 @@ body.app-active { overflow: hidden; }
       </div>
     </section>
 
-    <!-- ===== SECCIONES POR CONSTRUIR (FASE 2) — placeholders intencionales ===== -->
+    <!-- ===== COBROS — Stripe Connect (el contenido lo pinta loadCobros()) ===== -->
     <section class="adm-view" id="adm-view-cobros">
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
@@ -3786,28 +3840,59 @@ body.app-active { overflow: hidden; }
           <hr class="dash-rule">
         </div>
       </div>
-      <div class="adm-soon hogar-rise-in">
-        <div class="adm-soon-mark">✦</div>
-        <h3>Cobros</h3>
-        <p>Aquí verás los pagos de tus usuarias, su estado y el historial de cada cobro.</p>
-        <div class="adm-soon-tag">Próximamente</div>
+      <div id="adm-cobros-body">
+        <div class="adm-loading">Consultando el estado de tus cobros…</div>
       </div>
     </section>
 
+    <!-- ===== PLANES — un solo producto de pago único ===== -->
     <section class="adm-view" id="adm-view-planes">
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
           <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">Los planes de tu</p>
+          <p class="dash-hello">El acceso a tu</p>
           <h1 class="dash-name">HOGAR.</h1>
           <hr class="dash-rule">
         </div>
       </div>
-      <div class="adm-soon hogar-rise-in">
-        <div class="adm-soon-mark">✦</div>
-        <h3>Planes</h3>
-        <p>Aquí definirás los planes de acceso, sus precios y qué incluye cada uno.</p>
-        <div class="adm-soon-tag">Próximamente</div>
+
+      <!-- Aviso cuando el precio sigue en 0: nadie puede comprar todavía -->
+      <div class="adm-alert warn" id="adm-plan-aviso">
+        Aún no has definido tu precio. Las usuarias no podrán comprar hasta que lo configures.
+      </div>
+      <!-- Resultado de guardar (o error) -->
+      <div class="adm-alert" id="adm-plan-msg"></div>
+
+      <div class="adm-card hogar-rise-in">
+        <div class="adm-card-eyebrow">— TU PRODUCTO</div>
+        <p class="adm-card-text" style="margin-bottom:22px;">
+          <strong>Pago único.</strong> La usuaria paga una vez y obtiene acceso de por vida.
+        </p>
+
+        <div class="adm-field">
+          <label for="adm-plan-nombre">Nombre del producto</label>
+          <input type="text" id="adm-plan-nombre" maxlength="80" placeholder="Acceso HOGAR" autocomplete="off">
+        </div>
+
+        <div class="adm-field">
+          <label for="adm-plan-desc">Descripción corta</label>
+          <textarea id="adm-plan-desc" maxlength="200" placeholder="Lo que incluye tu acceso, en una línea."></textarea>
+          <div class="adm-field-hint">Es lo que la usuaria ve en la pantalla de pago de Stripe.</div>
+        </div>
+
+        <div class="adm-field">
+          <label for="adm-plan-precio">Precio</label>
+          <div class="adm-precio-wrap">
+            <span class="adm-precio-sign">$</span>
+            <input type="number" id="adm-plan-precio" min="1" step="1" inputmode="numeric" placeholder="499">
+            <span class="adm-moneda-fija" id="adm-plan-moneda">MXN</span>
+          </div>
+          <div class="adm-field-hint">En pesos. Si escribes 499, la usuaria paga $499.00 MXN una sola vez.</div>
+        </div>
+
+        <div class="adm-actions">
+          <button type="button" class="btn btn-r" id="adm-plan-btn" onclick="guardarPlanHogar(this)">Guardar</button>
+        </div>
       </div>
     </section>
 
@@ -4394,6 +4479,9 @@ function goAdmin(section){
   document.querySelectorAll('#s-admin .adm-view').forEach(v=>{
     v.classList.toggle('on', v.id==='adm-view-'+s);
   });
+  // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
+  if(s==='cobros') loadCobros();
+  if(s==='planes') loadPlanes();
   window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 
@@ -4719,6 +4807,22 @@ async function _authInit(){
       applyUser(data.session.user); hi=[]; irTrasAuth();
     }
   }catch(err){ /* sin sesión válida → se queda en la landing */ }
+  // Retorno del onboarding de Stripe Connect: ?connect=done | ?connect=refresh.
+  // Andrea vuelve a Cobros y se refresca el estado (charges_enabled puede haber
+  // cambiado hace segundos). Se limpia el parámetro para que no reaparezca.
+  try{
+    const connect=new URLSearchParams(window.location.search).get('connect');
+    if(connect && U && esAdmin(U.email)){
+      history.replaceState(null,'',window.location.pathname);
+      goAdmin('cobros');
+      if(connect==='refresh'){
+        setTimeout(()=>_admCobrosMsg('El formulario de Stripe quedó a medias. Puedes continuarlo cuando quieras.','warn'), 400);
+      }
+    }else if(connect){
+      history.replaceState(null,'',window.location.pathname);
+    }
+  }catch(_){}
+
   // Retorno de Stripe Checkout: ?pago=exito | ?pago=cancelado
   try{
     const pago=new URLSearchParams(window.location.search).get('pago');
@@ -5885,6 +5989,254 @@ function renderAdminUsuarias(){
 
 // Escape mínimo para texto que viene de la BD (nombres, emails) antes de meterlo en innerHTML.
 function _admEsc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ============================================
+// ADMIN · COBROS (Stripe Connect) y PLANES (producto de pago único)
+// Las funciones de Netlify autentican con el Bearer de Supabase; la seguridad
+// real (que solo Andrea pueda) vive en el servidor, no en estas pantallas.
+// ============================================
+const ADM_FN='/.netlify/functions';
+
+async function _admToken(){
+  if(!window.sb) return null;
+  try{ const { data:{ session } } = await window.sb.auth.getSession(); return session?session.access_token:null; }
+  catch(_){ return null; }
+}
+
+function _admDinero(centavos, moneda){
+  const m=(moneda||'MXN').toUpperCase();
+  try{ return ((centavos||0)/100).toLocaleString('es-MX',{style:'currency',currency:m}); }
+  catch(_){ return '$'+((centavos||0)/100).toFixed(2)+' '+m; }
+}
+function _admIntervalo(i){ return ({daily:'Diario',weekly:'Semanal',monthly:'Mensual',manual:'Manual'})[i]||'—'; }
+function _admFila(label, valor, clase){
+  return '<div class="adm-info-row"><span class="adm-info-label">'+_admEsc(label)+'</span>'
+    +'<span class="adm-info-value'+(clase?' '+clase:'')+'">'+valor+'</span></div>';
+}
+
+// ── COBROS ──────────────────────────────────────────────────────────────────
+let _admCobrosCargando=false;
+
+async function loadCobros(){
+  const cont=document.getElementById('adm-cobros-body');
+  if(!cont || _admCobrosCargando) return;
+  _admCobrosCargando=true;
+  cont.innerHTML='<div class="adm-loading">Consultando el estado de tus cobros…</div>';
+  try{
+    const token=await _admToken();
+    if(!token){ cont.innerHTML=_admCobrosError('Tu sesión expiró. Vuelve a entrar para ver tus cobros.'); return; }
+    const res=await fetch(ADM_FN+'/connect-status',{ headers:{ 'Authorization':'Bearer '+token } });
+    const st=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(st.error||('HTTP '+res.status));
+    cont.innerHTML = (st.charges_enabled===true) ? _admCobrosActivos(st) : _admCobrosInactivos(st);
+  }catch(e){
+    console.warn('[HOGAR admin] cobros:',e.message||e);
+    cont.innerHTML=_admCobrosError('No pudimos consultar el estado de tus cobros. Intenta de nuevo en un momento.');
+  }finally{ _admCobrosCargando=false; }
+}
+
+function _admCobrosError(msg){
+  return '<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— COBROS</div>'
+    +'<p class="adm-card-text">'+_admEsc(msg)+'</p>'
+    +'<div class="adm-actions" style="margin-top:18px;"><button type="button" class="btn btn-o" onclick="loadCobros()">Reintentar</button></div>'
+    +'</div>';
+}
+
+// Estado A — todavía no puede cobrar.
+function _admCobrosInactivos(st){
+  const pendiente = st.reason==='stripe_pendiente';
+  const enProceso = st.connected===true;   // ya hay cuenta, pero sin charges_enabled
+  const titulo = enProceso ? 'Te falta terminar' : 'Aún no puedes cobrar';
+  const texto = enProceso
+    ? 'Empezaste el formulario de Stripe pero quedó a medias. Continúa para poder recibir pagos.'
+    : 'Para vender el acceso a HOGAR necesitas conectar tu cuenta con Stripe, que es quien procesa los pagos.';
+
+  let html='<div class="adm-alert" id="adm-cobros-msg"></div>';
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— ACTIVAR MIS COBROS</div>'
+    +'<div class="adm-card-title">'+_admEsc(titulo)+'</div>'
+    +'<p class="adm-card-text">'+_admEsc(texto)+'</p>'
+    +'<ul class="adm-card-list">'
+      +'<li>Stripe te va a pedir tus <strong>datos fiscales</strong> (RFC) y los de tu <strong>cuenta bancaria</strong>. Es su verificación, una sola vez.</li>'
+      +'<li>El dinero de cada venta llega <strong>directo a tu cuenta</strong>. No pasa por nosotros.</li>'
+      +'<li>Tú decides el precio desde la sección Planes.</li>'
+    +'</ul>';
+
+  if(pendiente){
+    // Sin llaves de Stripe en el entorno: no tiene caso mandarla a ningún lado.
+    html+='<p class="adm-card-text" style="color:var(--terracota-oscuro);font-weight:500;">'
+      +'Los cobros aún no están configurados. Contacta a STRYV.</p>';
+  }else{
+    html+='<div class="adm-actions">'
+      +'<button type="button" class="btn btn-r" onclick="activarCobrosHogar(this)">'
+      +(enProceso?'Continuar configuración':'Activar mis cobros')+'</button>'
+      +'</div>';
+  }
+  return html+'</div>';
+}
+
+// Estado B — ya puede cobrar. Cada dato tolera que connect-status no lo traiga.
+function _admCobrosActivos(st){
+  const cuenta = st.account_id ? ('···· '+String(st.account_id).slice(-4)) : '—';
+  const banco = (st.banco && st.banco.last4)
+    ? _admEsc((st.banco.bank_name||'Banco')+' ···· '+st.banco.last4)
+    : 'Sin cuenta registrada';
+  const bal = st.balance;
+
+  let html='<div class="adm-alert" id="adm-cobros-msg"></div>';
+
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— ESTADO</div>'
+    +'<div class="adm-card-title">Tus cobros están activos</div>'
+    +'<p class="adm-card-text">Ya puedes vender el acceso a HOGAR. Los depósitos llegan solos a tu banco.</p>'
+    +'</div>';
+
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— CUENTA VINCULADA</div>'
+    +_admFila('Negocio', _admEsc(st.business_name||'—'))
+    +_admFila('Correo', _admEsc(st.email||'—'))
+    +_admFila('País', _admEsc(st.pais||'—'))
+    +_admFila('ID de cuenta', _admEsc(cuenta))
+    +_admFila('Puede cobrar', 'Sí', 'ok')
+    +'</div>';
+
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— DEPÓSITOS A TU BANCO</div>'
+    +_admFila('Cuenta bancaria', banco)
+    +_admFila('Frecuencia', _admEsc(_admIntervalo(st.payout_interval)))
+    +_admFila('Disponible', bal?_admEsc(_admDinero(bal.disponible_centavos,bal.moneda)):'—')
+    +_admFila('En camino', bal?_admEsc(_admDinero(bal.pendiente_centavos,bal.moneda)):'—')
+    +(st.payouts_enabled===false
+      ? '<p class="adm-card-text" style="margin-top:12px;color:var(--terracota-oscuro);">Los depósitos aún no están habilitados: completa tus datos en Stripe.</p>'
+      : '')
+    +'</div>';
+
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— ADMINISTRAR</div>'
+    +'<p class="adm-card-text">En tu panel de Stripe cambias tu cuenta bancaria, ves los depósitos y descargas reportes.</p>'
+    +'<div class="adm-actions" style="margin-top:16px;">'
+    +(st.dashboard_url
+      ? '<a class="btn btn-r" href="'+_admEsc(st.dashboard_url)+'" target="_blank" rel="noopener noreferrer">Abrir mi panel de Stripe</a>'
+      : '<span class="adm-field-hint" style="margin:0;">El link a tu panel no está disponible ahora mismo.</span>')
+    +'<button type="button" class="btn btn-o" onclick="activarCobrosHogar(this)">Actualizar mis datos</button>'
+    +'</div></div>';
+
+  return html;
+}
+
+function _admCobrosMsg(texto, tipo){
+  const el=document.getElementById('adm-cobros-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+
+// Manda a Andrea al formulario de Stripe (onboarding hospedado).
+async function activarCobrosHogar(btn){
+  const txt=btn?btn.textContent:'';
+  _admCobrosMsg('');
+  try{
+    const token=await _admToken();
+    if(!token){ _admCobrosMsg('Tu sesión expiró. Vuelve a entrar.','error'); return; }
+    if(btn){ btn.disabled=true; btn.textContent='Abriendo Stripe…'; }
+    const res=await fetch(ADM_FN+'/connect-onboarding',{
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
+      body:JSON.stringify({ return_path:'/' })
+    });
+    const json=await res.json().catch(()=>({}));
+    if(json && json.reason==='stripe_pendiente'){
+      _admCobrosMsg('Los cobros aún no están configurados. Contacta a STRYV.','warn'); return;
+    }
+    if(res.ok && json && json.url){ window.location.href=json.url; return; }
+    throw new Error((json&&json.error)||('HTTP '+res.status));
+  }catch(e){
+    console.warn('[HOGAR admin] onboarding:',e.message||e);
+    _admCobrosMsg('No pudimos abrir el formulario de Stripe. Intenta de nuevo en un momento.','error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=txt||'Activar mis cobros'; }
+  }
+}
+
+// ── PLANES ──────────────────────────────────────────────────────────────────
+function _admPlanMsg(texto, tipo){
+  const el=document.getElementById('adm-plan-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+function _admPlanAviso(mostrar){
+  const el=document.getElementById('adm-plan-aviso');
+  if(el) el.className='adm-alert warn'+(mostrar?' show':'');
+}
+
+async function loadPlanes(){
+  const $=id=>document.getElementById(id);
+  _admPlanMsg('');
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_config')
+      .select('producto_nombre,producto_desc,precio_centavos,moneda')
+      .eq('id',1).maybeSingle();
+    if(error) throw error;
+    const c=data||{};
+    if($('adm-plan-nombre')) $('adm-plan-nombre').value=c.producto_nombre||'';
+    if($('adm-plan-desc')) $('adm-plan-desc').value=c.producto_desc||'';
+    const cent=c.precio_centavos||0;
+    // Centavos → pesos para el formulario (49900 → 499).
+    if($('adm-plan-precio')) $('adm-plan-precio').value = cent>0 ? String(Math.round(cent/100)) : '';
+    if($('adm-plan-moneda')) $('adm-plan-moneda').textContent=(c.moneda||'mxn').toUpperCase();
+    _admPlanAviso(cent<=0);
+  }catch(e){
+    console.warn('[HOGAR admin] planes:',e.message||e);
+    _admPlanMsg('No pudimos cargar la configuración de tu producto. Intenta de nuevo.','error');
+  }
+}
+
+async function guardarPlanHogar(btn){
+  const $=id=>document.getElementById(id);
+  const txt=btn?btn.textContent:'';
+  _admPlanMsg('');
+  const nombre=(($('adm-plan-nombre')||{}).value||'').trim();
+  const desc=(($('adm-plan-desc')||{}).value||'').trim();
+  const pesos=Number((($('adm-plan-precio')||{}).value||'').trim());
+
+  if(!nombre){ _admPlanMsg('Ponle un nombre a tu producto.','error'); return; }
+  if(!isFinite(pesos) || pesos<=0){ _admPlanMsg('El precio debe ser un número mayor que 0.','error'); return; }
+  // Pesos → centavos, que es como lo lee crear-checkout (499 → 49900).
+  const centavos=Math.round(pesos*100);
+
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+    // .select() a propósito: con RLS, un UPDATE sin permiso NO da error, solo
+    // devuelve 0 filas. Es la única forma de distinguir "guardado" de "bloqueado".
+    const { data, error } = await window.sb.from('hogar_config')
+      .update({ producto_nombre:nombre, producto_desc:desc, precio_centavos:centavos, updated_at:new Date().toISOString() })
+      .eq('id',1)
+      .select('id,precio_centavos');
+    if(error) throw error;
+    if(!data || !data.length){
+      _admPlanMsg('No se pudo guardar: falta el permiso de escritura en hogar_config. Corre el SQL de SQL-PLANES.md en Supabase.','error');
+      return;
+    }
+    _admPlanMsg('Guardado','ok');
+    _admPlanAviso(centavos<=0);
+  }catch(e){
+    console.warn('[HOGAR admin] guardar plan:',e.message||e);
+    const m=(e && e.message)||'';
+    if(/permission|denied|policy|42501/i.test(m)){
+      _admPlanMsg('No se pudo guardar: falta el permiso de escritura en hogar_config. Corre el SQL de SQL-PLANES.md en Supabase.','error');
+    }else{
+      _admPlanMsg('No pudimos guardar los cambios. Intenta de nuevo en un momento.','error');
+    }
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=txt||'Guardar'; }
+  }
+}
 
 // Una tarjeta del historial: resumen (ícono + emoción + práctica) y,
 // si la sesión guardó respuestas del cuestionario, una reflexión desplegable.
