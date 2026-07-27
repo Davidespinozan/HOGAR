@@ -3358,6 +3358,17 @@ body.app-active { overflow: hidden; }
 @media(max-width:480px){
   .adm-nota-acciones .adm-btn-mini{ flex:1 1 auto; }
 }
+/* ===== TEXTOS DE PRÁCTICAS — editor ===== */
+.adm-tx-card{ background:#fff; border-radius:18px; padding:20px 18px 16px; margin-bottom:14px;
+  box-shadow:var(--highlight-top), var(--sombra-suave); }
+.adm-tx-titulo{ font-family:'Montserrat',sans-serif; font-size:14px; font-weight:700; letter-spacing:.5px;
+  color:var(--terracota-oscuro); margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--crema); }
+.adm-tx-label{ display:block; font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin:14px 0 7px; }
+.adm-tx-card textarea{ width:100%; font-family:'Montserrat',sans-serif; font-size:.86rem; line-height:1.6;
+  color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px;
+  padding:.7rem .9rem; outline:none; resize:vertical; min-height:70px; transition:border-color .2s; }
+.adm-tx-card textarea:focus{ border-color:var(--terracota); }
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -4032,6 +4043,11 @@ body.app-active { overflow: hidden; }
       <div id="adm-notas-body" style="margin-top:28px;">
         <div class="adm-loading">Cargando tus notas…</div>
       </div>
+
+      <!-- Textos de la voz de Andrea en las prácticas (editor). -->
+      <div id="adm-textos-body" style="margin-top:28px;">
+        <div class="adm-loading">Cargando los textos de tus prácticas…</div>
+      </div>
     </section>
 
     <section class="adm-view" id="adm-view-landing">
@@ -4605,7 +4621,7 @@ function goAdmin(section){
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
-  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); }
+  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); }
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -4618,9 +4634,11 @@ function esAdmin(email){ return (email||'').toLowerCase().trim()===ADMIN_EMAIL; 
 // Andrea entra directo al área administrativa, nunca al dashboard de usuaria.
 function irTrasAuth(){
   // Precarga del contenido que vive en Supabase. Sin await a propósito: la
-  // navegación no espera a la red, y si la respuesta llega tarde el propio
-  // precargador repinta. Mientras tanto se ven las notas del código.
+  // navegación no espera a la red, y mientras tanto se ve el contenido del
+  // código. Las notas repintan solas si llegan tarde; los textos de práctica
+  // se leen recién cuando la usuaria entra al flujo, más tarde que esta carga.
   precargarNotasHogar();
+  precargarTextosHogar();
   if(U && esAdmin(U.email)){ goAdmin('inicio'); return; }
   go('dash');
 }
@@ -5029,6 +5047,60 @@ function pintarNotaDelDia(){
   el.textContent='"'+arr[_dailyNoteIndex(arr)]+'"';
 }
 
+// ============================================
+// TEXTOS DE PRÁCTICAS — voz de Andrea, Supabase con fallback al código.
+// Mismo patrón que las notas. Una fila por práctica, indexada por key de
+// emoción. Tres textos: resp_andrea (al elegir emoción), confirm_andrea (al
+// ofrecer la práctica) y cierre (post-práctica, el que en el código es RD).
+// Las constantes RESP_ANDREA / CONFIRM_ANDREA / RD se quedan como fallback.
+// ============================================
+let _textosNube=null; // { calma:{resp,confirm,cierre}, ... } o null
+
+// Accesores SÍNCRONOS. Cada uno cae a su constante del código si no hay dato.
+// RESP_ANDREA y CONFIRM_ANDREA se indexan por KEY de emoción.
+function respAndreaHogar(key){
+  const t=_textosNube && _textosNube[key];
+  return (t && t.resp) ? t.resp : RESP_ANDREA[key];
+}
+function confirmAndreaHogar(key){
+  const t=_textosNube && _textosNube[key];
+  return (t && t.confirm) ? t.confirm : CONFIRM_ANDREA[key];
+}
+// El cierre (RD) se indexa por NOMBRE de práctica: se resuelve nombre→key
+// internamente para respetar a los consumidores, que siguen pasando el nombre.
+function cierreHogar(nombre){
+  const key=PRACTICE_TO_EMO[nombre];
+  const t=key && _textosNube && _textosNube[key];
+  return (t && t.cierre) ? t.cierre : RD[nombre];
+}
+
+async function precargarTextosHogar(){
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_practica_textos')
+      .select('practica_key,resp_andrea,confirm_andrea,cierre');
+    if(error) throw error;
+    const filas=data||[];
+    if(!filas.length){
+      console.warn('[HOGAR textos] sin textos en Supabase: se usan los del código.');
+      return;
+    }
+    const map={};
+    filas.forEach(r=>{
+      if(!r || !r.practica_key) return;
+      map[r.practica_key]={
+        resp:String(r.resp_andrea||'').trim(),
+        confirm:String(r.confirm_andrea||'').trim(),
+        cierre:String(r.cierre||'').trim()
+      };
+    });
+    _textosNube=map;
+    console.log('[HOGAR textos] '+filas.length+' prácticas cargadas desde Supabase ✓');
+  }catch(e){
+    console.warn('[HOGAR textos] no se pudieron cargar; se usan los del código:', (e&&e.message)||e);
+  }
+}
+
 function _dailyNoteIndex(arr){
   if(!arr || !arr.length) return 0;
   const now=new Date();
@@ -5215,7 +5287,7 @@ function dashSelectEstado(idx){
 
   // Cascada de 4 burbujas con timings v2
   setTimeout(()=>appendChatMsg('right','Hoy estoy <em>'+emoLabel+'</em>.','TÚ · AHORA'), 300);
-  setTimeout(()=>appendChatMsg('left', RESP_ANDREA[emoKey], 'ANDREA · AHORA'), 1400);
+  setTimeout(()=>appendChatMsg('left', respAndreaHogar(emoKey), 'ANDREA · AHORA'), 1400);
   setTimeout(()=>appendChatMsg('left','¿Cuánto tiempo tienes <em>ahora</em>?','ANDREA · AHORA'), 2600);
   setTimeout(()=>appendTiempoPills(), 3400);
 }
@@ -5281,7 +5353,7 @@ function dashSelectTiempo(time, rhy){
 
   // Cascada de 3: confirmación usuario + propuesta Andrea + action card
   setTimeout(()=>appendChatMsg('right','Tengo <em>'+minutos+' minutos</em>.','TÚ · AHORA'), 300);
-  setTimeout(()=>appendChatMsg('left', (CONFIRM_ANDREA[PRACTICE_TO_EMO[sP]] || ('Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.')),'ANDREA · AHORA'), 1400);
+  setTimeout(()=>appendChatMsg('left', (confirmAndreaHogar(PRACTICE_TO_EMO[sP]) || ('Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.')),'ANDREA · AHORA'), 1400);
   setTimeout(()=>appendActionCard(time, rhy, ritmo, minutos), 2400);
 }
 
@@ -5595,7 +5667,7 @@ function pT(time,rhy){
   if($('prT'))$('prT').textContent='Práctica de '+sP;
   if($('prR'))$('prR').textContent=sR+' · '+String(time||'').split('-').pop()+' min';
   if($('rT'))$('rT').textContent='Integrando lo que viviste';
-  if($('rTx'))$('rTx').textContent=RD[sP]||RD['Presencia'];
+  if($('rTx'))$('rTx').textContent=cierreHogar(sP)||RD['Presencia'];
   sc=0;if(tm)clearInterval(tm);tm=null;
   // Cargar el video real de esta práctica + duración en el <video>
   const vid=$('prac-video'), cont=$('video-container');
@@ -6854,6 +6926,119 @@ async function _refrescarNotas(){
   }
   _notasNube=null;
   await precargarNotasHogar();
+}
+
+// ── CONTENIDO · textos de prácticas (editor) ────────────────────────────────
+// Escribe en hogar_practica_textos. Igual que las notas: todo lleva .select()
+// y comprueba filas afectadas, porque con RLS un UPDATE sin permiso devuelve
+// 0 filas SIN error. Orden fijo de las tarjetas = el de PRACTICE_TO_EMO.
+let _admTextos=[]; // filas de la BD (puede venir incompleto si faltan)
+let _admTextosCargando=false;
+
+// key → nombre visible, en el orden del flujo. Deriva de PRACTICE_TO_EMO
+// (nombre→key) para no duplicar el mapa.
+const ADM_PRACTICAS=Object.keys(PRACTICE_TO_EMO).map(nombre=>({nombre, key:PRACTICE_TO_EMO[nombre]}));
+
+function _admTextosMsg(texto, tipo){
+  const el=document.getElementById('adm-textos-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+const ADM_TEXTOS_SIN_PERMISO='No se pudo guardar: tu cuenta no tiene permiso de escritura en hogar_practica_textos.';
+
+async function loadTextosAdmin(){
+  const cont=document.getElementById('adm-textos-body');
+  if(!cont || _admTextosCargando) return;
+  _admTextosCargando=true;
+  cont.innerHTML='<div class="adm-loading">Cargando los textos de tus prácticas…</div>';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_practica_textos')
+      .select('practica_key,resp_andrea,confirm_andrea,cierre');
+    if(error) throw error;
+    _admTextos=data||[];
+    cont.innerHTML=_admTextosHTML();
+  }catch(e){
+    console.warn('[HOGAR admin] textos:',(e&&e.message)||e);
+    cont.innerHTML='<div class="adm-card hogar-rise-in">'
+      +'<div class="adm-card-eyebrow">— TEXTOS DE TUS PRÁCTICAS</div>'
+      +'<p class="adm-card-text">No pudimos cargar los textos. Intenta de nuevo en un momento.</p>'
+      +'<div class="adm-actions" style="margin-top:18px;">'
+      +'<button type="button" class="btn btn-o" onclick="loadTextosAdmin()">Reintentar</button></div></div>';
+  }finally{ _admTextosCargando=false; }
+}
+
+function _admTextosHTML(){
+  const porKey={};
+  _admTextos.forEach(r=>{ if(r && r.practica_key) porKey[r.practica_key]=r; });
+  const sembrada=(_admTextos.length>0);
+
+  let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TEXTOS DE TUS PRÁCTICAS</div>';
+  html+='<div class="adm-alert" id="adm-textos-msg"></div>';
+  html+='<p class="adm-card-text" style="margin-bottom:16px;">'
+    +'Lo que tus usuarias leen de ti en cada práctica: al elegir cómo se sienten, al proponerte la práctica y al cerrarla. '
+    +(sembrada
+      ? '<strong>'+_admTextos.length+'</strong> de 5 prácticas guardadas.'
+      : 'Todavía no hay ninguna en la base: la app está usando los textos originales del código. Corre el SQL de SQL-TEXTOS.md para poder editarlos aquí.')
+    +'</p>';
+
+  html+=ADM_PRACTICAS.map(p=>{
+    const r=porKey[p.key]||{};
+    // Fallback al código en el editor: si la tabla aún no está sembrada, Andrea
+    // ve los textos actuales, no campos vacíos.
+    const resp=(r.resp_andrea!=null)?r.resp_andrea:(RESP_ANDREA[p.key]||'');
+    const conf=(r.confirm_andrea!=null)?r.confirm_andrea:(CONFIRM_ANDREA[p.key]||'');
+    const cierre=(r.cierre!=null)?r.cierre:(RD[p.nombre]||'');
+    const campo=(etq,id,val)=>
+      '<label class="adm-tx-label" for="'+id+'">'+etq+'</label>'
+      +'<textarea id="'+id+'" maxlength="600">'+_admEsc(val)+'</textarea>';
+    return '<div class="adm-tx-card hogar-rise-in">'
+      +'<div class="adm-tx-titulo">'+_admEsc(p.nombre)+'</div>'
+      +campo('Respuesta al elegir la emoción','adm-tx-resp-'+p.key, resp)
+      +campo('Confirmación al ofrecer la práctica','adm-tx-conf-'+p.key, conf)
+      +campo('Texto de cierre','adm-tx-cierre-'+p.key, cierre)
+      +'<div class="adm-nota-acciones" style="margin-top:12px;">'
+      +'<button type="button" class="adm-btn-mini primario" onclick="guardarTextoHogar(\''+p.key+'\',this)">Guardar</button>'
+      +'</div></div>';
+  }).join('');
+  return html;
+}
+
+async function guardarTextoHogar(key, btn){
+  _admTextosMsg('');
+  const g=id=>((document.getElementById(id)||{}).value||'').trim();
+  const resp=g('adm-tx-resp-'+key), conf=g('adm-tx-conf-'+key), cierre=g('adm-tx-cierre-'+key);
+  if(!resp || !conf || !cierre){ _admTextosMsg('Los tres textos deben tener contenido.','error'); return; }
+
+  const prac=ADM_PRACTICAS.find(p=>p.key===key);
+  const nombre=prac?prac.nombre:'';
+  const previo=btn?btn.textContent:'';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    if(btn){ btn.disabled=true; btn.textContent='…'; }
+    // upsert: la fila puede no existir todavía (tabla sin sembrar). onConflict
+    // por la PK. .select() para saber si de verdad escribió (RLS → 0 filas).
+    const { data, error } = await window.sb.from('hogar_practica_textos')
+      .upsert({ practica_key:key, practica_nombre:nombre, resp_andrea:resp,
+                confirm_andrea:conf, cierre:cierre, updated_at:new Date().toISOString() },
+              { onConflict:'practica_key' })
+      .select('practica_key');
+    if(error) throw error;
+    if(!data || !data.length){ _admTextosMsg(ADM_TEXTOS_SIN_PERMISO,'error'); return; }
+    _admTextosMsg('Guardado','ok');
+    // Refresca la copia en memoria que usa el flujo, sin recargar.
+    _textosNube=null;
+    await precargarTextosHogar();
+  }catch(e){
+    console.warn('[HOGAR admin] guardar texto:',(e&&e.message)||e);
+    const m=(e&&e.message)||'';
+    _admTextosMsg(/permission|denied|policy|42501/i.test(m) ? ADM_TEXTOS_SIN_PERMISO
+      : 'No pudimos guardar los cambios. Intenta de nuevo en un momento.','error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
+  }
 }
 
 // ── PLANES ──────────────────────────────────────────────────────────────────
