@@ -4054,11 +4054,6 @@ body.app-active { overflow: hidden; }
       <div id="adm-textos-body" style="margin-top:28px;">
         <div class="adm-loading">Cargando los textos de tus prácticas…</div>
       </div>
-
-      <!-- Landing pública (editor). -->
-      <div id="adm-landing-body" style="margin-top:28px;">
-        <div class="adm-loading">Cargando tu landing…</div>
-      </div>
     </section>
 
     <section class="adm-view" id="adm-view-landing">
@@ -4070,11 +4065,9 @@ body.app-active { overflow: hidden; }
           <hr class="dash-rule">
         </div>
       </div>
-      <div class="adm-soon hogar-rise-in">
-        <div class="adm-soon-mark">✦</div>
-        <h3>Landing</h3>
-        <p>Aquí editarás los textos y las imágenes de la página que ven quienes aún no entran.</p>
-        <div class="adm-soon-tag">Próximamente</div>
+      <!-- Landing pública (editor). -->
+      <div id="adm-landing-body">
+        <div class="adm-loading">Cargando tu landing…</div>
       </div>
     </section>
 
@@ -4632,7 +4625,8 @@ function goAdmin(section){
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
-  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); loadLandingAdmin(); }
+  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); }
+  if(s==='landing') loadLandingAdmin();
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
