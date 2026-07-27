@@ -3223,6 +3223,7 @@ body.app-active { overflow: hidden; }
 .adm-alert.warn{ background:#f8ece2; border:1px solid #f0d6c4; color:#9c4a2e; }
 .adm-alert.ok{ background:#e9f0e5; border:1px solid #d5e3ce; color:#4e7a48; }
 .adm-alert.error{ background:#f7e2dc; border:1px solid #eecbc0; color:#9c3a2e; }
+.adm-alert.info{ background:var(--crema); border:1px solid var(--crema-claro); color:var(--tierra); }
 /* Formulario */
 .adm-field{ margin-bottom:18px; }
 .adm-field label{ display:block; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
@@ -3370,11 +3371,20 @@ body.app-active { overflow: hidden; }
   padding:.7rem .9rem; outline:none; resize:vertical; min-height:70px; transition:border-color .2s; }
 .adm-tx-card textarea:focus{ border-color:var(--terracota); }
 /* ===== LANDING — editor ===== */
-.adm-lp-preview{ margin-top:10px; }
+.adm-lp-preview{ margin-bottom:12px; }
 .adm-lp-preview img{ width:100%; max-width:280px; height:auto; border-radius:14px;
   box-shadow:var(--sombra-suave); display:block; }
 .adm-lp-precio{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600;
   color:var(--terracota); padding:2px 0; }
+/* Opción avanzada (pegar URL) — discreta, colapsada */
+.adm-lp-avanzado{ margin-top:12px; }
+.adm-lp-avanzado summary{ cursor:pointer; font-family:'Montserrat',sans-serif; font-size:.78rem;
+  color:var(--texto-medio); list-style:none; padding:4px 0; user-select:none; }
+.adm-lp-avanzado summary::-webkit-details-marker{ display:none; }
+.adm-lp-avanzado summary::before{ content:'⌄ '; color:var(--terracota); }
+.adm-lp-avanzado[open] summary::before{ content:'⌃ '; }
+.adm-lp-avanzado summary:hover{ color:var(--terracota); }
+.adm-lp-avanzado input{ margin-top:8px; }
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -7180,11 +7190,21 @@ function _admLandingHTML(c){
       +'<textarea id="adm-lp-sub" maxlength="220">'+_admEsc(sub)+'</textarea>'
     +'</div>'
     +'<div class="adm-field">'
-      +'<label for="adm-lp-img">Imagen del hero (URL)</label>'
-      +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
-      +'<div class="adm-field-hint">Pega la URL de una imagen ya subida al bucket <strong>hogar</strong>. Debe empezar con https://</div>'
+      +'<label>Imagen del hero</label>'
       +'<div class="adm-lp-preview"><img id="adm-lp-preview-img" src="'+_admEsc(img)+'" alt="Vista previa del hero" '
         +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'"></div>'
+      // El input file está oculto; lo dispara el botón. La subida es lo principal.
+      +'<input type="file" id="adm-lp-file" accept="image/*" style="display:none" onchange="subirImagenHeroHogar(this)">'
+      +'<div class="adm-nota-acciones" style="margin-top:2px;">'
+        +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir" '
+          +'onclick="document.getElementById(\'adm-lp-file\').click()">Subir imagen</button>'
+      +'</div>'
+      +'<div class="adm-field-hint">Elige una foto de tu computadora (JPG, PNG o WEBP, máx. 5 MB). Es la imagen que se ve en la versión de escritorio.</div>'
+      // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
+      // la fuente de la imagen para Guardar; la subida escribe aquí también.
+      +'<details class="adm-lp-avanzado"><summary>¿Prefieres pegar una URL?</summary>'
+        +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
+      +'</details>'
     +'</div>'
     +'<div class="adm-field">'
       +'<label>Precio anunciado</label>'
@@ -7198,11 +7218,86 @@ function _admLandingHTML(c){
   return html;
 }
 
-// Actualiza la previsualización al pegar una URL.
+// Actualiza la previsualización al pegar una URL (opción avanzada).
 function _admLandingPreview(){
   const url=((document.getElementById('adm-lp-img')||{}).value||'').trim();
   const img=document.getElementById('adm-lp-preview-img');
-  if(img && /^https:\/\//i.test(url)){ img.src=url; }
+  if(img && /^https:\/\//i.test(url)){ img.style.display=''; img.src=url; }
+}
+
+// Límite de tamaño para la imagen del hero.
+const ADM_HERO_MAX_MB=5;
+
+// Extensión a partir del tipo MIME (o del nombre como respaldo). Para nombrar
+// el archivo en el bucket con una extensión sensata.
+function _admExtImagen(file){
+  const t=(file.type||'').toLowerCase();
+  const porMime={'image/jpeg':'jpg','image/jpg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','image/avif':'avif'};
+  if(porMime[t]) return porMime[t];
+  const m=/\.([a-z0-9]{2,5})$/i.exec(file.name||'');
+  return m ? m[1].toLowerCase() : 'jpg';
+}
+
+// SUBIDA DIRECTA de la imagen del hero. Andrea elige un archivo de su compu; se
+// sube al bucket "hogar", se obtiene su URL pública, se guarda en hogar_config
+// y se actualiza la previsualización. Nunca ve una URL ni entra a Supabase.
+// Solo INSERT/UPDATE: no se borra nada (Andrea no tiene ese permiso).
+async function subirImagenHeroHogar(input){
+  _admLandingMsg('');
+  const file=input && input.files && input.files[0];
+  if(!file) return;
+
+  // a) Validaciones antes de tocar la red.
+  if(!/^image\//i.test(file.type||'')){
+    _admLandingMsg('Ese archivo no es una imagen. Elige un JPG, PNG o WEBP.','error');
+    input.value=''; return;
+  }
+  if(file.size > ADM_HERO_MAX_MB*1024*1024){
+    const mb=(file.size/1024/1024).toFixed(1);
+    _admLandingMsg('La imagen pesa '+mb+' MB. El máximo es '+ADM_HERO_MAX_MB+' MB: usa una más ligera.','error');
+    input.value=''; return;
+  }
+
+  const btn=document.getElementById('adm-lp-subir');
+  const previo=btn?btn.textContent:'';
+  try{
+    if(!window.sb || !window.sb.storage) throw new Error('sin cliente Supabase');
+    if(btn){ btn.disabled=true; btn.textContent='Subiendo…'; }
+    _admLandingMsg('Subiendo tu imagen…','info');
+
+    // b) Nombre único con prefijo propio: nunca pisa videos ni audios del bucket.
+    const nombre='hero-landing-'+Date.now()+'.'+_admExtImagen(file);
+
+    // c) Subir al bucket.
+    const up=await window.sb.storage.from('hogar').upload(nombre, file, { upsert:true, contentType:file.type });
+    if(up.error) throw up.error;
+
+    // d) URL pública.
+    const { data:pub } = window.sb.storage.from('hogar').getPublicUrl(nombre);
+    const url=pub && pub.publicUrl;
+    if(!url) throw new Error('no se obtuvo la URL pública');
+
+    // e) Guardar solo la imagen en hogar_config. Con RLS, 0 filas = sin permiso.
+    const { data, error } = await window.sb.from('hogar_config')
+      .update({ landing_hero_imagen:url, updated_at:new Date().toISOString() })
+      .eq('id',1).select('id');
+    if(error) throw error;
+    if(!data || !data.length){ _admLandingMsg(ADM_LANDING_SIN_PERMISO,'error'); return; }
+
+    // f) Reflejar en el editor: campo URL (fuente para Guardar) + previsualización.
+    const campo=document.getElementById('adm-lp-img'); if(campo) campo.value=url;
+    const prev=document.getElementById('adm-lp-preview-img'); if(prev){ prev.style.display=''; prev.src=url; }
+    _admLandingMsg('Imagen actualizada','ok');
+  }catch(e){
+    console.warn('[HOGAR admin] subir hero:',(e&&e.message)||e);
+    const m=(e&&e.message)||'';
+    _admLandingMsg(/permission|denied|policy|unauthorized|row-level|403/i.test(m)
+      ? 'No se pudo subir: tu cuenta no tiene permiso para subir imágenes.'
+      : 'No pudimos subir la imagen. Intenta de nuevo en un momento.','error');
+  }finally{
+    if(input) input.value='';   // permite volver a elegir el mismo archivo
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Subir imagen'; }
+  }
 }
 
 async function guardarLandingHogar(btn){
