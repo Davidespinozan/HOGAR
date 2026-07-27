@@ -3369,6 +3369,12 @@ body.app-active { overflow: hidden; }
   color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px;
   padding:.7rem .9rem; outline:none; resize:vertical; min-height:70px; transition:border-color .2s; }
 .adm-tx-card textarea:focus{ border-color:var(--terracota); }
+/* ===== LANDING — editor ===== */
+.adm-lp-preview{ margin-top:10px; }
+.adm-lp-preview img{ width:100%; max-width:280px; height:auto; border-radius:14px;
+  box-shadow:var(--sombra-suave); display:block; }
+.adm-lp-precio{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600;
+  color:var(--terracota); padding:2px 0; }
 /* Accesibilidad: respeta "reducir movimiento" en todo el sitio */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
@@ -4048,6 +4054,11 @@ body.app-active { overflow: hidden; }
       <div id="adm-textos-body" style="margin-top:28px;">
         <div class="adm-loading">Cargando los textos de tus prácticas…</div>
       </div>
+
+      <!-- Landing pública (editor). -->
+      <div id="adm-landing-body" style="margin-top:28px;">
+        <div class="adm-loading">Cargando tu landing…</div>
+      </div>
     </section>
 
     <section class="adm-view" id="adm-view-landing">
@@ -4621,7 +4632,7 @@ function goAdmin(section){
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
-  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); }
+  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); loadLandingAdmin(); }
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -5098,6 +5109,74 @@ async function precargarTextosHogar(){
     console.log('[HOGAR textos] '+filas.length+' prácticas cargadas desde Supabase ✓');
   }catch(e){
     console.warn('[HOGAR textos] no se pudieron cargar; se usan los del código:', (e&&e.message)||e);
+  }
+}
+
+// ============================================
+// LANDING PÚBLICA — hero editable + precio leído de Planes.
+//
+// DIFERENCIA con notas y textos: la landing la ve cualquiera SIN login, así que
+// esta lectura corre al cargar la página (no tras irTrasAuth) y debe funcionar
+// para el rol anon. Por eso NO lee hogar_config directo: esa tabla tiene datos
+// de Stripe (stripe_account_id…) y una policy anon la expondría entera. Lee la
+// vista pública hogar_landing, que solo expone las columnas de landing + precio.
+//
+// FALLBACK: el HTML ya trae los textos actuales. Si la lectura falla, viene
+// vacía o algún campo llega en blanco, se deja EXACTAMENTE lo que hay en el
+// código. Nunca un hueco. Como el HTML ya está pintado, si Supabase responde
+// igual no se nota; si responde distinto, se actualiza sin flash de vacío.
+// ============================================
+
+// Formatea centavos → "$499" (sin decimales si es entero). Devuelve null si no
+// hay un precio válido, para que el precio del código quede como fallback.
+function _landingPrecioTxt(centavos){
+  const c=Number(centavos);
+  if(!isFinite(c) || c<=0) return null;
+  const pesos=c/100;
+  const n=Number.isInteger(pesos) ? pesos.toLocaleString('es-MX')
+                                  : pesos.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return '$'+n+' <span>MXN</span>';
+}
+
+// Sustituye la imagen de fondo del hero SOLO en desktop, vía una regla scopeada
+// a (min-width:481px). Así nunca pisa la imagen vertical de móvil, que vive en
+// @media(max-width:480px) y se queda fija en el código.
+function _landingSetHeroImg(url){
+  if(!url) return;
+  let tag=document.getElementById('landing-hero-img-override');
+  if(!tag){ tag=document.createElement('style'); tag.id='landing-hero-img-override'; document.head.appendChild(tag); }
+  // La URL ya viene validada (https). Se escapan comillas por si acaso.
+  const safe=String(url).replace(/["\\]/g,'\\$&');
+  tag.textContent='@media(min-width:481px){.hero{background-image:url("'+safe+'") !important;}}';
+}
+
+async function precargarLandingHogar(){
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_landing')
+      .select('landing_hero_titulo,landing_hero_subtitulo,landing_hero_imagen,precio_centavos')
+      .maybeSingle();
+    if(error) throw error;
+    if(!data){
+      console.warn('[HOGAR landing] sin datos en Supabase: se usa el texto del código.');
+      return;
+    }
+    // Cada campo cae al código por separado: uno vacío no arrastra a los demás.
+    const tit=String(data.landing_hero_titulo||'').trim();
+    const sub=String(data.landing_hero_subtitulo||'').trim();
+    const img=String(data.landing_hero_imagen||'').trim();
+    const precio=_landingPrecioTxt(data.precio_centavos);
+
+    const h1=document.querySelector('#s-landing .hero h1');
+    const desc=document.querySelector('#s-landing .hero-desc');
+    const pc=document.querySelector('#s-landing .pc-price');
+    if(tit && h1) h1.textContent=tit;
+    if(sub && desc) desc.textContent=sub;
+    if(img && /^https:\/\//i.test(img)) _landingSetHeroImg(img);
+    if(precio && pc) pc.innerHTML=precio;
+    console.log('[HOGAR landing] landing cargada desde Supabase ✓');
+  }catch(e){
+    console.warn('[HOGAR landing] no se pudo cargar; se usa el texto del código:', (e&&e.message)||e);
   }
 }
 
@@ -7041,6 +7120,126 @@ async function guardarTextoHogar(key, btn){
   }
 }
 
+// ── CONTENIDO · landing (editor) ────────────────────────────────────────────
+// Escribe en hogar_config (fila id=1), donde Andrea SÍ tiene permiso (misma
+// policy que Planes). El precio NO se edita aquí: se lee de Planes, para que la
+// landing y el checkout no puedan discrepar. Igual que el resto: .select() para
+// comprobar filas afectadas — con RLS un update sin permiso da 0 filas.
+let _admLandingCargando=false;
+
+function _admLandingMsg(texto, tipo){
+  const el=document.getElementById('adm-landing-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+const ADM_LANDING_SIN_PERMISO='No se pudo guardar: tu cuenta no tiene permiso de escritura en hogar_config.';
+
+async function loadLandingAdmin(){
+  const cont=document.getElementById('adm-landing-body');
+  if(!cont || _admLandingCargando) return;
+  _admLandingCargando=true;
+  cont.innerHTML='<div class="adm-loading">Cargando tu landing…</div>';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    // Andrea está autenticada: lee hogar_config directo (su policy se lo permite).
+    const { data, error } = await window.sb.from('hogar_config')
+      .select('landing_hero_titulo,landing_hero_subtitulo,landing_hero_imagen,precio_centavos')
+      .eq('id',1).maybeSingle();
+    if(error) throw error;
+    cont.innerHTML=_admLandingHTML(data||{});
+  }catch(e){
+    console.warn('[HOGAR admin] landing:',(e&&e.message)||e);
+    cont.innerHTML='<div class="adm-card hogar-rise-in">'
+      +'<div class="adm-card-eyebrow">— TU LANDING</div>'
+      +'<p class="adm-card-text">No pudimos cargar tu landing. Intenta de nuevo en un momento.</p>'
+      +'<div class="adm-actions" style="margin-top:18px;">'
+      +'<button type="button" class="btn btn-o" onclick="loadLandingAdmin()">Reintentar</button></div></div>';
+  }finally{ _admLandingCargando=false; }
+}
+
+function _admLandingHTML(c){
+  // Fallback al código en el editor: si la BD aún no tiene valor, Andrea ve el
+  // texto que hoy está en la landing, no un campo vacío.
+  const HERO_TIT_COD='El ejercicio está dejando de ser sólo una herramienta para cambiar el cuerpo.';
+  const HERO_SUB_COD='Está volviendo a ser una forma de reconectar con él.';
+  const HERO_IMG_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-andrea.jpg';
+  const tit=(c.landing_hero_titulo!=null && String(c.landing_hero_titulo).trim()!=='')?c.landing_hero_titulo:HERO_TIT_COD;
+  const sub=(c.landing_hero_subtitulo!=null && String(c.landing_hero_subtitulo).trim()!=='')?c.landing_hero_subtitulo:HERO_SUB_COD;
+  const img=(c.landing_hero_imagen!=null && String(c.landing_hero_imagen).trim()!=='')?c.landing_hero_imagen:HERO_IMG_COD;
+  const precioTxt=_landingPrecioTxt(c.precio_centavos);
+
+  let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TU LANDING</div>';
+  html+='<div class="adm-alert" id="adm-landing-msg"></div>';
+  html+='<p class="adm-card-text" style="margin-bottom:16px;">'
+    +'El texto y la imagen principal de la página que ven quienes aún no entran. '
+    +'La imagen vertical del teléfono se queda fija por ahora.</p>';
+
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-field">'
+      +'<label for="adm-lp-tit">Título del hero</label>'
+      +'<textarea id="adm-lp-tit" maxlength="220">'+_admEsc(tit)+'</textarea>'
+    +'</div>'
+    +'<div class="adm-field">'
+      +'<label for="adm-lp-sub">Subtítulo del hero</label>'
+      +'<textarea id="adm-lp-sub" maxlength="220">'+_admEsc(sub)+'</textarea>'
+    +'</div>'
+    +'<div class="adm-field">'
+      +'<label for="adm-lp-img">Imagen del hero (URL)</label>'
+      +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
+      +'<div class="adm-field-hint">Pega la URL de una imagen ya subida al bucket <strong>hogar</strong>. Debe empezar con https://</div>'
+      +'<div class="adm-lp-preview"><img id="adm-lp-preview-img" src="'+_admEsc(img)+'" alt="Vista previa del hero" '
+        +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'"></div>'
+    +'</div>'
+    +'<div class="adm-field">'
+      +'<label>Precio anunciado</label>'
+      +'<div class="adm-lp-precio">'+(precioTxt?precioTxt.replace(/<[^>]+>/g,''):'Sin definir')+'</div>'
+      +'<div class="adm-field-hint">El precio se configura en la sección <strong>Planes</strong>. Aquí solo se muestra, para que la landing y el cobro siempre coincidan.</div>'
+    +'</div>'
+    +'<div class="adm-nota-acciones" style="margin-top:4px;">'
+      +'<button type="button" class="adm-btn-mini primario" onclick="guardarLandingHogar(this)">Guardar</button>'
+    +'</div>'
+    +'</div>';
+  return html;
+}
+
+// Actualiza la previsualización al pegar una URL.
+function _admLandingPreview(){
+  const url=((document.getElementById('adm-lp-img')||{}).value||'').trim();
+  const img=document.getElementById('adm-lp-preview-img');
+  if(img && /^https:\/\//i.test(url)){ img.src=url; }
+}
+
+async function guardarLandingHogar(btn){
+  _admLandingMsg('');
+  const g=id=>((document.getElementById(id)||{}).value||'').trim();
+  const tit=g('adm-lp-tit'), sub=g('adm-lp-sub'), img=g('adm-lp-img');
+  if(!tit || !sub){ _admLandingMsg('El título y el subtítulo no pueden quedar vacíos.','error'); return; }
+  if(!/^https:\/\//i.test(img)){ _admLandingMsg('La imagen debe ser una URL que empiece con https://','error'); return; }
+
+  const previo=btn?btn.textContent:'';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    if(btn){ btn.disabled=true; btn.textContent='…'; }
+    const { data, error } = await window.sb.from('hogar_config')
+      .update({ landing_hero_titulo:tit, landing_hero_subtitulo:sub, landing_hero_imagen:img,
+                updated_at:new Date().toISOString() })
+      .eq('id',1)
+      .select('id');
+    if(error) throw error;
+    if(!data || !data.length){ _admLandingMsg(ADM_LANDING_SIN_PERMISO,'error'); return; }
+    _admLandingMsg('Guardado','ok');
+  }catch(e){
+    console.warn('[HOGAR admin] guardar landing:',(e&&e.message)||e);
+    const m=(e&&e.message)||'';
+    _admLandingMsg(/permission|denied|policy|42501/i.test(m) ? ADM_LANDING_SIN_PERMISO
+      : 'No pudimos guardar los cambios. Intenta de nuevo en un momento.','error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
+  }
+}
+
 // ── PLANES ──────────────────────────────────────────────────────────────────
 function _admPlanMsg(texto, tipo){
   const el=document.getElementById('adm-plan-msg');
@@ -7267,6 +7466,8 @@ function confirmExit(){
   try {
     window.sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     console.log('[HOGAR] Supabase conectado ✓');
+    // Landing: pública, se lee al cargar la página, sin depender del login.
+    if (typeof window.precargarLandingHogar === 'function') { window.precargarLandingHogar(); }
     if (typeof window._authInit === 'function') { window._authInit(); }
   } catch (err) {
     console.error('[HOGAR] No se pudo inicializar Supabase:', err);
