@@ -3117,6 +3117,62 @@ body.app-active { overflow: hidden; }
 .adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
 @media(max-width:900px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
 
+/* ===== CONTENIDO — acordeón e internos (rediseño, paso 6) ====================
+   El acordeón ya existía; aquí se le añade el subtítulo con el conteo real en la
+   cabecera y se re-viste lo de dentro con el sistema de los pasos 2-5. Scopeado a
+   #adm-view-contenido: .adm-nota, .adm-btn-mini y los textarea los comparte el
+   editor de Landing, que es de otro paso. */
+.adm-acc-sub{ display:block; font-family:'Montserrat',sans-serif; font-size:.78rem;
+  font-weight:300; color:#9a7d6c; margin-top:4px; line-height:1.4; }
+
+/* Cards internas: mismo borde y misma sombra que Inicio, Usuarias y Planes. */
+#adm-view-contenido .adm-card,
+#adm-view-contenido .adm-med-card,
+#adm-view-contenido .adm-nota,
+#adm-view-contenido .adm-tx-card{
+  background:#fff; border:1px solid rgba(240,228,214,.8); border-radius:20px;
+  box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-contenido .adm-med-card:hover{ transform:translateY(-3px);
+  box-shadow:0 14px 32px rgba(58,40,32,.12); }
+#adm-view-contenido .adm-card:hover{ transform:none; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+
+/* Inventario: verde para lo que está, coral para lo que falta. */
+#adm-view-contenido .adm-med-num{ font-weight:200; font-size:34px; color:#c66b41; letter-spacing:-1px; }
+#adm-view-contenido .adm-med-num.completo{ color:#4a8a5a; }
+#adm-view-contenido .adm-med-de{ color:#9a7d6c; }
+#adm-view-contenido .adm-med-card-tit{ color:#b0654a; letter-spacing:2px; }
+#adm-view-contenido .adm-med-chip.ok{ background:#e4f0e2; color:#4a8a5a; }
+#adm-view-contenido .adm-med-chip.falta{ background:#fbeae1; color:#c0653f; }
+#adm-view-contenido .adm-med-chip.ok::before{ content:'✓'; }
+#adm-view-contenido .adm-med-chip.falta::before{ content:'○'; }
+#adm-view-contenido .adm-med-faltan-tit{ color:#c0653f; }
+#adm-view-contenido .adm-med-archivo{ color:#8a6a56; }
+#adm-view-contenido .adm-med-fila{ border-bottom-color:#f2e8dd; }
+
+/* Notas: el estado activo en el verde del sistema. */
+#adm-view-contenido .adm-nota-estado.si{ background:#e4f0e2; color:#4a8a5a; }
+#adm-view-contenido .adm-nota-estado.no{ background:#f2e8dd; color:#9a7d6c; }
+#adm-view-contenido .adm-nota-orden{ color:#b0654a; }
+
+/* Textos: cabecera de cada práctica y etiquetas de campo. */
+#adm-view-contenido .adm-tx-titulo{ color:#3a2820; font-weight:600; font-size:15px;
+  border-bottom-color:#f2e8dd; }
+#adm-view-contenido .adm-tx-label{ color:#9a7d6c; letter-spacing:1.6px; }
+
+/* Campos de edición: mismo input que Planes y el buscador de Usuarias. */
+#adm-view-contenido textarea,
+#adm-view-contenido .adm-field input{
+  border:1px solid rgba(240,228,214,.9); border-radius:14px; padding:.75rem 1rem;
+  color:#3a2820; box-shadow:0 6px 16px rgba(58,40,32,.05);
+  transition:border-color .25s, box-shadow .25s; }
+#adm-view-contenido textarea:focus,
+#adm-view-contenido .adm-field input:focus{
+  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
+#adm-view-contenido .adm-btn-mini.primario{ background:#c66b41; color:#fff; }
+#adm-view-contenido .adm-btn-mini.primario:hover:not([disabled]){ background:#b05730; }
+#adm-view-contenido .adm-btn-mini.suave{ border-color:rgba(240,228,214,.9); color:#9a7d6c; }
+#adm-view-contenido .adm-btn-mini.suave:hover:not([disabled]){ border-color:#c66b41; color:#c66b41; }
+
 /* ===== PLANES — precio destacado y editor (rediseño, paso 5) =================
    Scopeado a #adm-view-planes: .adm-card, .adm-field y .adm-alert los comparten
    Cobros, Contenido y Landing (47 usos de .adm-card en total), que son de otros
@@ -4414,6 +4470,7 @@ body.app-active { overflow: hidden; }
           <span class="adm-acc-titles">
             <span class="adm-acc-eyebrow">— TUS ARCHIVOS</span>
             <span class="adm-acc-title">Videos y audios</span>
+            <span class="adm-acc-sub" id="adm-acc-sub-medios">Revisando tus archivos…</span>
           </span>
           <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
         </button>
@@ -4431,6 +4488,7 @@ body.app-active { overflow: hidden; }
           <span class="adm-acc-titles">
             <span class="adm-acc-eyebrow">— TUS NOTAS</span>
             <span class="adm-acc-title">Notas del dashboard</span>
+            <span class="adm-acc-sub" id="adm-acc-sub-notas">Cargando…</span>
           </span>
           <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
         </button>
@@ -4447,6 +4505,7 @@ body.app-active { overflow: hidden; }
           <span class="adm-acc-titles">
             <span class="adm-acc-eyebrow">— TEXTOS DE TUS PRÁCTICAS</span>
             <span class="adm-acc-title">Textos de las prácticas</span>
+            <span class="adm-acc-sub" id="adm-acc-sub-textos">Cargando…</span>
           </span>
           <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
         </button>
@@ -5117,6 +5176,15 @@ function _admPintarSaludo(){
     nameEl.textContent=saludo.replace(/,\s*$/,'')+'.';  // 'Buenas tardes.'
     nameEl.classList.add('solo-saludo');
   }
+}
+
+// Subtítulo con el conteo real en la cabecera de un bloque de Contenido. Se
+// escribe desde donde SE CALCULA el número que además se pinta dentro, para que
+// cabecera y contenido no puedan discrepar: si el inventario dice 27 de 30, la
+// cabecera dice lo mismo porque sale de la misma cuenta.
+function _admAccSub(id, texto){
+  const el=document.getElementById(id);
+  if(el) el.textContent=texto||'';
 }
 
 // Abre/cierra un bloque de la sección Contenido. No son exclusivos: Andrea puede
@@ -7417,6 +7485,7 @@ function _admContenidoHTML(esperados, presentes, parecidos, modo){
   const hay=esperados.filter(m=>presentes.has(m.archivo)).length;
   const faltan=esperados.filter(m=>!presentes.has(m.archivo));
   const completo=(hay===total);
+  _admAccSub('adm-acc-sub-medios', hay+' de '+total+' archivos');
 
   let html='';
 
@@ -7520,6 +7589,7 @@ async function loadNotasAdmin(){
 
 function _admNotasHTML(rows){
   const activas=rows.filter(n=>n.activa===true).length;
+  _admAccSub('adm-acc-sub-notas', activas+(activas===1?' frase activa':' frases activas'));
   // Sin eyebrow: lo dice el título del acordeón que envuelve este bloque.
   let html='<div class="adm-alert" id="adm-notas-msg"></div>';
   html+='<p class="adm-card-text" style="margin-bottom:16px;">'
@@ -7700,6 +7770,7 @@ async function loadTextosAdmin(){
 function _admTextosHTML(){
   const porKey={};
   _admTextos.forEach(r=>{ if(r && r.practica_key) porKey[r.practica_key]=r; });
+  _admAccSub('adm-acc-sub-textos', ADM_PRACTICAS.length+(ADM_PRACTICAS.length===1?' práctica':' prácticas'));
   const sembrada=(_admTextos.length>0);
 
   // Sin eyebrow: lo dice el título del acordeón que envuelve este bloque.
