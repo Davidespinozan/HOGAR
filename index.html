@@ -3090,11 +3090,10 @@ body.app-active { overflow: hidden; }
 /* Columnas de ancho contenido (máx 200px): las cards no se estiran a todo lo ancho
    cuando la sección tiene una sola (HOY, DINERO); quedan compactas y en fila. */
 .adm-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,200px)); gap:16px; }
-/* Las KPI del admin reusan .stat-tile del dashboard. DINERO queda como placeholder atenuado
-   pero dentro del mismo sistema (radio y sombra de la app). */
-.adm-kpi.muted{ background:#efe7db; border-radius:22px; padding:26px 24px; box-shadow:var(--highlight-top), var(--sombra-suave); }
-.adm-kpi.muted .adm-kpi-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--texto-medio); margin-bottom:12px; }
-.adm-kpi.muted .adm-kpi-num{ font-family:'Montserrat',sans-serif; font-size:19px; font-weight:600; color:var(--tierra); letter-spacing:0; line-height:1.2; }
+/* Aquí vivían tres reglas .adm-kpi.muted, de cuando DINERO era un placeholder
+   atenuado. Ya nada las usaba, y como .adm-kpi pasa a ser el componente de las
+   métricas de Inicio, dejarlas era una trampa: cualquier card que ganara la clase
+   "muted" se habría repintado con estilos de otra época. Se retiran. */
 /* filtros de la tabla de usuarias */
 .adm-filters{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
 .adm-filters input,.adm-filters select{ font-family:'Montserrat',sans-serif; font-size:.85rem; color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px; padding:.6rem .9rem; outline:none; transition:border-color .2s; }
@@ -3120,7 +3119,59 @@ body.app-active { overflow: hidden; }
 .adm-uso-card{ background:#fff; border-radius:22px; padding:26px 24px; box-shadow:var(--highlight-top), var(--sombra-suave); transition:transform 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium); }
 .adm-uso-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
 .adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
-@media(max-width:640px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
+@media(max-width:900px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
+
+/* ===== INICIO — métricas (rediseño, paso 2) ==================================
+   Todo va scopeado a #adm-view-inicio a propósito: .adm-kpi-grid y .stat-tile los
+   comparte la ficha de usuaria (— SU ACTIVIDAD), y .stat-tile además viene del
+   dashboard de usuaria, donde bajo 480px se centra y esconde el subtítulo. Tocar
+   esas clases sueltas habría movido dos pantallas que no son de este paso. */
+
+/* El bug de "cards angostas con hueco al lado": la rejilla era
+   repeat(auto-fit,minmax(160px,200px)) — ese 200px es un TOPE, así que la columna
+   no podía crecer y en un teléfono de 360px quedaba una card de 200px y 130 px
+   vacíos. Ahora móvil = una columna a ancho completo, y en escritorio las
+   columnas sí se estiran (1fr) hasta repartirse el ancho disponible. */
+#adm-view-inicio .adm-kpi-grid{ display:grid; grid-template-columns:1fr; gap:14px; }
+@media(min-width:901px){
+  #adm-view-inicio .adm-kpi-grid{ grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
+}
+#adm-view-inicio .adm-section{ margin-bottom:42px; }
+#adm-view-inicio .adm-section-title{ font-size:10px; font-weight:700; letter-spacing:2.4px; color:#b0654a; margin-bottom:14px; }
+
+#adm-view-inicio .adm-kpi{ position:relative; overflow:hidden;
+  background:#fff; border-radius:20px; padding:22px 22px 24px;
+  border:1px solid rgba(240,228,214,.8); box-shadow:0 6px 16px rgba(58,40,32,.07);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
+#adm-view-inicio .adm-kpi:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(58,40,32,.12); }
+#adm-view-inicio .adm-kpi-eyebrow{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
+  letter-spacing:2px; text-transform:uppercase; color:#b0654a; margin-bottom:12px; }
+/* weight 200: el número fino es lo que le da el aire editorial */
+#adm-view-inicio .adm-kpi-num{ font-family:'Montserrat',sans-serif; font-weight:200; font-size:36px;
+  line-height:1; letter-spacing:-1.2px; color:#c66b41; }
+#adm-view-inicio .adm-kpi-sub{ font-family:'Montserrat',sans-serif; font-size:.82rem; font-weight:300;
+  color:#9a7d6c; line-height:1.45; margin-top:10px; }
+
+/* La métrica de HOY manda sobre el resto: card café, número mayor y un círculo de
+   luz terracota detrás para que no sea un rectángulo plano. */
+#adm-view-inicio .adm-kpi.destacada{ background:linear-gradient(145deg,#3f2c20,#2a1c14);
+  border-color:rgba(198,107,65,.22); border-radius:26px; padding:28px 26px 30px;
+  box-shadow:0 12px 30px rgba(37,24,17,.24); }
+#adm-view-inicio .adm-kpi.destacada:hover{ box-shadow:0 18px 40px rgba(37,24,17,.3); }
+#adm-view-inicio .adm-kpi.destacada::before{ content:""; position:absolute;
+  top:-80px; right:-60px; width:240px; height:240px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(198,107,65,.34), transparent 66%); }
+#adm-view-inicio .adm-kpi.destacada > *{ position:relative; }
+#adm-view-inicio .adm-kpi.destacada .adm-kpi-eyebrow{ color:#c9a892; }
+#adm-view-inicio .adm-kpi.destacada .adm-kpi-num{ color:#f5d9bf; font-size:50px; }
+#adm-view-inicio .adm-kpi.destacada .adm-kpi-sub{ color:#d4b8a4; }
+@media(min-width:901px){ #adm-view-inicio .adm-kpi.destacada .adm-kpi-num{ font-size:56px; } }
+
+/* Las tarjetas de USO se alinean con las nuevas: mismo borde y misma sombra. */
+#adm-view-inicio .adm-uso-card{ background:#fff; border-radius:22px; padding:24px 22px;
+  border:1px solid rgba(240,228,214,.8); box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-inicio .adm-uso-card:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(58,40,32,.12); }
+#adm-view-inicio .adm-uso-card h4{ font-size:10px; font-weight:700; letter-spacing:2px; color:#b0654a; margin-bottom:16px; }
 /* Entrada en cascada de las cards/secciones del panel admin (portado de SALA) */
 @keyframes hogar-rise-in {
   from { opacity: 0; transform: translateY(16px); }
@@ -4026,7 +4077,7 @@ body.app-active { overflow: hidden; }
         <p class="dash-hello" id="adm-hello" style="display:none;">Hola,</p>
         <h1 class="dash-name solo-saludo" id="adm-hello-name">Hola.</h1>
         <hr class="dash-rule">
-        <p class="adm-hello-sub">Este es el pulso de tu HOGAR hoy.</p>
+        <p class="adm-hello-sub">Esto es lo que está pasando en tu HOGAR.</p>
       </div>
     </div>
 
@@ -4034,10 +4085,11 @@ body.app-active { overflow: hidden; }
     <div class="adm-section hogar-rise-in">
       <div class="adm-section-title">— HOY</div>
       <div class="adm-kpi-grid">
-        <div class="stat-tile accent hogar-rise-in">
-          <div class="stat-tile-eyebrow">— PRÁCTICAS</div>
-          <div class="stat-tile-num" id="adm-hoy-practicas">—</div>
-          <div class="stat-tile-sub">completadas hoy</div>
+        <!-- La métrica del día: la única card oscura de la sección. -->
+        <div class="adm-kpi destacada hogar-rise-in">
+          <div class="adm-kpi-eyebrow">— PRÁCTICAS</div>
+          <div class="adm-kpi-num" id="adm-hoy-practicas">—</div>
+          <div class="adm-kpi-sub">completadas hoy</div>
         </div>
       </div>
     </div>
@@ -4046,20 +4098,20 @@ body.app-active { overflow: hidden; }
     <div class="adm-section hogar-rise-in">
       <div class="adm-section-title">— ESTE MES</div>
       <div class="adm-kpi-grid">
-        <div class="stat-tile hogar-rise-in">
-          <div class="stat-tile-eyebrow">— ALTAS</div>
-          <div class="stat-tile-num" id="adm-mes-altas">—</div>
-          <div class="stat-tile-sub">nuevas usuarias este mes</div>
+        <div class="adm-kpi hogar-rise-in">
+          <div class="adm-kpi-eyebrow">— ALTAS</div>
+          <div class="adm-kpi-num" id="adm-mes-altas">—</div>
+          <div class="adm-kpi-sub">nuevas usuarias este mes</div>
         </div>
-        <div class="stat-tile salmon hogar-rise-in">
-          <div class="stat-tile-eyebrow">— PRÁCTICAS</div>
-          <div class="stat-tile-num" id="adm-mes-practicas">—</div>
-          <div class="stat-tile-sub">sesiones este mes</div>
+        <div class="adm-kpi hogar-rise-in">
+          <div class="adm-kpi-eyebrow">— PRÁCTICAS</div>
+          <div class="adm-kpi-num" id="adm-mes-practicas">—</div>
+          <div class="adm-kpi-sub">sesiones este mes</div>
         </div>
-        <div class="stat-tile accent hogar-rise-in">
-          <div class="stat-tile-eyebrow">— RETENCIÓN 7 DÍAS</div>
-          <div class="stat-tile-num" id="adm-activas-7d">—</div>
-          <div class="stat-tile-sub">activas últimos 7 días</div>
+        <div class="adm-kpi hogar-rise-in">
+          <div class="adm-kpi-eyebrow">— RETENCIÓN 7 DÍAS</div>
+          <div class="adm-kpi-num" id="adm-activas-7d">—</div>
+          <div class="adm-kpi-sub">activas últimos 7 días</div>
         </div>
       </div>
     </div>
@@ -4084,15 +4136,15 @@ body.app-active { overflow: hidden; }
     <div class="adm-section hogar-rise-in">
       <div class="adm-section-title">— DINERO</div>
       <div class="adm-kpi-grid">
-        <div class="stat-tile accent hogar-rise-in">
-          <div class="stat-tile-eyebrow">— INGRESOS DEL MES</div>
-          <div class="stat-tile-num" id="adm-dinero-mes">—</div>
-          <div class="stat-tile-sub">compras confirmadas este mes</div>
+        <div class="adm-kpi hogar-rise-in">
+          <div class="adm-kpi-eyebrow">— INGRESOS DEL MES</div>
+          <div class="adm-kpi-num" id="adm-dinero-mes">—</div>
+          <div class="adm-kpi-sub">compras confirmadas este mes</div>
         </div>
-        <div class="stat-tile hogar-rise-in">
-          <div class="stat-tile-eyebrow">— VENTAS DEL MES</div>
-          <div class="stat-tile-num" id="adm-dinero-count">—</div>
-          <div class="stat-tile-sub">accesos vendidos este mes</div>
+        <div class="adm-kpi hogar-rise-in">
+          <div class="adm-kpi-eyebrow">— VENTAS DEL MES</div>
+          <div class="adm-kpi-num" id="adm-dinero-count">—</div>
+          <div class="adm-kpi-sub">accesos vendidos este mes</div>
         </div>
       </div>
     </div>
