@@ -19,6 +19,58 @@ import { autenticar } from '../_lib/auth';
  * tanto el Customer como la Checkout Session van con { stripeAccount }.
  */
 
+/** Última URL conocida del sitio, para cuando no se puede deducir del request. */
+const ORIGEN_PRODUCCION = 'https://hogarbyandrea.netlify.app';
+
+/** Segundos de la ventana de idempotencia del checkout. */
+const VENTANA_IDEMPOTENCIA_MS = 30_000;
+
+/**
+ * Cubo de tiempo para la clave de idempotencia del checkout.
+ *
+ * La clave era `hogar_checkout_${user.id}`, constante y para siempre. Stripe
+ * guarda la respuesta de la primera llamada con una clave dada y la REPRODUCE
+ * durante 24 h, así que el segundo intento de la misma clienta no creaba una
+ * sesión nueva: devolvía la de la primera vez, ya pagada o ya expirada. De ahí
+ * el "Completaste el pago o se agotó el tiempo de espera para esta sesión"
+ * después de un 200 en ~800 ms — era una reproducción, no una sesión nueva.
+ *
+ * Con el cubo de 30 s la clave sigue protegiendo del doble clic (dos toques
+ * seguidos caen en el mismo cubo y reusan la sesión) pero deja de bloquear un
+ * intento posterior, que estrena cubo y por tanto sesión.
+ *
+ * Límite conocido y aceptado: dos clics que caigan a ambos lados de un borde de
+ * cubo (…:29.9 y …:30.1) crean dos sesiones. Es inevitable con una clave
+ * derivada del reloj y no hace daño: una sesión de Checkout sin pagar caduca
+ * sola y no cobra nada.
+ */
+function ventanaIdempotencia(): number {
+  return Math.floor(Date.now() / VENTANA_IDEMPOTENCIA_MS);
+}
+
+/**
+ * Origen absoluto del sitio, para construir success_url y cancel_url.
+ *
+ * Stripe RECHAZA una URL relativa, así que el último recurso no puede ser ''
+ * —dejaba `success_url: '/?pago=exito'`, que revienta la creación de la sesión—.
+ * Además el referer llega con ruta (`https://sitio/perfil`), y usarlo tal cual
+ * daba `https://sitio/perfil/?pago=exito`: válido para Stripe, pero devuelve a
+ * la clienta a una ruta que no es la raíz. Se le extrae el origen.
+ */
+function resolverOrigen(headers: Record<string, string | undefined>): string {
+  const candidatos = [headers.origin, headers.referer, optionalEnv('URL', '')];
+  for (const c of candidatos) {
+    if (!c) continue;
+    try {
+      const u = new URL(c);
+      if (u.protocol === 'https:' || u.protocol === 'http:') return u.origin;
+    } catch {
+      // No es una URL absoluta: se ignora y se prueba el siguiente.
+    }
+  }
+  return ORIGEN_PRODUCCION;
+}
+
 /**
  * Customer de la clienta EN la cuenta conectada (los customers son por cuenta,
  * no de la plataforma). Reusa el guardado en hogar_usuarias; si no hay, crea
@@ -92,10 +144,7 @@ export const handler: Handler = async (event) => {
       stripeAccount
     );
 
-    const origin =
-      event.headers.origin ||
-      event.headers.referer?.replace(/\/+$/, '') ||
-      optionalEnv('URL', '');
+    const origin = resolverOrigen(event.headers);
 
     // metadata en la session Y en el payment_intent: el webhook resuelve por
     // ahí a quién acreditar, y la etiqueta app lo separa de los eventos de EKKO.
@@ -123,7 +172,7 @@ export const handler: Handler = async (event) => {
         success_url: `${origin}/?pago=exito`,
         cancel_url: `${origin}/?pago=cancelado`
       },
-      { idempotencyKey: `hogar_checkout_${auth.user.id}`, stripeAccount }
+      { idempotencyKey: `hogar_checkout_${auth.user.id}_${ventanaIdempotencia()}`, stripeAccount }
     );
 
     return ok({ url: session.url });
