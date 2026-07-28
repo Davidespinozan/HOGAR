@@ -7238,10 +7238,30 @@ function _admExtImagen(file){
   return m ? m[1].toLowerCase() : 'jpg';
 }
 
+// Rol efectivo que declara un JWT (para diagnóstico). 'authenticated' = sesión
+// real de una usuaria; 'anon' = sin sesión. Nunca lanza.
+function _jwtRole(token){
+  try{
+    const p=token.split('.')[1];
+    const s=atob(p.replace(/-/g,'+').replace(/_/g,'/'));
+    const json=JSON.parse(decodeURIComponent(s.split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+    return json.role || '(sin rol)';
+  }catch(_){ return '(no decodable)'; }
+}
+
 // SUBIDA DIRECTA de la imagen del hero. Andrea elige un archivo de su compu; se
 // sube al bucket "hogar", se obtiene su URL pública, se guarda en hogar_config
 // y se actualiza la previsualización. Nunca ve una URL ni entra a Supabase.
 // Solo INSERT/UPDATE: no se borra nada (Andrea no tiene ese permiso).
+//
+// FIX RLS: storage-js arma los headers del upload con `{...this.headers}`, y ese
+// objeto viene vacío (el cliente se creó sin global.headers). El Authorization
+// lo pone fetchWithAuth por request, pero SOLO si no está ya presente y SOLO con
+// lo que devuelva getSession() en ese instante; si la sesión no se adjunta ahí,
+// cae al fallback y manda la publishable key (sb_publishable_) como Bearer = rol
+// anon, y la policy `to authenticated` rechaza el INSERT. Por eso obtenemos la
+// sesión y forzamos el JWT de Andrea en los headers del upload (tienen
+// precedencia), en vez de confiar en que el cliente lo adjunte solo.
 async function subirImagenHeroHogar(input){
   _admLandingMsg('');
   const file=input && input.files && input.files[0];
@@ -7262,14 +7282,31 @@ async function subirImagenHeroHogar(input){
   const previo=btn?btn.textContent:'';
   try{
     if(!window.sb || !window.sb.storage) throw new Error('sin cliente Supabase');
+
+    // Sesión de Andrea. La necesitamos para adjuntar SU token al upload; y de
+    // paso, si no hay sesión, damos un mensaje claro en vez de un error de RLS.
+    const { data:{ session } } = await window.sb.auth.getSession();
+    const token=session && session.access_token;
+    console.log('[HOGAR upload] sesión activa:', !!session,
+      '· rol del token:', token?_jwtRole(token):'(sin token)',
+      '· uid:', (session&&session.user&&session.user.id)||'—');
+    if(!token){
+      _admLandingMsg('Tu sesión expiró. Vuelve a entrar y prueba de nuevo.','error');
+      return;
+    }
+
     if(btn){ btn.disabled=true; btn.textContent='Subiendo…'; }
     _admLandingMsg('Subiendo tu imagen…','info');
 
     // b) Nombre único con prefijo propio: nunca pisa videos ni audios del bucket.
     const nombre='hero-landing-'+Date.now()+'.'+_admExtImagen(file);
 
-    // c) Subir al bucket.
-    const up=await window.sb.storage.from('hogar').upload(nombre, file, { upsert:true, contentType:file.type });
+    // c) Subir al bucket adjuntando el JWT de Andrea explícitamente.
+    const up=await window.sb.storage.from('hogar').upload(nombre, file, {
+      upsert:true,
+      contentType:file.type,
+      headers:{ Authorization:'Bearer '+token }
+    });
     if(up.error) throw up.error;
 
     // d) URL pública.
@@ -7289,7 +7326,8 @@ async function subirImagenHeroHogar(input){
     const prev=document.getElementById('adm-lp-preview-img'); if(prev){ prev.style.display=''; prev.src=url; }
     _admLandingMsg('Imagen actualizada','ok');
   }catch(e){
-    console.warn('[HOGAR admin] subir hero:',(e&&e.message)||e);
+    // Log del error COMPLETO de Supabase, no solo el mensaje, para diagnóstico.
+    console.warn('[HOGAR admin] subir hero — error completo:', e);
     const m=(e&&e.message)||'';
     _admLandingMsg(/permission|denied|policy|unauthorized|row-level|403/i.test(m)
       ? 'No se pudo subir: tu cuenta no tiene permiso para subir imágenes.'
