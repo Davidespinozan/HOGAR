@@ -3084,9 +3084,9 @@ body.app-active { overflow: hidden; }
 #s-done .completado-screen p{margin-top:18px !important;}
 #s-done .completado-screen p a{font-size:12px !important;color:#9c6b5c !important;}
 /* ===== PANEL ADMIN (Andrea, single-tenant) ===== */
-.adm-section{ margin-bottom:36px; }
+.adm-section{ margin-bottom:42px; }
 /* Eyebrow de sección con el mismo tratamiento que la app (em-dash + terracota + tracking) */
-.adm-section-title{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--terracota-oscuro); margin-bottom:16px; }
+.adm-section-title{ font-family:'Montserrat',sans-serif; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:var(--adm-eyebrow-ls); text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:14px; }
 /* Columnas de ancho contenido (máx 200px): las cards no se estiran a todo lo ancho
    cuando la sección tiene una sola (HOY, DINERO); quedan compactas y en fila. */
 .adm-kpi-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,200px)); gap:16px; }
@@ -3096,9 +3096,13 @@ body.app-active { overflow: hidden; }
    "muted" se habría repintado con estilos de otra época. Se retiran. */
 /* filtros de la tabla de usuarias */
 .adm-filters{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
-.adm-filters input,.adm-filters select{ font-family:'Montserrat',sans-serif; font-size:.85rem; color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px; padding:.6rem .9rem; outline:none; transition:border-color .2s; }
+.adm-filters input,.adm-filters select{ font-family:'Montserrat',sans-serif; font-size:.86rem;
+  color:var(--adm-texto); background:#fff; border:var(--adm-campo-borde);
+  border-radius:var(--adm-campo-radio); padding:.75rem 1rem; outline:none;
+  box-shadow:var(--adm-card-sombra); transition:border-color .25s, box-shadow .25s; }
+.adm-filters input::placeholder{ color:var(--adm-texto-2); }
 .adm-filters input{ flex:1; min-width:180px; }
-.adm-filters input:focus,.adm-filters select:focus{ border-color:var(--terracota); }
+.adm-filters input:focus,.adm-filters select:focus{ border-color:#c66b41; box-shadow:var(--adm-foco); }
 /* tabla de usuarias */
 /* Aquí vivían .adm-table-wrap/.adm-table/.adm-badge, de la tabla de usuarias que
    este paso sustituyó por tarjetas. Ya no las usaba nadie (la ficha de detalle
@@ -3112,9 +3116,19 @@ body.app-active { overflow: hidden; }
 .adm-bar-fill{ height:100%; border-radius:100px; background:linear-gradient(90deg,var(--salmon-rosa),var(--terracota)); min-width:2px; transition:width .4s ease; }
 .adm-bar-count{ flex:0 0 34px; text-align:right; font-size:.82rem; font-weight:700; color:var(--terracota); }
 .adm-uso-grid{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-.adm-uso-card{ background:#fff; border-radius:22px; padding:26px 24px; box-shadow:var(--highlight-top), var(--sombra-suave); transition:transform 0.3s var(--ease-premium), box-shadow 0.3s var(--ease-premium); }
-.adm-uso-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
-.adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
+/* Tarjeta de métrica (Inicio). Nació scopeada en el paso 2; ahora vive en el
+   sistema como una card más, para que no dependa de en qué sección esté. */
+.adm-kpi{ position:relative; overflow:hidden;
+  background:var(--adm-card-bg); border:var(--adm-card-borde);
+  border-radius:var(--adm-card-radio); padding:22px 22px 24px;
+  box-shadow:var(--adm-card-sombra);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
+.adm-kpi:hover{ transform:translateY(-3px); box-shadow:var(--adm-card-sombra-alta); }
+.adm-uso-card{ background:var(--adm-card-bg); border:var(--adm-card-borde);
+  border-radius:var(--adm-card-radio); padding:24px 22px; box-shadow:var(--adm-card-sombra);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
+.adm-uso-card:hover{ transform:translateY(-3px); box-shadow:var(--adm-card-sombra-alta); }
+.adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:16px; }
 @media(max-width:900px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
 
 /* ===== LANDING — editor (rediseño, paso 7) ===================================
@@ -3159,11 +3173,6 @@ body.app-active { overflow: hidden; }
 #adm-view-landing .adm-lp-cambiar[disabled]{ opacity:.75; cursor:default; transform:none; }
 
 /* Cards y campos, iguales a Planes y Contenido. */
-#adm-view-landing .adm-card{ background:#fff; border:1px solid rgba(240,228,214,.8);
-  border-radius:20px; box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-landing .adm-card:hover{ transform:none; box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-landing .adm-card-eyebrow{ color:#b0654a; font-size:10px; letter-spacing:2.4px; }
-#adm-view-landing .adm-card-text{ color:#9a7d6c; }
 #adm-view-landing .adm-field label,
 #adm-view-landing .adm-lp-precio-label{ display:block; font-family:'Montserrat',sans-serif;
   font-size:10px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase;
@@ -3178,11 +3187,8 @@ body.app-active { overflow: hidden; }
 #adm-view-landing textarea:focus,
 #adm-view-landing .adm-lp-avanzado input:focus{
   border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
-#adm-view-landing .adm-field-hint{ color:#9a7d6c; }
 #adm-view-landing .adm-lp-precio{ font-weight:200; font-size:30px; color:#c66b41;
   letter-spacing:-1px; line-height:1; margin-bottom:10px; }
-#adm-view-landing .adm-btn-mini.primario{ background:linear-gradient(135deg,#c66b41,#b05730); color:#fff; }
-#adm-view-landing .adm-btn-mini.primario:hover:not([disabled]){ background:#b05730; }
 
 /* Ver landing: secundario claro, con su icono de "abrir fuera". */
 #adm-view-landing .adm-lp-ver{ display:flex; align-items:center; justify-content:center; gap:9px;
@@ -3206,21 +3212,11 @@ body.app-active { overflow: hidden; }
   font-weight:300; color:#9a7d6c; margin-top:4px; line-height:1.4; }
 
 /* Cards internas: mismo borde y misma sombra que Inicio, Usuarias y Planes. */
-#adm-view-contenido .adm-card,
-#adm-view-contenido .adm-med-card,
-#adm-view-contenido .adm-nota,
-#adm-view-contenido .adm-tx-card{
-  background:#fff; border:1px solid rgba(240,228,214,.8); border-radius:20px;
-  box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-contenido .adm-med-card:hover{ transform:translateY(-3px);
-  box-shadow:0 14px 32px rgba(58,40,32,.12); }
-#adm-view-contenido .adm-card:hover{ transform:none; box-shadow:0 6px 16px rgba(58,40,32,.07); }
 
 /* Inventario: verde para lo que está, coral para lo que falta. */
 #adm-view-contenido .adm-med-num{ font-weight:200; font-size:34px; color:#c66b41; letter-spacing:-1px; }
 #adm-view-contenido .adm-med-num.completo{ color:#4a8a5a; }
 #adm-view-contenido .adm-med-de{ color:#9a7d6c; }
-#adm-view-contenido .adm-med-card-tit{ color:#b0654a; letter-spacing:2px; }
 #adm-view-contenido .adm-med-chip.ok{ background:#e4f0e2; color:#4a8a5a; }
 #adm-view-contenido .adm-med-chip.falta{ background:#fbeae1; color:#c0653f; }
 #adm-view-contenido .adm-med-chip.ok::before{ content:'✓'; }
@@ -3237,21 +3233,8 @@ body.app-active { overflow: hidden; }
 /* Textos: cabecera de cada práctica y etiquetas de campo. */
 #adm-view-contenido .adm-tx-titulo{ color:#3a2820; font-weight:600; font-size:15px;
   border-bottom-color:#f2e8dd; }
-#adm-view-contenido .adm-tx-label{ color:#9a7d6c; letter-spacing:1.6px; }
 
 /* Campos de edición: mismo input que Planes y el buscador de Usuarias. */
-#adm-view-contenido textarea,
-#adm-view-contenido .adm-field input{
-  border:1px solid rgba(240,228,214,.9); border-radius:14px; padding:.75rem 1rem;
-  color:#3a2820; box-shadow:0 6px 16px rgba(58,40,32,.05);
-  transition:border-color .25s, box-shadow .25s; }
-#adm-view-contenido textarea:focus,
-#adm-view-contenido .adm-field input:focus{
-  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
-#adm-view-contenido .adm-btn-mini.primario{ background:#c66b41; color:#fff; }
-#adm-view-contenido .adm-btn-mini.primario:hover:not([disabled]){ background:#b05730; }
-#adm-view-contenido .adm-btn-mini.suave{ border-color:rgba(240,228,214,.9); color:#9a7d6c; }
-#adm-view-contenido .adm-btn-mini.suave:hover:not([disabled]){ border-color:#c66b41; color:#c66b41; }
 
 /* ===== PLANES — precio destacado y editor (rediseño, paso 5) =================
    Scopeado a #adm-view-planes: .adm-card, .adm-field y .adm-alert los comparten
@@ -3282,24 +3265,6 @@ body.app-active { overflow: hidden; }
 @media(min-width:901px){ #adm-view-planes .adm-precio-hero-num{ font-size:50px; } }
 
 /* Las cards del editor, alineadas al sistema de los pasos 2 y 3. */
-#adm-view-planes .adm-card{ background:#fff; border-radius:20px; padding:24px 22px;
-  border:1px solid rgba(240,228,214,.8); box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-planes .adm-card:hover{ transform:none; box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-planes .adm-card-eyebrow{ font-size:10px; font-weight:700; letter-spacing:2.4px; color:#b0654a; }
-#adm-view-planes .adm-card-text{ color:#9a7d6c; }
-#adm-view-planes .adm-card-text strong{ color:#3a2820; }
-#adm-view-planes .adm-field label{ font-size:10px; font-weight:700; letter-spacing:1.6px; color:#9a7d6c; }
-#adm-view-planes .adm-field input,
-#adm-view-planes .adm-field textarea{
-  border:1px solid rgba(240,228,214,.9); border-radius:14px; padding:.75rem 1rem;
-  color:#3a2820; background:#fff; box-shadow:0 6px 16px rgba(58,40,32,.05);
-  transition:border-color .25s, box-shadow .25s; }
-#adm-view-planes .adm-field input::placeholder,
-#adm-view-planes .adm-field textarea::placeholder{ color:#c3ab99; }
-#adm-view-planes .adm-field input:focus,
-#adm-view-planes .adm-field textarea:focus{
-  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
-#adm-view-planes .adm-field-hint{ color:#9a7d6c; }
 #adm-view-planes .adm-precio-sign{ color:#c66b41; font-weight:200; font-size:1.4rem; }
 #adm-view-planes .adm-moneda-fija{ background:#f0e0d0; color:#b0654a; }
 
@@ -3313,27 +3278,17 @@ body.app-active { overflow: hidden; }
    tras el borde. Una tarjeta por usuaria no puede cortarse: cada dato tiene su
    renglón. */
 #adm-usuarias-lista .adm-filters{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
-#adm-usuarias-lista .adm-filters input,
-#adm-usuarias-lista .adm-filters select{
-  font-family:'Montserrat',sans-serif; font-size:.86rem; color:#3a2820;
-  background:#fff; border:1px solid rgba(240,228,214,.9); border-radius:14px;
-  padding:.75rem 1rem; outline:none;
-  box-shadow:0 6px 16px rgba(58,40,32,.07);
-  transition:border-color .25s, box-shadow .25s; }
 #adm-usuarias-lista .adm-filters input{ flex:1 1 220px; min-width:0; }
 #adm-usuarias-lista .adm-filters select{ flex:0 1 auto; min-width:0; cursor:pointer; }
 #adm-usuarias-lista .adm-filters input::placeholder{ color:#9a7d6c; }
-#adm-usuarias-lista .adm-filters input:focus,
-#adm-usuarias-lista .adm-filters select:focus{
-  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
 
 /* Móvil: una columna a ancho completo. Escritorio: dos, para aprovechar el ancho. */
 .adm-u-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
 @media(min-width:901px){ .adm-u-grid{ grid-template-columns:1fr 1fr; gap:16px; } }
 
 .adm-u-card{ display:block; width:100%; text-align:left; cursor:pointer;
-  background:#fff; border:1px solid rgba(240,228,214,.8); border-radius:20px;
-  padding:16px 18px 14px; box-shadow:0 6px 16px rgba(58,40,32,.07);
+  background:var(--adm-card-bg); border:var(--adm-card-borde); border-radius:var(--adm-card-radio);
+  padding:16px 18px 14px; box-shadow:var(--adm-card-sombra);
   transition:transform .28s var(--ease-premium), box-shadow .28s var(--ease-premium),
              border-color .28s var(--ease-premium); }
 .adm-u-card:hover{ transform:translateY(-3px); border-color:rgba(198,107,65,.28);
@@ -3398,12 +3353,7 @@ body.app-active { overflow: hidden; }
   #adm-view-inicio .adm-kpi-grid{ grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:18px; }
 }
 #adm-view-inicio .adm-section{ margin-bottom:42px; }
-#adm-view-inicio .adm-section-title{ font-size:10px; font-weight:700; letter-spacing:2.4px; color:#b0654a; margin-bottom:14px; }
 
-#adm-view-inicio .adm-kpi{ position:relative; overflow:hidden;
-  background:#fff; border-radius:20px; padding:22px 22px 24px;
-  border:1px solid rgba(240,228,214,.8); box-shadow:0 6px 16px rgba(58,40,32,.07);
-  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
 #adm-view-inicio .adm-kpi:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(58,40,32,.12); }
 #adm-view-inicio .adm-kpi-eyebrow{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
   letter-spacing:2px; text-transform:uppercase; color:#b0654a; margin-bottom:12px; }
@@ -3429,10 +3379,6 @@ body.app-active { overflow: hidden; }
 @media(min-width:901px){ #adm-view-inicio .adm-kpi.destacada .adm-kpi-num{ font-size:56px; } }
 
 /* Las tarjetas de USO se alinean con las nuevas: mismo borde y misma sombra. */
-#adm-view-inicio .adm-uso-card{ background:#fff; border-radius:22px; padding:24px 22px;
-  border:1px solid rgba(240,228,214,.8); box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-inicio .adm-uso-card:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(58,40,32,.12); }
-#adm-view-inicio .adm-uso-card h4{ font-size:10px; font-weight:700; letter-spacing:2px; color:#b0654a; margin-bottom:16px; }
 /* Entrada en cascada de las cards/secciones del panel admin (portado de SALA) */
 @keyframes hogar-rise-in {
   from { opacity: 0; transform: translateY(16px); }
@@ -3446,6 +3392,31 @@ body.app-active { overflow: hidden; }
 .hogar-rise-in:nth-child(5){ animation-delay: 0.24s; }
 .hogar-rise-in:nth-child(6){ animation-delay: 0.29s; }
 /* Header glass — solo en el panel admin, para no tocar el nav del resto de la app */
+/* ===== SISTEMA VISUAL DEL PANEL (paso 8) =====================================
+   El rediseño fue sección a sección, así que cada paso reescribió lo suyo
+   scopeado (#adm-view-inicio, #adm-view-planes…). Resultado: el mismo sistema
+   repetido cinco veces y las reglas BASE con el estilo viejo — por eso Cobros,
+   que se quedó sin su paso, seguía con cards de radio 22, sin borde y con otra
+   sombra. Aquí el sistema se define UNA vez, las reglas base lo usan y las
+   copias por sección se retiran. Cobros se alinea solo, y el próximo retoque es
+   una línea en vez de cinco. */
+:root{
+  --adm-card-bg:#fff;
+  --adm-card-radio:20px;
+  --adm-card-borde:1px solid rgba(240,228,214,.8);
+  --adm-card-sombra:0 6px 16px rgba(58,40,32,.07);
+  --adm-card-sombra-alta:0 14px 32px rgba(58,40,32,.12);
+  --adm-eyebrow-color:#b0654a;
+  --adm-eyebrow-size:10px;
+  --adm-eyebrow-ls:2.4px;
+  --adm-texto:#3a2820;
+  --adm-texto-2:#9a7d6c;
+  --adm-campo-radio:14px;
+  --adm-campo-borde:1px solid rgba(240,228,214,.9);
+  --adm-campo-sombra:0 6px 16px rgba(58,40,32,.05);
+  --adm-foco:0 0 0 3px rgba(198,107,65,.13);
+}
+
 /* ===== ÁREA ADMINISTRATIVA — marco de navegación (rediseño, paso 1) ==========
    Dos caras según el ancho, mismo HTML de secciones debajo:
      · Móvil  (<900px): top bar con hamburguesa + drawer café deslizante.
@@ -3564,16 +3535,6 @@ body.app-active { overflow: hidden; }
 .adm-content{ min-width:0; margin-left:210px; padding:30px 30px 60px; max-width:1180px; }
 .adm-view{ display:none; }
 .adm-view.on{ display:block; animation:hogar-rise-in .45s var(--ease-premium); }
-/* — Placeholder "Próximamente": atenuado pero intencional — */
-.adm-soon{ background:#efe7db; border-radius:22px; padding:52px 32px; text-align:center;
-  box-shadow:var(--highlight-top), var(--sombra-suave); }
-.adm-soon-mark{ width:46px; height:46px; margin:0 auto 18px; border-radius:14px;
-  background:linear-gradient(135deg,#e8d5c2,#d9b896); display:flex; align-items:center; justify-content:center;
-  font-size:17px; color:#fdf6ee; }
-.adm-soon h3{ font-family:'Montserrat',sans-serif; font-size:20px; font-weight:600; color:var(--tierra); margin-bottom:8px; }
-.adm-soon p{ font-family:'Montserrat',sans-serif; font-size:.85rem; color:var(--texto-medio); max-width:340px; margin:0 auto; }
-.adm-soon-tag{ display:inline-block; margin-top:18px; font-size:9px; font-weight:700; letter-spacing:2.5px;
-  text-transform:uppercase; color:var(--terracota-oscuro); background:var(--crema); border-radius:100px; padding:6px 16px; }
 
 /* — Escritorio: manda el sidebar, sobran top bar y drawer — */
 @media(min-width:901px){
@@ -3601,8 +3562,8 @@ body.app-active { overflow: hidden; }
 .adm-acc-head:hover{ transform:translateY(-3px);
   box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
 .adm-acc-titles{ flex:1 1 auto; min-width:0; }
-.adm-acc-eyebrow{ display:block; font-size:9px; font-weight:700; letter-spacing:2.5px;
-  text-transform:uppercase; color:var(--terracota-oscuro); margin-bottom:6px; }
+.adm-acc-eyebrow{ display:block; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:var(--adm-eyebrow-ls);
+  text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:6px; }
 .adm-acc-title{ display:block; font-size:1.02rem; font-weight:600; letter-spacing:-.01em; line-height:1.3; }
 .adm-acc-chevron{ flex-shrink:0; width:30px; height:30px; border-radius:50%;
   background:rgba(198,107,65,.10); color:var(--terracota);
@@ -3630,15 +3591,14 @@ body.app-active { overflow: hidden; }
   .adm-acc-body{ padding-top:12px; }
 }
 /* ===== COBROS y PLANES — tarjetas de información y formulario del admin ===== */
-.adm-card{ background:#fff; border-radius:22px; padding:26px 24px; margin-bottom:16px;
-  box-shadow:var(--highlight-top), var(--sombra-suave);
-  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
-.adm-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
-.adm-card-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2.5px;
-  text-transform:uppercase; color:var(--tierra); margin-bottom:14px; }
-.adm-card-title{ font-family:'Montserrat',sans-serif; font-size:17px; font-weight:600; color:var(--tierra); margin-bottom:8px; }
-.adm-card-text{ font-family:'Montserrat',sans-serif; font-size:.86rem; line-height:1.65; color:var(--texto-medio); }
-.adm-card-text strong{ color:var(--texto-oscuro); font-weight:600; }
+.adm-card{ background:var(--adm-card-bg); border:var(--adm-card-borde);
+  border-radius:var(--adm-card-radio); padding:24px 22px; margin-bottom:16px;
+  box-shadow:var(--adm-card-sombra); }
+.adm-card-eyebrow{ font-family:'Montserrat',sans-serif; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:var(--adm-eyebrow-ls);
+  text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:14px; }
+.adm-card-title{ font-family:'Montserrat',sans-serif; font-size:17px; font-weight:600; color:var(--adm-texto); margin-bottom:8px; }
+.adm-card-text{ font-family:'Montserrat',sans-serif; font-size:.86rem; line-height:1.65; color:var(--adm-texto-2); }
+.adm-card-text strong{ color:var(--adm-texto); font-weight:600; }
 .adm-card-list{ list-style:none; margin:14px 0 18px; padding:0; }
 .adm-card-list li{ position:relative; padding-left:20px; margin-bottom:9px;
   font-size:.84rem; line-height:1.6; color:var(--texto-medio); }
@@ -3664,12 +3624,23 @@ body.app-active { overflow: hidden; }
 .adm-field{ margin-bottom:18px; }
 .adm-field label{ display:block; font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
   letter-spacing:2px; text-transform:uppercase; color:var(--tierra); margin-bottom:8px; }
-.adm-field input, .adm-field textarea{ width:100%; font-family:'Montserrat',sans-serif; font-size:.9rem;
-  color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:14px;
-  padding:.8rem 1rem; outline:none; transition:border-color .2s; }
-.adm-field input:focus, .adm-field textarea:focus{ border-color:var(--terracota); }
+/* Un solo estilo de campo para todo el panel: los tres editores (notas, textos,
+   landing) traían el suyo, con radios y focos distintos. */
+.adm-field input, .adm-field textarea,
+.adm-nota textarea, .adm-tx-card textarea{
+  width:100%; font-family:'Montserrat',sans-serif; font-size:.88rem; line-height:1.6;
+  color:var(--adm-texto); background:#fff;
+  border:var(--adm-campo-borde); border-radius:var(--adm-campo-radio);
+  padding:.75rem 1rem; outline:none; resize:vertical;
+  box-shadow:var(--adm-campo-sombra);
+  transition:border-color .25s, box-shadow .25s; }
+.adm-field input::placeholder, .adm-field textarea::placeholder,
+.adm-nota textarea::placeholder, .adm-tx-card textarea::placeholder{ color:#c3ab99; }
+.adm-field input:focus, .adm-field textarea:focus,
+.adm-nota textarea:focus, .adm-tx-card textarea:focus{
+  border-color:#c66b41; box-shadow:var(--adm-foco); }
 .adm-field textarea{ resize:vertical; min-height:82px; line-height:1.6; }
-.adm-field-hint{ font-size:.76rem; color:var(--texto-medio); margin-top:7px; line-height:1.5; }
+.adm-field-hint{ font-size:.76rem; color:var(--adm-texto-2); margin-top:7px; line-height:1.5; }
 .adm-precio-wrap{ display:flex; align-items:center; gap:10px; }
 .adm-precio-sign{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600; color:var(--terracota); }
 .adm-precio-wrap input{ flex:1; min-width:0; }
@@ -3736,12 +3707,13 @@ body.app-active { overflow: hidden; }
   padding:5px 11px; margin:0 7px 7px 0; }
 /* Cuadrícula de prácticas */
 .adm-med-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(272px,1fr)); gap:16px; }
-.adm-med-card{ background:#fff; border-radius:22px; padding:22px 20px;
-  box-shadow:var(--highlight-top), var(--sombra-suave);
+.adm-med-card{ background:var(--adm-card-bg); border:var(--adm-card-borde);
+  border-radius:var(--adm-card-radio); padding:22px 20px;
+  box-shadow:var(--adm-card-sombra);
   transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
-.adm-med-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
-.adm-med-card-tit{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:2px;
-  text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
+.adm-med-card:hover{ transform:translateY(-3px); box-shadow:var(--adm-card-sombra-alta); }
+.adm-med-card-tit{ font-family:'Montserrat',sans-serif; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:16px; }
 .adm-med-fila{ display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--crema-claro); }
 .adm-med-fila:last-child{ border-bottom:none; }
 .adm-med-dur{ flex:0 0 84px; font-family:'Montserrat',sans-serif; font-size:.8rem; color:var(--texto-medio); }
@@ -3759,8 +3731,9 @@ body.app-active { overflow: hidden; }
   .adm-med-dur{ flex-basis:auto; font-weight:600; color:var(--terracota); }
 }
 /* ===== NOTAS DE ANDREA — editor ===== */
-.adm-nota{ background:#fff; border-radius:18px; padding:18px 18px 14px; margin-bottom:12px;
-  box-shadow:var(--highlight-top), var(--sombra-suave); transition:opacity .25s; }
+.adm-nota{ background:var(--adm-card-bg); border:var(--adm-card-borde);
+  border-radius:var(--adm-card-radio); padding:18px 18px 14px; margin-bottom:12px;
+  box-shadow:var(--adm-card-sombra); transition:opacity .25s; }
 .adm-nota.inactiva{ opacity:.55; }
 .adm-nota-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
 .adm-nota-orden{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2px;
@@ -3769,20 +3742,17 @@ body.app-active { overflow: hidden; }
   border-radius:100px; padding:4px 11px; white-space:nowrap; }
 .adm-nota-estado.si{ background:#e9f0e5; color:#4e7a48; }
 .adm-nota-estado.no{ background:var(--crema); color:var(--texto-medio); }
-.adm-nota textarea{ width:100%; font-family:'Montserrat',sans-serif; font-size:.88rem; line-height:1.6;
-  color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px;
-  padding:.7rem .9rem; outline:none; resize:vertical; min-height:66px; transition:border-color .2s; }
-.adm-nota textarea:focus{ border-color:var(--terracota); }
+.adm-nota textarea{ min-height:66px; }
 .adm-nota-acciones{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
 /* Botones chicos, para no competir con los CTA del panel */
 .adm-btn-mini{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px;
   text-transform:uppercase; border-radius:100px; padding:8px 15px; cursor:pointer; border:1.5px solid transparent;
   transition:background .25s, color .25s, border-color .25s, opacity .25s; }
 .adm-btn-mini[disabled]{ opacity:.5; cursor:default; }
-.adm-btn-mini.primario{ background:var(--terracota); color:var(--crema); }
-.adm-btn-mini.primario:hover:not([disabled]){ background:var(--terracota-oscuro); }
-.adm-btn-mini.suave{ background:transparent; border-color:var(--crema); color:var(--texto-medio); }
-.adm-btn-mini.suave:hover:not([disabled]){ border-color:var(--terracota); color:var(--terracota); }
+.adm-btn-mini.primario{ background:linear-gradient(135deg,#c66b41,#b05730); color:#fff; }
+.adm-btn-mini.primario:hover:not([disabled]){ background:#b05730; }
+.adm-btn-mini.suave{ background:transparent; border-color:rgba(240,228,214,.9); color:var(--adm-texto-2); }
+.adm-btn-mini.suave:hover:not([disabled]){ border-color:#c66b41; color:#c66b41; }
 .adm-btn-mini.peligro{ background:transparent; border-color:transparent; color:var(--texto-medio); }
 .adm-btn-mini.peligro:hover:not([disabled]){ color:#9c3a2e; }
 .adm-nota-confirm{ font-family:'Montserrat',sans-serif; font-size:.8rem; color:#9c3a2e;
@@ -3792,20 +3762,15 @@ body.app-active { overflow: hidden; }
   .adm-nota-acciones .adm-btn-mini{ flex:1 1 auto; }
 }
 /* ===== TEXTOS DE PRÁCTICAS — editor ===== */
-.adm-tx-card{ background:#fff; border-radius:18px; padding:20px 18px 16px; margin-bottom:14px;
-  box-shadow:var(--highlight-top), var(--sombra-suave); }
+.adm-tx-card{ background:var(--adm-card-bg); border:var(--adm-card-borde);
+  border-radius:var(--adm-card-radio); padding:20px 18px 16px; margin-bottom:14px;
+  box-shadow:var(--adm-card-sombra); }
 .adm-tx-titulo{ font-family:'Montserrat',sans-serif; font-size:14px; font-weight:700; letter-spacing:.5px;
   color:var(--terracota-oscuro); margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--crema); }
-.adm-tx-label{ display:block; font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700;
-  letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin:14px 0 7px; }
-.adm-tx-card textarea{ width:100%; font-family:'Montserrat',sans-serif; font-size:.86rem; line-height:1.6;
-  color:var(--texto-oscuro); background:#fff; border:1.5px solid var(--crema); border-radius:12px;
-  padding:.7rem .9rem; outline:none; resize:vertical; min-height:70px; transition:border-color .2s; }
-.adm-tx-card textarea:focus{ border-color:var(--terracota); }
+.adm-tx-label{ display:block; font-family:'Montserrat',sans-serif; font-size:var(--adm-eyebrow-size); font-weight:700;
+  letter-spacing:1.5px; text-transform:uppercase; color:var(--adm-eyebrow-color); margin:14px 0 7px; }
+.adm-tx-card textarea{ min-height:70px; }
 /* ===== LANDING — editor ===== */
-.adm-lp-preview{ margin-bottom:12px; }
-.adm-lp-preview img{ width:100%; max-width:280px; height:auto; border-radius:14px;
-  box-shadow:var(--sombra-suave); display:block; }
 .adm-lp-precio{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600;
   color:var(--terracota); padding:2px 0; }
 /* Opción avanzada (pegar URL) — discreta, colapsada */
