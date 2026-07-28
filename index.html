@@ -7254,14 +7254,12 @@ function _jwtRole(token){
 // y se actualiza la previsualización. Nunca ve una URL ni entra a Supabase.
 // Solo INSERT/UPDATE: no se borra nada (Andrea no tiene ese permiso).
 //
-// FIX RLS: storage-js arma los headers del upload con `{...this.headers}`, y ese
-// objeto viene vacío (el cliente se creó sin global.headers). El Authorization
-// lo pone fetchWithAuth por request, pero SOLO si no está ya presente y SOLO con
-// lo que devuelva getSession() en ese instante; si la sesión no se adjunta ahí,
-// cae al fallback y manda la publishable key (sb_publishable_) como Bearer = rol
-// anon, y la policy `to authenticated` rechaza el INSERT. Por eso obtenemos la
-// sesión y forzamos el JWT de Andrea en los headers del upload (tienen
-// precedencia), en vez de confiar en que el cliente lo adjunte solo.
+// El upload va LIMPIO, sin headers de Authorization a mano: el cliente bien
+// creado (anon key + persistSession) adjunta el JWT de Andrea solo, en Storage
+// igual que en PostgREST. Un intento previo de forzar el header aquí no arregló
+// nada porque el bug estaba antes, en la key con la que se creaba el cliente:
+// con una publishable key (sb_publishable_) la sesión no se eleva a
+// 'authenticated' en Storage y la policy `to authenticated` rechaza el INSERT.
 async function subirImagenHeroHogar(input){
   _admLandingMsg('');
   const file=input && input.files && input.files[0];
@@ -7283,8 +7281,8 @@ async function subirImagenHeroHogar(input){
   try{
     if(!window.sb || !window.sb.storage) throw new Error('sin cliente Supabase');
 
-    // Sesión de Andrea. La necesitamos para adjuntar SU token al upload; y de
-    // paso, si no hay sesión, damos un mensaje claro en vez de un error de RLS.
+    // Sesión de Andrea. No se usa para armar headers: solo para dar un mensaje
+    // claro si no hay sesión, y para el log de diagnóstico de abajo.
     const { data:{ session } } = await window.sb.auth.getSession();
     const token=session && session.access_token;
     console.log('[HOGAR upload] sesión activa:', !!session,
@@ -7301,11 +7299,11 @@ async function subirImagenHeroHogar(input){
     // b) Nombre único con prefijo propio: nunca pisa videos ni audios del bucket.
     const nombre='hero-landing-'+Date.now()+'.'+_admExtImagen(file);
 
-    // c) Subir al bucket adjuntando el JWT de Andrea explícitamente.
+    // c) Subir al bucket. El nombre ya es único (lleva timestamp), así que no
+    // hace falta upsert: nunca hay colisión que resolver.
     const up=await window.sb.storage.from('hogar').upload(nombre, file, {
-      upsert:true,
-      contentType:file.type,
-      headers:{ Authorization:'Bearer '+token }
+      cacheControl:'3600',
+      upsert:false
     });
     if(up.error) throw up.error;
 
@@ -7589,9 +7587,21 @@ function confirmExit(){
   // ===== HOGAR — Supabase Auth (Paso 1 del backend) =====
   import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
   const SUPABASE_URL = 'https://lxpgqhghxfqsahwrdmzo.supabase.co';
-  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_1hb4cP4BLU6m5QqsrNX-Fw_CTBud1I7';
+  // ANON key (JWT `eyJ…`, rol "anon"), NO la publishable (`sb_publishable_…`).
+  // Es la diferencia entre que la sesión de Andrea se eleve a 'authenticated' en
+  // Storage o no: con la publishable, el request de upload sale con rol anon y
+  // la policy `to authenticated` del bucket lo rechaza con RLS 400. Pública por
+  // diseño: sin sesión solo puede lo que las policies permitan al rol anon.
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4cGdxaGdoeGZxc2Fod3JkbXpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3OTQ1NjgsImV4cCI6MjA5NzM3MDU2OH0.lwkGuMyhK4sTB_J63JEAO9LnIEy4kNd_vtVsrITobrc';
   try {
-    window.sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    window.sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: true,        // la sesión sobrevive a recargas
+        autoRefreshToken: true,      // el JWT se renueva solo antes de expirar
+        detectSessionInUrl: true,    // vuelta de magic link / OAuth
+        storage: window.localStorage
+      }
+    });
     console.log('[HOGAR] Supabase conectado ✓');
     // Landing: pública, se lee al cargar la página, sin depender del login.
     if (typeof window.precargarLandingHogar === 'function') { window.precargarLandingHogar(); }
