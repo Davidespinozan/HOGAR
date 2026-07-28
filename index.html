@@ -5899,7 +5899,7 @@ const STRIPE_PORTAL_URL = '';
 // Andrea: pon STRIPE_PAGO_ACTIVO en true SOLO después de configurar Stripe en
 // Netlify (ver README-STRIPE.md). Mientras esté en false, el botón "Activar mi
 // acceso" queda oculto y nada cambia en el sitio.
-const STRIPE_PAGO_ACTIVO = false;
+const STRIPE_PAGO_ACTIVO = true;
 // Netlify Function (Stripe Connect · direct charges). Misma URL que el sitio,
 // así que no hace falta apikey: la función autentica con el Bearer de Supabase.
 const STRIPE_CHECKOUT_FN = '/.netlify/functions/crear-checkout';
