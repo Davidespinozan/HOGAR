@@ -7238,17 +7238,6 @@ function _admExtImagen(file){
   return m ? m[1].toLowerCase() : 'jpg';
 }
 
-// Rol efectivo que declara un JWT (para diagnóstico). 'authenticated' = sesión
-// real de una usuaria; 'anon' = sin sesión. Nunca lanza.
-function _jwtRole(token){
-  try{
-    const p=token.split('.')[1];
-    const s=atob(p.replace(/-/g,'+').replace(/_/g,'/'));
-    const json=JSON.parse(decodeURIComponent(s.split('').map(c=>'%'+('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-    return json.role || '(sin rol)';
-  }catch(_){ return '(no decodable)'; }
-}
-
 // SUBIDA DIRECTA de la imagen del hero. Andrea elige un archivo de su compu; se
 // sube al bucket "hogar", se obtiene su URL pública, se guarda en hogar_config
 // y se actualiza la previsualización. Nunca ve una URL ni entra a Supabase.
@@ -7281,13 +7270,9 @@ async function subirImagenHeroHogar(input){
   try{
     if(!window.sb || !window.sb.storage) throw new Error('sin cliente Supabase');
 
-    // Sesión de Andrea. No se usa para armar headers: solo para dar un mensaje
-    // claro si no hay sesión, y para el log de diagnóstico de abajo.
+    // Sesión de Andrea: si expiró, mensaje claro en vez de un error de RLS.
     const { data:{ session } } = await window.sb.auth.getSession();
     const token=session && session.access_token;
-    console.log('[HOGAR upload] sesión activa:', !!session,
-      '· rol del token:', token?_jwtRole(token):'(sin token)',
-      '· uid:', (session&&session.user&&session.user.id)||'—');
     if(!token){
       _admLandingMsg('Tu sesión expiró. Vuelve a entrar y prueba de nuevo.','error');
       return;
