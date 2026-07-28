@@ -3134,58 +3134,115 @@ body.app-active { overflow: hidden; }
 .hogar-rise-in:nth-child(5){ animation-delay: 0.24s; }
 .hogar-rise-in:nth-child(6){ animation-delay: 0.29s; }
 /* Header glass — solo en el panel admin, para no tocar el nav del resto de la app */
-#s-admin .app-nav{
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  background: rgba(253,246,238,0.75);
-  border-bottom: 0.5px solid rgba(58,40,32,0.08);
-}
-/* ===== ÁREA ADMINISTRATIVA — layout con sidebar (patrón AdminLayout de EKKO/SALA,
-   adaptado a single-tenant y al lenguaje visual de HOGAR: terracota + crema) ===== */
-.adm-layout{ display:grid; grid-template-columns:236px 1fr; gap:34px; align-items:start;
-  max-width:1200px; margin:0 auto; padding:28px 22px 60px; }
-/* min-width:0 — sin esto una tabla o una fila de tabs ancha estira la columna y desborda */
-.adm-side,.adm-content{ min-width:0; }
-/* — Sidebar — */
-/* El .app-nav es position:relative (se va con el scroll), así que el sidebar se pega arriba */
-.adm-side{ position:sticky; top:24px; }
-.adm-side-eyebrow{ font-family:'Montserrat',sans-serif; font-size:9px; font-weight:700; letter-spacing:2.5px;
-  text-transform:uppercase; color:var(--texto-medio); margin:0 0 14px 14px; }
-.adm-nav{ display:flex; flex-direction:column; gap:4px; }
-.adm-nav-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
-  font-family:'Montserrat',sans-serif; font-size:.86rem; font-weight:500; letter-spacing:.01em;
-  color:var(--texto-oscuro); background:transparent; border:none; border-radius:14px; padding:11px 14px;
-  transition:background .25s var(--ease-premium), color .25s var(--ease-premium), transform .25s var(--ease-premium); }
-.adm-nav-item:hover{ background:rgba(198,107,65,.09); color:var(--terracota-oscuro); }
-.adm-nav-item.active{ background:linear-gradient(135deg,#d2774a,#b55836); color:#fff; font-weight:600;
-  box-shadow:0 8px 20px -8px rgba(181,88,54,.55); }
-.adm-nav-item.active .adm-nav-dot{ background:#fff; opacity:.9; }
-.adm-nav-dot{ width:6px; height:6px; border-radius:50%; background:var(--terracota); opacity:.42; flex-shrink:0;
-  transition:background .25s, opacity .25s; }
-.adm-nav-item.soon{ color:var(--texto-medio); }
-/* Escape hatch — secundario, nunca protagonista. Dos acciones, con peso distinto:
-   ver la app como usuaria es una visita (botón suave); cerrar sesión es la más
-   irreversible de las dos, así que va debajo y más callada. */
-.adm-side-foot{ margin-top:22px; padding-top:16px; border-top:1px solid var(--crema);
-  display:flex; flex-direction:column; gap:8px; align-items:stretch; }
-.adm-side-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
-  cursor:pointer; font-family:'Montserrat',sans-serif; font-size:.72rem; font-weight:600;
-  letter-spacing:.06em; text-transform:uppercase; color:var(--terracota-oscuro);
-  background:rgba(198,107,65,.09); border:1px solid rgba(198,107,65,.18); border-radius:100px;
-  padding:11px 14px; text-align:center; line-height:1.3;
-  transition:background .25s var(--ease-premium), color .25s var(--ease-premium),
-             border-color .25s var(--ease-premium), transform .25s var(--ease-premium),
+/* ===== ÁREA ADMINISTRATIVA — marco de navegación (rediseño, paso 1) ==========
+   Dos caras según el ancho, mismo HTML de secciones debajo:
+     · Móvil  (<900px): top bar con hamburguesa + drawer café deslizante.
+     · Escritorio (≥900px): sidebar café fijo siempre visible, sin hamburguesa.
+   La lógica no cambia: todo sigue llamando a goAdmin(). Solo cambia la cara. */
+
+/* El fondo crema del área. Va después del gradiente salmón global (que lleva
+   !important), así que necesita el suyo para ganarle. */
+#s-admin.on{ background:linear-gradient(175deg,#fdf6ee,#f7e9db) !important; }
+
+/* — Top bar (solo móvil) — */
+.adm-topbar{ position:sticky; top:0; z-index:30;
+  display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
+  padding:12px 16px; background:rgba(253,246,238,.82);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:.5px solid rgba(58,40,32,.07); }
+.adm-topbar-logo{ display:flex; justify-content:center; }
+.adm-topbar-logo img{ height:30px; width:auto; }
+/* Hamburguesa: la tercera línea es más corta y terracota, a propósito. */
+.adm-burger{ width:42px; height:42px; flex-shrink:0; cursor:pointer;
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px;
+  padding:0 12px; border-radius:14px;
+  background:rgba(255,255,255,.7); border:1px solid rgba(198,107,65,.15);
+  box-shadow:0 4px 12px rgba(58,40,32,.07);
+  transition:background .25s var(--ease-premium), transform .25s var(--ease-premium),
              box-shadow .25s var(--ease-premium); }
-.adm-side-btn:hover{ background:var(--terracota); color:var(--crema); border-color:var(--terracota);
-  transform:translateY(-2px); box-shadow:0 8px 20px -8px rgba(181,88,54,.55); }
-.adm-side-btn svg{ width:15px; height:15px; flex-shrink:0; }
-.adm-side-out{ display:flex; align-items:center; justify-content:center; gap:7px;
-  background:none; border:none; cursor:pointer; border-radius:100px; padding:8px 14px;
-  font-family:'Montserrat',sans-serif; font-size:11px; font-weight:500; letter-spacing:.04em;
-  color:var(--texto-medio); transition:color .25s, background .25s; }
-.adm-side-out:hover{ color:var(--terracota-oscuro); background:rgba(198,107,65,.07); }
-.adm-side-out svg{ width:14px; height:14px; flex-shrink:0; }
-/* — Área de contenido — */
+.adm-burger:hover{ background:#fff; transform:translateY(-1px); box-shadow:0 6px 16px rgba(58,40,32,.11); }
+.adm-burger:active{ transform:scale(.96); }
+.adm-burger span{ display:block; height:2px; border-radius:2px; background:#3a2820; transition:width .25s var(--ease-premium); }
+.adm-burger span:nth-child(1),
+.adm-burger span:nth-child(2){ width:17px; }
+.adm-burger span:nth-child(3){ width:11px; background:#c66b41; }
+.adm-burger:hover span:nth-child(3){ width:17px; }
+
+/* — Avatar (mismo círculo en top bar, sidebar y drawer; cambia el tamaño) — */
+.adm-avatar{ flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg,#f0c9a8,#db9b6c);
+  border:2.5px solid #fff; box-shadow:0 4px 12px rgba(58,40,32,.14);
+  font-family:'Montserrat',sans-serif; font-weight:700; font-size:1rem; color:#6d3418;
+  line-height:1; user-select:none; }
+.adm-avatar.sm{ width:40px; height:40px; font-size:.92rem; border-width:2px; }
+.adm-avatar.lg{ width:50px; height:50px; font-size:1.12rem; }
+
+/* — Tronco compartido por sidebar y drawer: ambos son el mismo panel café — */
+.adm-panel{ display:flex; flex-direction:column;
+  background:linear-gradient(160deg,#3f2c20,#251811); }
+.adm-panel-logo{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+/* El logo de HOGAR es un PNG de trazo OSCURO sobre transparente: sobre el café no
+   se vería. brightness(0) lo aplana a negro conservando el alfa e invert(1) lo
+   deja en blanco — mismo logo, solo aclarado. No hay versión clara del archivo. */
+.adm-panel-logo img{ height:34px; width:auto; filter:brightness(0) invert(1); opacity:.93; }
+.adm-panel-close{ width:34px; height:34px; flex-shrink:0; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; border:none; border-radius:50%;
+  background:rgba(240,201,168,.12); color:#e8cbb8; font-size:17px; line-height:1;
+  transition:background .25s, transform .25s var(--ease-premium); }
+.adm-panel-close:hover{ background:rgba(240,201,168,.22); transform:rotate(90deg); }
+/* Perfil */
+.adm-perfil{ display:flex; align-items:center; gap:12px;
+  padding-bottom:18px; border-bottom:1px solid rgba(240,201,168,.15); }
+.adm-perfil-datos{ min-width:0; }
+.adm-perfil-nombre{ font-family:'Montserrat',sans-serif; color:#fdf6ee;
+  font-size:16px; font-weight:500; line-height:1.25;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.adm-perfil-rol{ font-family:'Montserrat',sans-serif; color:#c9a892;
+  font-size:11px; font-weight:400; letter-spacing:.03em; margin-top:2px; }
+/* Lista de secciones */
+.adm-nav{ display:flex; flex-direction:column; gap:3px; }
+.adm-nav-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  font-family:'Montserrat',sans-serif; font-size:15px; font-weight:400; letter-spacing:.01em;
+  color:#e8cbb8; background:transparent; border:none; border-radius:12px; padding:11px 14px;
+  transition:background .25s var(--ease-premium), color .25s var(--ease-premium); }
+.adm-nav-item:hover{ background:rgba(240,201,168,.08); color:#fdf6ee; }
+.adm-nav-item.active{ background:linear-gradient(135deg,#c66b41,#b05730); color:#fff; font-weight:500;
+  box-shadow:0 4px 12px rgba(198,107,65,.3); }
+.adm-nav-label{ flex:1 1 auto; min-width:0; }
+.adm-nav-chevron{ flex-shrink:0; color:#7a6252; font-size:16px; line-height:1; transition:color .25s; }
+.adm-nav-item.active .adm-nav-chevron{ color:rgba(255,255,255,.7); }
+/* Pie: las dos salidas, empujadas abajo */
+.adm-panel-foot{ margin-top:auto; padding-top:16px; border-top:1px solid rgba(240,201,168,.15);
+  display:flex; flex-direction:column; gap:2px; }
+.adm-panel-link{ display:flex; align-items:center; gap:9px; width:100%; text-align:left; cursor:pointer;
+  background:none; border:none; border-radius:10px; padding:9px 12px;
+  font-family:'Montserrat',sans-serif; font-size:13px; font-weight:400; color:#c9a892;
+  transition:background .25s, color .25s; }
+.adm-panel-link:hover{ background:rgba(240,201,168,.08); color:#fdf6ee; }
+.adm-panel-link.salir{ color:#d88a6a; }
+.adm-panel-link.salir:hover{ background:rgba(216,138,106,.12); color:#eda98c; }
+.adm-panel-link-ico{ flex-shrink:0; width:14px; text-align:center; line-height:1; }
+
+/* — Sidebar (escritorio) — */
+.adm-side{ position:fixed; top:0; left:0; bottom:0; width:210px; z-index:20;
+  padding:26px 16px 22px; gap:22px; overflow-y:auto; }
+
+/* — Drawer (móvil) — */
+.adm-drawer-overlay{ position:fixed; inset:0; z-index:40;
+  background:rgba(37,24,17,.5); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px);
+  opacity:0; visibility:hidden; transition:opacity .3s ease, visibility 0s linear .3s; }
+.adm-drawer-overlay.open{ opacity:1; visibility:visible; transition:opacity .3s ease, visibility 0s; }
+.adm-drawer{ position:fixed; top:0; left:0; bottom:0; z-index:41;
+  width:min(84vw,320px); padding:24px 18px 22px; gap:20px; overflow-y:auto;
+  border-radius:0 34px 34px 0; box-shadow:16px 0 48px rgba(37,24,17,.35);
+  transform:translateX(-102%); transition:transform .34s var(--ease-premium); }
+.adm-drawer.open{ transform:translateX(0); }
+.adm-drawer .adm-nav-item{ padding:15px 16px; border-radius:15px; }
+
+/* — Layout: contenido a la derecha del sidebar — */
+.adm-layout{ min-height:100%; }
+.adm-content{ min-width:0; margin-left:210px; padding:30px 30px 60px; max-width:1180px; }
 .adm-view{ display:none; }
 .adm-view.on{ display:block; animation:hogar-rise-in .45s var(--ease-premium); }
 /* — Placeholder "Próximamente": atenuado pero intencional — */
@@ -3198,27 +3255,18 @@ body.app-active { overflow: hidden; }
 .adm-soon p{ font-family:'Montserrat',sans-serif; font-size:.85rem; color:var(--texto-medio); max-width:340px; margin:0 auto; }
 .adm-soon-tag{ display:inline-block; margin-top:18px; font-size:9px; font-weight:700; letter-spacing:2.5px;
   text-transform:uppercase; color:var(--terracota-oscuro); background:var(--crema); border-radius:100px; padding:6px 16px; }
-/* — Responsive: en móvil el sidebar colapsa a tabs superiores deslizables — */
+
+/* — Escritorio: manda el sidebar, sobran top bar y drawer — */
+@media(min-width:901px){
+  .adm-topbar, .adm-drawer, .adm-drawer-overlay{ display:none !important; }
+}
+/* — Móvil: manda la top bar; el sidebar no existe y el contenido va a sangre — */
 @media(max-width:900px){
-  /* El padding lateral pasa al contenido: así la barra de tabs va a sangre y no desborda */
-  .adm-layout{ grid-template-columns:1fr; gap:14px; padding:0 0 48px; }
-  .adm-content{ padding:0 16px; }
-  .adm-side{ position:static; }
-  .adm-side-eyebrow{ display:none; }
-  /* Aquí lo pegajoso es la barra de tabs, no el sidebar entero */
-  .adm-nav{ position:sticky; top:0; z-index:5; flex-direction:row; gap:8px;
-    overflow-x:auto; scrollbar-width:none; -webkit-overflow-scrolling:touch;
-    padding:12px 16px; background:rgba(253,246,238,.92);
-    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-    border-bottom:0.5px solid rgba(58,40,32,.08); }
-  .adm-nav::-webkit-scrollbar{ display:none; }
-  .adm-nav-item{ width:auto; flex:0 0 auto; padding:9px 15px; border-radius:100px; font-size:.78rem; white-space:nowrap; }
-  .adm-nav-dot{ display:none; }
-  /* En móvil las dos acciones van en fila bajo los tabs; si no caben (pantallas
-     estrechas, textos largos), envuelven en vez de desbordar. */
-  .adm-side-foot{ margin:0; padding:14px 16px 0; border-top:none;
-    flex-direction:row; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px; }
-  .adm-side-btn{ width:auto; flex:0 1 auto; padding:10px 16px; }
+  .adm-side{ display:none; }
+  .adm-content{ margin-left:0; padding:18px 16px 48px; max-width:none; }
+}
+@media(prefers-reduced-motion:reduce){
+  .adm-drawer, .adm-drawer-overlay, .adm-burger, .adm-panel-close{ transition:none; }
 }
 /* ===== CONTENIDO — bloques colapsables =====
    La sección apila tres editores largos (inventario de 30 archivos, notas y
@@ -3896,36 +3944,68 @@ body.app-active { overflow: hidden; }
 <!-- ===== ÁREA ADMINISTRATIVA (solo Andrea; entrada por email, seguridad real en RLS) =====
      Layout con sidebar + secciones. El sidebar colapsa a tabs en móvil. -->
 <div id="s-admin" class="scr">
-  <div class="app-nav">
-    <div style="width:88px;"></div>
-    <div class="app-nav-logo">
-      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
-    </div>
-    <div style="width:88px;"></div>
+  <!-- TOP BAR — solo móvil (<900px). Hamburguesa a la izquierda, avatar a la
+       derecha; el logo se queda en medio para no perder la marca al quitar el
+       .app-nav que había antes. En escritorio la oculta el CSS. -->
+  <div class="adm-topbar">
+    <button type="button" class="adm-burger" onclick="abrirMenuAdmin()" aria-label="Abrir el menú" aria-controls="adm-drawer" aria-expanded="false" id="adm-burger">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="adm-topbar-logo"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR"></div>
+    <div class="adm-avatar" id="adm-avatar-top" aria-hidden="true">·</div>
   </div>
 
-  <div class="adm-layout">
-    <!-- SIDEBAR (tabs superiores en móvil) -->
-    <aside class="adm-side">
-      <div class="adm-side-eyebrow">— ADMINISTRACIÓN</div>
-      <nav class="adm-nav" id="adm-nav">
-        <button class="adm-nav-item active" data-adm="inicio"    onclick="goAdmin('inicio')"><span class="adm-nav-dot"></span>Inicio</button>
-        <button class="adm-nav-item"        data-adm="usuarias"  onclick="goAdmin('usuarias')"><span class="adm-nav-dot"></span>Usuarias</button>
-        <button class="adm-nav-item soon"   data-adm="cobros"    onclick="goAdmin('cobros')"><span class="adm-nav-dot"></span>Cobros</button>
-        <button class="adm-nav-item soon"   data-adm="planes"    onclick="goAdmin('planes')"><span class="adm-nav-dot"></span>Planes</button>
-        <button class="adm-nav-item soon"   data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-dot"></span>Contenido</button>
-        <button class="adm-nav-item soon"   data-adm="landing"   onclick="goAdmin('landing')"><span class="adm-nav-dot"></span>Landing</button>
-      </nav>
-      <div class="adm-side-foot">
-        <button type="button" class="adm-side-btn" onclick="go('dash')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-          Ver la app como usuaria
-        </button>
-        <button type="button" class="adm-side-out" onclick="cerrarSesionAdmin()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
-          Cerrar sesión
-        </button>
+  <!-- DRAWER — solo móvil. Mismo panel café que el sidebar, deslizando. -->
+  <div class="adm-drawer-overlay" id="adm-drawer-overlay" onclick="cerrarMenuAdmin()" aria-hidden="true"></div>
+  <aside class="adm-drawer adm-panel" id="adm-drawer" role="dialog" aria-modal="true" aria-label="Menú del panel">
+    <div class="adm-panel-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
+      <button type="button" class="adm-panel-close" onclick="cerrarMenuAdmin()" aria-label="Cerrar el menú">&times;</button>
+    </div>
+    <div class="adm-perfil">
+      <div class="adm-avatar lg" id="adm-avatar-drawer" aria-hidden="true">·</div>
+      <div class="adm-perfil-datos">
+        <div class="adm-perfil-nombre" id="adm-perfil-nombre-drawer">&nbsp;</div>
+        <div class="adm-perfil-rol">Fundadora de HOGAR</div>
       </div>
+    </div>
+    <nav class="adm-nav">
+          <button type="button" class="adm-nav-item active" data-adm="inicio" onclick="goAdmin('inicio')"><span class="adm-nav-label">Inicio</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="usuarias" onclick="goAdmin('usuarias')"><span class="adm-nav-label">Usuarias</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="cobros" onclick="goAdmin('cobros')"><span class="adm-nav-label">Cobros</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="planes" onclick="goAdmin('planes')"><span class="adm-nav-label">Planes</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-label">Contenido</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="landing" onclick="goAdmin('landing')"><span class="adm-nav-label">Tu landing</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+    </nav>
+        <div class="adm-panel-foot">
+          <button type="button" class="adm-panel-link" onclick="verComoUsuariaAdmin()"><span class="adm-panel-link-ico" aria-hidden="true">&#9673;</span>Ver la app como usuaria</button>
+          <button type="button" class="adm-panel-link salir" onclick="cerrarSesionAdmin()"><span class="adm-panel-link-ico" aria-hidden="true">&rarr;</span>Cerrar sesión</button>
+        </div>
+  </aside>
+
+  <div class="adm-layout">
+    <!-- SIDEBAR — solo escritorio (≥901px). En móvil lo oculta el CSS y manda el drawer. -->
+    <aside class="adm-side adm-panel">
+      <div class="adm-panel-logo"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR"></div>
+      <div class="adm-perfil">
+        <div class="adm-avatar sm" id="adm-avatar-side" aria-hidden="true">·</div>
+        <div class="adm-perfil-datos">
+          <div class="adm-perfil-nombre" id="adm-perfil-nombre-side">&nbsp;</div>
+          <div class="adm-perfil-rol">Fundadora</div>
+        </div>
+      </div>
+      <nav class="adm-nav">
+          <button type="button" class="adm-nav-item active" data-adm="inicio" onclick="goAdmin('inicio')"><span class="adm-nav-label">Inicio</span></button>
+          <button type="button" class="adm-nav-item" data-adm="usuarias" onclick="goAdmin('usuarias')"><span class="adm-nav-label">Usuarias</span></button>
+          <button type="button" class="adm-nav-item" data-adm="cobros" onclick="goAdmin('cobros')"><span class="adm-nav-label">Cobros</span></button>
+          <button type="button" class="adm-nav-item" data-adm="planes" onclick="goAdmin('planes')"><span class="adm-nav-label">Planes</span></button>
+          <button type="button" class="adm-nav-item" data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-label">Contenido</span></button>
+          <button type="button" class="adm-nav-item" data-adm="landing" onclick="goAdmin('landing')"><span class="adm-nav-label">Tu landing</span></button>
+      </nav>
+        <div class="adm-panel-foot">
+          <button type="button" class="adm-panel-link" onclick="verComoUsuariaAdmin()"><span class="adm-panel-link-ico" aria-hidden="true">&#9673;</span>Ver como usuaria</button>
+          <button type="button" class="adm-panel-link salir" onclick="cerrarSesionAdmin()"><span class="adm-panel-link-ico" aria-hidden="true">&rarr;</span>Cerrar sesión</button>
+        </div>
     </aside>
 
     <!-- CONTENIDO -->
@@ -4747,9 +4827,14 @@ function goAdmin(section){
   const s=section||'inicio';
   const scr=document.getElementById('s-admin');
   if(scr && !scr.classList.contains('on')) go('admin');
-  document.querySelectorAll('#adm-nav .adm-nav-item').forEach(b=>{
+  // Sidebar (escritorio) y drawer (móvil) son dos listas distintas de la MISMA
+  // navegación: comparten data-adm, así que un solo bucle mantiene el activo
+  // sincronizado en ambas y no pueden quedar diciendo cosas diferentes.
+  document.querySelectorAll('#s-admin .adm-nav-item[data-adm]').forEach(b=>{
     b.classList.toggle('active', b.dataset.adm===s);
   });
+  cerrarMenuAdmin();          // navegar desde el drawer lo cierra
+  _admPintarPerfil();         // nombre e inicial reales en avatar y perfil
   document.querySelectorAll('#s-admin .adm-view').forEach(v=>{
     v.classList.toggle('on', v.id==='adm-view-'+s);
   });
@@ -4762,6 +4847,59 @@ function goAdmin(section){
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
+}
+
+// ── Marco del panel: perfil, drawer móvil y salidas ─────────────────────────
+
+// Avatar y nombre salen de la cuenta logueada, nunca del código: si mañana el
+// sistema lo usa otra dueña, su panel dice SU nombre y SU inicial. Sin nombre
+// real caemos al correo, y sin nada a un punto neutro — jamás a "Andrea".
+function _admPintarPerfil(){
+  const nombre=((U && U.fullName) || '').trim();
+  const correo=((U && U.email) || '').trim();
+  const inicial=((nombre || correo).charAt(0) || '·').toUpperCase();
+  const etiqueta=nombre || (correo ? correo.split('@')[0] : 'Tu cuenta');
+  ['adm-avatar-top','adm-avatar-side','adm-avatar-drawer'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=inicial;
+  });
+  ['adm-perfil-nombre-side','adm-perfil-nombre-drawer'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent=etiqueta;
+  });
+}
+
+// Drawer de navegación (solo móvil; en escritorio el CSS lo esconde y manda el
+// sidebar). Mientras está abierto se bloquea el scroll del panel de debajo: si
+// no, el fondo se desliza detrás y se pierde el sitio donde estaba.
+function abrirMenuAdmin(){
+  const d=document.getElementById('adm-drawer');
+  const o=document.getElementById('adm-drawer-overlay');
+  const b=document.getElementById('adm-burger');
+  const scr=document.getElementById('s-admin');
+  if(d) d.classList.add('open');
+  if(o) o.classList.add('open');
+  if(b) b.setAttribute('aria-expanded','true');
+  if(scr) scr.style.overflow='hidden';
+}
+function cerrarMenuAdmin(){
+  const d=document.getElementById('adm-drawer');
+  const o=document.getElementById('adm-drawer-overlay');
+  const b=document.getElementById('adm-burger');
+  const scr=document.getElementById('s-admin');
+  if(d) d.classList.remove('open');
+  if(o) o.classList.remove('open');
+  if(b) b.setAttribute('aria-expanded','false');
+  if(scr) scr.style.overflow='';
+}
+// Escape cierra el menú, como cualquier panel modal.
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') cerrarMenuAdmin();
+});
+
+// Ver la app como usuaria: cierra el menú antes de salir, para no dejarlo
+// abierto esperando debajo cuando Andrea vuelva al panel.
+function verComoUsuariaAdmin(){
+  cerrarMenuAdmin();
+  go('dash');
 }
 
 // Saludo del Inicio del panel. Reutiliza _greetingByTime(), la misma función que
@@ -4805,6 +4943,7 @@ function toggleAdmAcc(id){
 // usuaria— para no tener dos formas distintas de cerrar sesión: limpia el timer,
 // hace signOut() en Supabase, borra U y devuelve a la pantalla de inicio.
 async function cerrarSesionAdmin(){
+  cerrarMenuAdmin();
   await doOut();
 }
 
