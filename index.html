@@ -1471,6 +1471,14 @@ body.app-active { overflow: hidden; }
   .dash-andrea-photo{ width:70px; height:70px; }
   .dash-aside-cita{ font-size:17px; }
 }
+/* Saludo sin nombre ("Buenas tardes.") en la línea grande: es bastante más largo
+   que un nombre propio, así que baja un punto para no partirse en un teléfono. */
+.dash-name.solo-saludo{ font-size:40px; letter-spacing:-1px; }
+@media(min-width:721px){ .dash-name.solo-saludo{ font-size:50px; } }
+/* Subtítulo del saludo del panel: una línea, directa, bajo la regla. */
+.adm-hello-sub{ font-family:'Montserrat',sans-serif; font-size:.86rem; font-weight:300;
+  font-style:italic; color:#7a5c4a; line-height:1.5; margin:0; max-width:440px; }
+@media(min-width:721px){ .adm-hello-sub{ font-size:.95rem; } }
 
 /* STATS GALERÍA */
 .dash-stats-gallery {
@@ -3927,10 +3935,18 @@ body.app-active { overflow: hidden; }
     <section class="adm-view on" id="adm-view-inicio">
     <div class="dash-header hogar-rise-in">
       <div class="dash-header-top">
+        <!-- Ésta es la entrada de Andrea: la recibe un saludo, no un rótulo.
+             Mismo tratamiento que el dashboard de usuaria (saludo pequeño arriba,
+             nombre en la itálica grande). Lo pinta _admPintarSaludo() en cada
+             visita a Inicio, para que la hora del día esté siempre al día. -->
         <div class="dash-meta">— PANEL DE ANDREA</div>
-        <p class="dash-hello">Tu</p>
-        <h1 class="dash-name">panel.</h1>
+        <!-- Arranca en la variante sin nombre: válida para cualquier dueña y sin
+             ningún nombre escrito en el HTML. _admPintarSaludo() la sustituye por
+             el saludo real antes de que la sección se vea. -->
+        <p class="dash-hello" id="adm-hello" style="display:none;">Hola,</p>
+        <h1 class="dash-name solo-saludo" id="adm-hello-name">Hola.</h1>
         <hr class="dash-rule">
+        <p class="adm-hello-sub">Este es el pulso de tu HOGAR hoy.</p>
       </div>
     </div>
 
@@ -4738,6 +4754,7 @@ function goAdmin(section){
     v.classList.toggle('on', v.id==='adm-view-'+s);
   });
   // Las secciones que leen datos se cargan al entrar (no al abrir el admin).
+  if(s==='inicio') _admPintarSaludo();
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
   if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); }
@@ -4745,6 +4762,32 @@ function goAdmin(section){
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
+}
+
+// Saludo del Inicio del panel. Reutiliza _greetingByTime(), la misma función que
+// saluda a las usuarias en su dashboard, así que ambos lados cambian a la vez y
+// con el mismo criterio horario. Se llama en cada entrada a Inicio: si Andrea
+// deja el panel abierto y vuelve por la tarde, el saludo ya no miente.
+//
+// Sin nombre real (cuenta sin full_name) NO la llamamos por el trozo de su
+// correo: el saludo pasa entero a la línea grande y desaparece la pequeña, para
+// que no quede un renglón suelto donde había un nombre.
+function _admPintarSaludo(){
+  const hello=document.getElementById('adm-hello');
+  const nameEl=document.getElementById('adm-hello-name');
+  if(!hello || !nameEl) return;
+  const saludo=_greetingByTime();                       // 'Buenas tardes,'
+  const nombre=((U && U.fullName) || '').trim();
+  if(nombre){
+    hello.style.display='';
+    hello.textContent=saludo;
+    nameEl.textContent=nombre+'.';
+    nameEl.classList.remove('solo-saludo');
+  }else{
+    hello.style.display='none';
+    nameEl.textContent=saludo.replace(/,\s*$/,'')+'.';  // 'Buenas tardes.'
+    nameEl.classList.add('solo-saludo');
+  }
 }
 
 // Abre/cierra un bloque de la sección Contenido. No son exclusivos: Andrea puede
@@ -4871,8 +4914,13 @@ async function reiniciarSesionHogar(){
 function applyUser(supaUser){
   if(!supaUser) return;
   const meta=supaUser.user_metadata||{};
-  const nombre=((meta.full_name||'').trim()) || (supaUser.email? supaUser.email.split('@')[0] : 'tu HOGAR');
-  U={ name:nombre, email:supaUser.email||'', sessions:0, streak:0, days:0 };
+  // fullName = el nombre REAL, tal cual lo puso ella, sin sustituto. `name` sigue
+  // cayendo al trozo del correo cuando no hay ninguno, que es lo que quiere el
+  // dashboard de usuaria; pero el saludo del panel necesita distinguirlos para no
+  // acabar diciéndole "Buenas tardes, andrealaso1997".
+  const fullName=(meta.full_name||'').trim();
+  const nombre=fullName || (supaUser.email? supaUser.email.split('@')[0] : 'tu HOGAR');
+  U={ name:nombre, fullName:fullName, email:supaUser.email||'', sessions:0, streak:0, days:0 };
 }
 
 // Detecta si un error/respuesta indica correo duplicado
