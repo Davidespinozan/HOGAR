@@ -3121,13 +3121,33 @@ body.app-active { overflow: hidden; }
    Scopeado a #adm-view-landing: .adm-card, .adm-field y .adm-btn-mini los
    comparten Contenido, Planes y Cobros. */
 
-/* La imagen manda: preview grande con el disparador de subida encima. */
-#adm-view-landing .adm-lp-hero{ position:relative; margin-bottom:10px;
-  border-radius:18px; overflow:hidden; background:#f0e0d0;
-  box-shadow:0 6px 16px rgba(58,40,32,.07); }
-#adm-view-landing .adm-lp-hero img{ display:block; width:100%; height:150px;
-  object-fit:cover; }
-@media(max-width:480px){ #adm-view-landing .adm-lp-hero img{ height:130px; } }
+/* Las dos fotos del hero, una al lado de otra en escritorio y apiladas en móvil.
+   La de celular pesa menos ancho porque es vertical: así cada preview tiene la
+   proporción de donde de verdad se ve. */
+#adm-view-landing .adm-lp-fotos{ display:grid; grid-template-columns:1fr; gap:14px; margin-bottom:10px; }
+@media(min-width:901px){ #adm-view-landing .adm-lp-fotos{ grid-template-columns:1.6fr 1fr; gap:16px; } }
+#adm-view-landing .adm-lp-foto-tit{ font-family:'Montserrat',sans-serif; font-size:10px;
+  font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:#b0654a; margin-bottom:8px; }
+#adm-view-landing .adm-lp-foto-nota{ font-family:'Montserrat',sans-serif; font-size:.76rem;
+  font-weight:300; color:#9a7d6c; line-height:1.45; margin-top:8px; }
+#adm-view-landing .adm-lp-marco{ position:relative; border-radius:18px; overflow:hidden;
+  background:#f0e0d0; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+/* object-position al 30% de la altura, no al centro: en un retrato la cara está
+   en el tercio de arriba, y un cover centrado la decapita. */
+#adm-view-landing .adm-lp-marco img{ display:block; width:100%; object-fit:cover;
+  object-position:center 30%; }
+#adm-view-landing .adm-lp-marco.h img{ height:150px; }
+#adm-view-landing .adm-lp-marco.v img{ height:250px; }
+@media(max-width:480px){
+  #adm-view-landing .adm-lp-marco.h img{ height:130px; }
+  #adm-view-landing .adm-lp-marco.v img{ height:230px; }
+}
+/* La del chat se ve redonda porque redonda se ve en la práctica. */
+#adm-view-landing .adm-lp-marco.redondo{ flex-shrink:0; width:84px; height:84px;
+  border-radius:50%; border:2px solid #fff; box-shadow:0 6px 16px rgba(58,40,32,.14); }
+#adm-view-landing .adm-lp-marco.redondo img{ height:84px; }
+#adm-view-landing .adm-lp-chat-fila{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+#adm-view-landing .adm-lp-chat-txt{ flex:1 1 190px; min-width:0; }
 #adm-view-landing .adm-lp-cambiar{ position:absolute; top:12px; right:12px; cursor:pointer;
   font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px;
   text-transform:uppercase; color:#c66b41;
@@ -5802,12 +5822,34 @@ function _landingSetHeroImg(url){
   tag.textContent='@media(min-width:481px){.hero{background-image:url("'+safe+'") !important;}}';
 }
 
+// La vertical del hero, solo en celular. Scopeada a max-width:480px, el mismo
+// corte donde el CSS pone la vertical fija, para no rozar la de escritorio.
+function _landingSetHeroMovilImg(url){
+  if(!url) return;
+  let tag=document.getElementById('landing-hero-movil-override');
+  if(!tag){ tag=document.createElement('style'); tag.id='landing-hero-movil-override'; document.head.appendChild(tag); }
+  const safe=String(url).replace(/["\\]/g,'\\$&');
+  tag.textContent='@media(max-width:480px){.hero{background-image:url("'+safe+'") !important;}}';
+}
+
+// La foto redonda de Andrea en el chat de la práctica. .msg-avatar la trae en un
+// shorthand `background:`, así que basta pisar background-image.
+function _landingSetFotoChat(url){
+  if(!url) return;
+  let tag=document.getElementById('landing-foto-chat-override');
+  if(!tag){ tag=document.createElement('style'); tag.id='landing-foto-chat-override'; document.head.appendChild(tag); }
+  const safe=String(url).replace(/["\\]/g,'\\$&');
+  tag.textContent='.msg-avatar{background-image:url("'+safe+'") !important;}';
+}
+
 async function precargarLandingHogar(){
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
-    const { data, error } = await window.sb.from('hogar_landing')
-      .select('landing_hero_titulo,landing_hero_subtitulo,landing_hero_imagen,precio_centavos')
-      .maybeSingle();
+    // Las dos columnas de foto nuevas van con `.select('*')` en vez de nombradas:
+    // si el SQL de SQL-FOTOS-LANDING.md aún no se ha corrido, la vista no las
+    // tiene y pedirlas por nombre haría fallar la consulta ENTERA, tumbando
+    // también el título y el precio. Con '*' llegan si existen y se ignoran si no.
+    const { data, error } = await window.sb.from('hogar_landing').select('*').maybeSingle();
     if(error) throw error;
     if(!data){
       console.warn('[HOGAR landing] sin datos en Supabase: se usa el texto del código.');
@@ -5817,6 +5859,8 @@ async function precargarLandingHogar(){
     const tit=String(data.landing_hero_titulo||'').trim();
     const sub=String(data.landing_hero_subtitulo||'').trim();
     const img=String(data.landing_hero_imagen||'').trim();
+    const imgMovil=String(data.landing_hero_imagen_movil||'').trim();
+    const fotoChat=String(data.andrea_foto_chat||'').trim();
     const precio=_landingPrecioTxt(data.precio_centavos);
 
     const h1=document.querySelector('#s-landing .hero h1');
@@ -5825,6 +5869,10 @@ async function precargarLandingHogar(){
     if(tit && h1) h1.textContent=tit;
     if(sub && desc) desc.textContent=sub;
     if(img && /^https:\/\//i.test(img)) _landingSetHeroImg(img);
+    // Cada foto cae por su cuenta: sin valor (o sin la columna todavía) se queda
+    // la que trae el CSS, que es la que se ve hoy. Nunca un hueco.
+    if(imgMovil && /^https:\/\//i.test(imgMovil)) _landingSetHeroMovilImg(imgMovil);
+    if(fotoChat && /^https:\/\//i.test(fotoChat)) _landingSetFotoChat(fotoChat);
     if(precio && pc) pc.innerHTML=precio;
     console.log('[HOGAR landing] landing cargada desde Supabase ✓');
   }catch(e){
@@ -7942,9 +7990,12 @@ async function loadLandingAdmin(){
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
     // Andrea está autenticada: lee hogar_config directo (su policy se lo permite).
+    // '*' y no columnas nombradas: si SQL-FOTOS-LANDING.md aún no se ha corrido,
+    // pedir las dos columnas de foto nuevas por nombre tumbaría la consulta entera
+    // y el editor no cargaría NADA. Con '*' llegan si existen; si no, cada foto
+    // cae a la del código y el resto del editor funciona igual.
     const { data, error } = await window.sb.from('hogar_config')
-      .select('landing_hero_titulo,landing_hero_subtitulo,landing_hero_imagen,precio_centavos')
-      .eq('id',1).maybeSingle();
+      .select('*').eq('id',1).maybeSingle();
     if(error) throw error;
     cont.innerHTML=_admLandingHTML(data||{});
   }catch(e){
@@ -7966,6 +8017,12 @@ function _admLandingHTML(c){
   const tit=(c.landing_hero_titulo!=null && String(c.landing_hero_titulo).trim()!=='')?c.landing_hero_titulo:HERO_TIT_COD;
   const sub=(c.landing_hero_subtitulo!=null && String(c.landing_hero_subtitulo).trim()!=='')?c.landing_hero_subtitulo:HERO_SUB_COD;
   const img=(c.landing_hero_imagen!=null && String(c.landing_hero_imagen).trim()!=='')?c.landing_hero_imagen:HERO_IMG_COD;
+  // Las dos fotos nuevas, con el mismo criterio: si la columna aún no existe o
+  // está vacía, se muestra la que hoy trae el CSS. Nunca un preview en blanco.
+  const HERO_MOVIL_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-andrea-vertical-NUEVA.jpg';
+  const FOTO_CHAT_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg';
+  const imgMovil=(c.landing_hero_imagen_movil!=null && String(c.landing_hero_imagen_movil).trim()!=='')?c.landing_hero_imagen_movil:HERO_MOVIL_COD;
+  const fotoChat=(c.andrea_foto_chat!=null && String(c.andrea_foto_chat).trim()!=='')?c.andrea_foto_chat:FOTO_CHAT_COD;
   const precioTxt=_landingPrecioTxt(c.precio_centavos);
 
   let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TU LANDING</div>';
@@ -7974,23 +8031,53 @@ function _admLandingHTML(c){
     +'El texto y la imagen principal de la página que ven quienes aún no entran. '
     +'La imagen vertical del teléfono se queda fija por ahora.</p>';
 
-  // 1) La imagen manda: preview grande con el disparador encima. Los ids
-  // (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS que ya usaba
-  // subirImagenHeroHogar — en especial adm-lp-subir, del que toma el botón para
-  // ponerle "Subiendo…". Solo cambia cómo se ve el disparador, no qué hace.
-  html+='<div class="adm-lp-hero hogar-rise-in">'
-    +'<img id="adm-lp-preview-img" src="'+_admEsc(img)+'" alt="Vista previa del hero" '
-      +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
-    +'<input type="file" id="adm-lp-file" accept="image/*" style="display:none" onchange="subirImagenHeroHogar(this)">'
-    +'<button type="button" class="adm-lp-cambiar" id="adm-lp-subir" '
-      +'onclick="document.getElementById(\'adm-lp-file\').click()">Cambiar foto</button>'
+  // 1) Las tres fotos, cada una etiquetada con dónde se ve. Los ids de la de
+  // escritorio (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS de
+  // siempre — en especial adm-lp-subir, del que la subida toma el botón para
+  // ponerle "Subiendo…". Las otras dos siguen el mismo patrón con lo suyo.
+  const foto=(cls,pid,fid,bid,url,fn,tit,nota)=>
+    '<div class="adm-lp-foto hogar-rise-in">'
+      +'<div class="adm-lp-foto-tit">'+tit+'</div>'
+      +'<div class="adm-lp-marco '+cls+'">'
+        +'<img id="'+pid+'" src="'+_admEsc(url)+'" alt="'+tit+'" '
+          +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
+        +'<input type="file" id="'+fid+'" accept="image/*" style="display:none" onchange="'+fn+'(this)">'
+        +'<button type="button" class="adm-lp-cambiar" id="'+bid+'" '
+          +'onclick="document.getElementById(\''+fid+'\').click()">Cambiar foto</button>'
+      +'</div>'
+      +'<div class="adm-lp-foto-nota">'+nota+'</div>'
+    +'</div>';
+
+  html+='<div class="adm-lp-fotos">'
+    +foto('h','adm-lp-preview-img','adm-lp-file','adm-lp-subir', img,
+          'subirImagenHeroHogar','Foto para computadora','Esta es la que ven en la computadora.')
+    +foto('v','adm-lp-preview-movil','adm-lp-file-movil','adm-lp-subir-movil', imgMovil,
+          'subirFotoMovilHogar','Foto para celular','Esta es la que ven en el celular, vertical.')
     +'</div>'
-    +'<div class="adm-field-hint" style="margin-bottom:6px;">Una foto de tu computadora (JPG, PNG o WEBP, máx. 5 MB). Es la que se ve en la versión de escritorio.</div>'
+    +'<div class="adm-field-hint" style="margin-bottom:6px;">JPG, PNG o WEBP, máx. 5 MB cada una.</div>'
     // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
-    // la fuente de la imagen para Guardar; la subida escribe aquí también.
-    +'<details class="adm-lp-avanzado" style="margin-bottom:16px;"><summary>¿Prefieres pegar una URL?</summary>'
+    // la fuente de la imagen de ESCRITORIO para Guardar; la subida escribe aquí
+    // también. Las otras dos se guardan solas al subirlas, sin pasar por Guardar.
+    +'<details class="adm-lp-avanzado" style="margin-bottom:16px;"><summary>¿Prefieres pegar la URL de la foto de computadora?</summary>'
       +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
     +'</details>';
+
+  // 2) La foto de Andrea del chat: redonda, como se ve de verdad.
+  html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
+    +'<div class="adm-lp-foto-tit">Tu foto</div>'
+    +'<div class="adm-lp-chat-fila">'
+      +'<div class="adm-lp-marco redondo">'
+        +'<img id="adm-lp-preview-chat" src="'+_admEsc(fotoChat)+'" alt="Tu foto" '
+          +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
+      +'</div>'
+      +'<div class="adm-lp-chat-txt">'
+        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">Es la que ven tus usuarias junto a tus mensajes, dentro de la práctica.</div>'
+        +'<input type="file" id="adm-lp-file-chat" accept="image/*" style="display:none" onchange="subirFotoChatHogar(this)">'
+        +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-chat" '
+          +'onclick="document.getElementById(\'adm-lp-file-chat\').click()">Cambiar foto</button>'
+      +'</div>'
+    +'</div>'
+    +'</div>';
 
   // 2) Los textos, editables, con su Guardar.
   html+='<div class="adm-card hogar-rise-in">'
@@ -8045,17 +8132,31 @@ function _admExtImagen(file){
 }
 
 // SUBIDA DIRECTA de la imagen del hero. Andrea elige un archivo de su compu; se
-// sube al bucket "hogar", se obtiene su URL pública, se guarda en hogar_config
-// y se actualiza la previsualización. Nunca ve una URL ni entra a Supabase.
-// Solo INSERT/UPDATE: no se borra nada (Andrea no tiene ese permiso).
+// Las tres fotos que Andrea puede cambiar. Cada una difiere solo en cuatro cosas:
+// dónde se guarda, con qué prefijo se sube, qué botón y qué previsualización toca,
+// y qué hay que repintar en vivo al terminar. Todo lo demás —validar, subir,
+// comprobar el permiso, avisar— es idéntico, así que vive una sola vez.
+const ADM_FOTOS={
+  desktop:{ col:'landing_hero_imagen',       prefijo:'hero-landing-', btn:'adm-lp-subir',
+            prev:'adm-lp-preview-img', campo:'adm-lp-img', aplicar:u=>_landingSetHeroImg(u) },
+  movil:  { col:'landing_hero_imagen_movil', prefijo:'hero-movil-',   btn:'adm-lp-subir-movil',
+            prev:'adm-lp-preview-movil', aplicar:u=>_landingSetHeroMovilImg(u) },
+  chat:   { col:'andrea_foto_chat',          prefijo:'andrea-chat-',  btn:'adm-lp-subir-chat',
+            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoChat(u) }
+};
+
+// SUBIDA DIRECTA de una de las fotos. Andrea elige un archivo de su compu; se sube
+// al bucket "hogar", se obtiene su URL pública, se guarda en su columna de
+// hogar_config y se actualiza la previsualización. Nunca ve una URL ni entra a
+// Supabase. Solo INSERT/UPDATE: no se borra nada (Andrea no tiene ese permiso).
 //
-// El upload va LIMPIO, sin headers de Authorization a mano: el cliente bien
-// creado (anon key + persistSession) adjunta el JWT de Andrea solo, en Storage
-// igual que en PostgREST. Un intento previo de forzar el header aquí no arregló
-// nada porque el bug estaba antes, en la key con la que se creaba el cliente:
-// con una publishable key (sb_publishable_) la sesión no se eleva a
-// 'authenticated' en Storage y la policy `to authenticated` rechaza el INSERT.
-async function subirImagenHeroHogar(input){
+// El upload va LIMPIO, sin headers de Authorization a mano: el cliente bien creado
+// (anon key + persistSession) adjunta el JWT de Andrea solo, en Storage igual que
+// en PostgREST. Ver el comentario de createClient: con una publishable key la
+// sesión no se eleva a 'authenticated' y la policy del bucket rechaza el INSERT.
+async function subirFotoHogar(input, clave){
+  const cfg=ADM_FOTOS[clave];
+  if(!cfg){ console.warn('[HOGAR admin] foto desconocida:', clave); return; }
   _admLandingMsg('');
   const file=input && input.files && input.files[0];
   if(!file) return;
@@ -8071,7 +8172,7 @@ async function subirImagenHeroHogar(input){
     input.value=''; return;
   }
 
-  const btn=document.getElementById('adm-lp-subir');
+  const btn=document.getElementById(cfg.btn);
   const previo=btn?btn.textContent:'';
   try{
     if(!window.sb || !window.sb.storage) throw new Error('sin cliente Supabase');
@@ -8087,8 +8188,9 @@ async function subirImagenHeroHogar(input){
     if(btn){ btn.disabled=true; btn.textContent='Subiendo…'; }
     _admLandingMsg('Subiendo tu imagen…','info');
 
-    // b) Nombre único con prefijo propio: nunca pisa videos ni audios del bucket.
-    const nombre='hero-landing-'+Date.now()+'.'+_admExtImagen(file);
+    // b) Nombre único con prefijo propio de ESTA foto: nunca pisa a las otras dos
+    // ni a los videos y audios del bucket.
+    const nombre=cfg.prefijo+Date.now()+'.'+_admExtImagen(file);
 
     // c) Subir al bucket. El nombre ya es único (lleva timestamp), así que no
     // hace falta upsert: nunca hay colisión que resolver.
@@ -8103,29 +8205,43 @@ async function subirImagenHeroHogar(input){
     const url=pub && pub.publicUrl;
     if(!url) throw new Error('no se obtuvo la URL pública');
 
-    // e) Guardar solo la imagen en hogar_config. Con RLS, 0 filas = sin permiso.
+    // e) Guardar solo esta columna en hogar_config. Con RLS, 0 filas = sin permiso.
+    const patch={ updated_at:new Date().toISOString() };
+    patch[cfg.col]=url;
     const { data, error } = await window.sb.from('hogar_config')
-      .update({ landing_hero_imagen:url, updated_at:new Date().toISOString() })
-      .eq('id',1).select('id');
+      .update(patch).eq('id',1).select('id');
     if(error) throw error;
     if(!data || !data.length){ _admLandingMsg(ADM_LANDING_SIN_PERMISO,'error'); return; }
 
-    // f) Reflejar en el editor: campo URL (fuente para Guardar) + previsualización.
-    const campo=document.getElementById('adm-lp-img'); if(campo) campo.value=url;
-    const prev=document.getElementById('adm-lp-preview-img'); if(prev){ prev.style.display=''; prev.src=url; }
+    // f) Reflejar: previsualización, campo URL si lo tiene, y la app en vivo — así
+    // Andrea ve el cambio donde de verdad va sin recargar ni salir del panel.
+    if(cfg.campo){ const campo=document.getElementById(cfg.campo); if(campo) campo.value=url; }
+    const prev=document.getElementById(cfg.prev); if(prev){ prev.style.display=''; prev.src=url; }
+    if(cfg.aplicar) try{ cfg.aplicar(url); }catch(_){}
     _admLandingMsg('Imagen actualizada','ok');
   }catch(e){
     // Log del error COMPLETO de Supabase, no solo el mensaje, para diagnóstico.
-    console.warn('[HOGAR admin] subir hero — error completo:', e);
+    console.warn('[HOGAR admin] subir foto '+clave+' — error completo:', e);
     const m=(e&&e.message)||'';
-    _admLandingMsg(/permission|denied|policy|unauthorized|row-level|403/i.test(m)
-      ? 'No se pudo subir: tu cuenta no tiene permiso para subir imágenes.'
-      : 'No pudimos subir la imagen. Intenta de nuevo en un momento.','error');
+    // Si la columna aún no existe, el error de Postgres lo dice: mejor mandarla al
+    // SQL que dejarla pensando que fue un problema de permisos o de red.
+    if(/column .* does not exist|42703/i.test(m)){
+      _admLandingMsg('Falta preparar la base para esta foto: corre el SQL de SQL-FOTOS-LANDING.md en Supabase.','error');
+    }else{
+      _admLandingMsg(/permission|denied|policy|unauthorized|row-level|403/i.test(m)
+        ? 'No se pudo subir: tu cuenta no tiene permiso para subir imágenes.'
+        : 'No pudimos subir la imagen. Intenta de nuevo en un momento.','error');
+    }
   }finally{
     if(input) input.value='';   // permite volver a elegir el mismo archivo
-    if(btn){ btn.disabled=false; btn.textContent=previo||'Subir imagen'; }
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Cambiar foto'; }
   }
 }
+
+// La de escritorio conserva su nombre: es la que ya estaba enganchada y probada.
+async function subirImagenHeroHogar(input){ return subirFotoHogar(input,'desktop'); }
+async function subirFotoMovilHogar(input){ return subirFotoHogar(input,'movil'); }
+async function subirFotoChatHogar(input){ return subirFotoHogar(input,'chat'); }
 
 async function guardarLandingHogar(btn){
   _admLandingMsg('');
