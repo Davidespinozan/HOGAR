@@ -3117,6 +3117,66 @@ body.app-active { overflow: hidden; }
 .adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
 @media(max-width:900px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
 
+/* ===== LANDING — editor (rediseño, paso 7) ===================================
+   Scopeado a #adm-view-landing: .adm-card, .adm-field y .adm-btn-mini los
+   comparten Contenido, Planes y Cobros. */
+
+/* La imagen manda: preview grande con el disparador de subida encima. */
+#adm-view-landing .adm-lp-hero{ position:relative; margin-bottom:10px;
+  border-radius:18px; overflow:hidden; background:#f0e0d0;
+  box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-landing .adm-lp-hero img{ display:block; width:100%; height:150px;
+  object-fit:cover; }
+@media(max-width:480px){ #adm-view-landing .adm-lp-hero img{ height:130px; } }
+#adm-view-landing .adm-lp-cambiar{ position:absolute; top:12px; right:12px; cursor:pointer;
+  font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px;
+  text-transform:uppercase; color:#c66b41;
+  background:rgba(255,255,255,.85); border:none; border-radius:100px; padding:9px 16px;
+  box-shadow:0 4px 12px rgba(58,40,32,.16);
+  transition:background .25s, transform .25s var(--ease-premium), box-shadow .25s; }
+#adm-view-landing .adm-lp-cambiar:hover{ background:#fff; transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(58,40,32,.22); }
+#adm-view-landing .adm-lp-cambiar[disabled]{ opacity:.75; cursor:default; transform:none; }
+
+/* Cards y campos, iguales a Planes y Contenido. */
+#adm-view-landing .adm-card{ background:#fff; border:1px solid rgba(240,228,214,.8);
+  border-radius:20px; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-landing .adm-card:hover{ transform:none; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-landing .adm-card-eyebrow{ color:#b0654a; font-size:10px; letter-spacing:2.4px; }
+#adm-view-landing .adm-card-text{ color:#9a7d6c; }
+#adm-view-landing .adm-field label,
+#adm-view-landing .adm-lp-precio-label{ display:block; font-family:'Montserrat',sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase;
+  color:#b0654a; margin-bottom:8px; }
+#adm-view-landing textarea,
+#adm-view-landing .adm-lp-avanzado input{
+  width:100%; font-family:'Montserrat',sans-serif; font-size:.88rem; line-height:1.6;
+  color:#3a2820; background:#fff; border:1px solid rgba(240,228,214,.9); border-radius:14px;
+  padding:.75rem 1rem; outline:none; resize:vertical;
+  box-shadow:0 6px 16px rgba(58,40,32,.05);
+  transition:border-color .25s, box-shadow .25s; }
+#adm-view-landing textarea:focus,
+#adm-view-landing .adm-lp-avanzado input:focus{
+  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
+#adm-view-landing .adm-field-hint{ color:#9a7d6c; }
+#adm-view-landing .adm-lp-precio{ font-weight:200; font-size:30px; color:#c66b41;
+  letter-spacing:-1px; line-height:1; margin-bottom:10px; }
+#adm-view-landing .adm-btn-mini.primario{ background:linear-gradient(135deg,#c66b41,#b05730); color:#fff; }
+#adm-view-landing .adm-btn-mini.primario:hover:not([disabled]){ background:#b05730; }
+
+/* Ver landing: secundario claro, con su icono de "abrir fuera". */
+#adm-view-landing .adm-lp-ver{ display:flex; align-items:center; justify-content:center; gap:9px;
+  width:100%; cursor:pointer; font-family:'Montserrat',sans-serif;
+  font-size:.76rem; font-weight:700; letter-spacing:1.4px; text-transform:uppercase;
+  color:#b0654a; background:rgba(198,107,65,.07); border:1px solid rgba(198,107,65,.3);
+  border-radius:100px; padding:15px 20px; margin-top:4px;
+  transition:background .25s, color .25s, transform .25s var(--ease-premium), box-shadow .25s; }
+#adm-view-landing .adm-lp-ver:hover{ background:#c66b41; color:#fff; border-color:#c66b41;
+  transform:translateY(-2px); box-shadow:0 8px 20px -8px rgba(181,88,54,.6); }
+#adm-view-landing .adm-lp-ver svg{ width:15px; height:15px; flex-shrink:0; }
+#adm-view-landing .adm-lp-ver-nota{ font-family:'Montserrat',sans-serif; font-size:.76rem;
+  font-weight:300; color:#9a7d6c; text-align:center; margin-top:9px; }
+
 /* ===== CONTENIDO — acordeón e internos (rediseño, paso 6) ====================
    El acordeón ya existía; aquí se le añade el subtítulo con el conteo real en la
    cabecera y se re-viste lo de dentro con el sistema de los pasos 2-5. Scopeado a
@@ -5218,8 +5278,27 @@ function irTrasAuth(){
   // se leen recién cuando la usuaria entra al flujo, más tarde que esta carga.
   precargarNotasHogar();
   precargarTextosHogar();
+  // ?ver=landing — lo pone el botón "Ver landing" del panel. Sin esto el botón no
+  // serviría de nada: la landing es una pantalla de esta misma app, así que al
+  // abrir otra pestaña se restauraría la sesión de Andrea y el redirect por rol la
+  // devolvería al panel en vez de enseñarle su landing. El parámetro se limpia de
+  // la URL en cuanto se usa, para que un refresco no la deje clavada aquí.
+  try{
+    if(new URLSearchParams(window.location.search).get('ver')==='landing'){
+      history.replaceState(null,'',window.location.pathname);
+      go('landing');
+      return;
+    }
+  }catch(_){}
   if(U && esAdmin(U.email)){ goAdmin('inicio'); return; }
   go('dash');
+}
+
+// Abre la landing pública en otra pestaña, tal como la ve una visitante. No cierra
+// ni recarga el panel: Andrea edita, mira, vuelve a la pestaña del panel y sigue.
+function verLandingPublica(){
+  const url=window.location.origin+window.location.pathname+'?ver=landing';
+  window.open(url,'_blank','noopener');
 }
 
 // NAV v2 — drawer lateral
@@ -7895,41 +7974,53 @@ function _admLandingHTML(c){
     +'El texto y la imagen principal de la página que ven quienes aún no entran. '
     +'La imagen vertical del teléfono se queda fija por ahora.</p>';
 
+  // 1) La imagen manda: preview grande con el disparador encima. Los ids
+  // (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS que ya usaba
+  // subirImagenHeroHogar — en especial adm-lp-subir, del que toma el botón para
+  // ponerle "Subiendo…". Solo cambia cómo se ve el disparador, no qué hace.
+  html+='<div class="adm-lp-hero hogar-rise-in">'
+    +'<img id="adm-lp-preview-img" src="'+_admEsc(img)+'" alt="Vista previa del hero" '
+      +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
+    +'<input type="file" id="adm-lp-file" accept="image/*" style="display:none" onchange="subirImagenHeroHogar(this)">'
+    +'<button type="button" class="adm-lp-cambiar" id="adm-lp-subir" '
+      +'onclick="document.getElementById(\'adm-lp-file\').click()">Cambiar foto</button>'
+    +'</div>'
+    +'<div class="adm-field-hint" style="margin-bottom:6px;">Una foto de tu computadora (JPG, PNG o WEBP, máx. 5 MB). Es la que se ve en la versión de escritorio.</div>'
+    // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
+    // la fuente de la imagen para Guardar; la subida escribe aquí también.
+    +'<details class="adm-lp-avanzado" style="margin-bottom:16px;"><summary>¿Prefieres pegar una URL?</summary>'
+      +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
+    +'</details>';
+
+  // 2) Los textos, editables, con su Guardar.
   html+='<div class="adm-card hogar-rise-in">'
     +'<div class="adm-field">'
-      +'<label for="adm-lp-tit">Título del hero</label>'
+      +'<label for="adm-lp-tit">Título</label>'
       +'<textarea id="adm-lp-tit" maxlength="220">'+_admEsc(tit)+'</textarea>'
     +'</div>'
-    +'<div class="adm-field">'
-      +'<label for="adm-lp-sub">Subtítulo del hero</label>'
+    +'<div class="adm-field" style="margin-bottom:12px;">'
+      +'<label for="adm-lp-sub">Subtítulo</label>'
       +'<textarea id="adm-lp-sub" maxlength="220">'+_admEsc(sub)+'</textarea>'
     +'</div>'
-    +'<div class="adm-field">'
-      +'<label>Imagen del hero</label>'
-      +'<div class="adm-lp-preview"><img id="adm-lp-preview-img" src="'+_admEsc(img)+'" alt="Vista previa del hero" '
-        +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'"></div>'
-      // El input file está oculto; lo dispara el botón. La subida es lo principal.
-      +'<input type="file" id="adm-lp-file" accept="image/*" style="display:none" onchange="subirImagenHeroHogar(this)">'
-      +'<div class="adm-nota-acciones" style="margin-top:2px;">'
-        +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir" '
-          +'onclick="document.getElementById(\'adm-lp-file\').click()">Subir imagen</button>'
-      +'</div>'
-      +'<div class="adm-field-hint">Elige una foto de tu computadora (JPG, PNG o WEBP, máx. 5 MB). Es la imagen que se ve en la versión de escritorio.</div>'
-      // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
-      // la fuente de la imagen para Guardar; la subida escribe aquí también.
-      +'<details class="adm-lp-avanzado"><summary>¿Prefieres pegar una URL?</summary>'
-        +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
-      +'</details>'
-    +'</div>'
-    +'<div class="adm-field">'
-      +'<label>Precio anunciado</label>'
-      +'<div class="adm-lp-precio">'+(precioTxt?precioTxt.replace(/<[^>]+>/g,''):'Sin definir')+'</div>'
-      +'<div class="adm-field-hint">El precio se configura en la sección <strong>Planes</strong>. Aquí solo se muestra, para que la landing y el cobro siempre coincidan.</div>'
-    +'</div>'
-    +'<div class="adm-nota-acciones" style="margin-top:4px;">'
+    +'<div class="adm-nota-acciones">'
       +'<button type="button" class="adm-btn-mini primario" onclick="guardarLandingHogar(this)">Guardar</button>'
     +'</div>'
     +'</div>';
+
+  // 3) El precio, solo lectura: su único dueño es Planes.
+  html+='<div class="adm-card hogar-rise-in">'
+    +'<label class="adm-lp-precio-label">Precio anunciado</label>'
+    +'<div class="adm-lp-precio">'+(precioTxt?precioTxt.replace(/<[^>]+>/g,''):'Sin definir')+'</div>'
+    +'<div class="adm-field-hint">Se configura en la sección <strong>Planes</strong>. Aquí solo se muestra, para que la landing y el cobro no puedan discrepar.</div>'
+    +'</div>';
+
+  // 4) Verla en vivo, tal como la ve una visitante.
+  html+='<button type="button" class="adm-lp-ver" onclick="verLandingPublica()">'
+    +'Ver landing'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+      +'<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>'
+    +'</button>'
+    +'<div class="adm-lp-ver-nota">Se abre en otra pestaña: así la ven tus clientas.</div>';
   return html;
 }
 
