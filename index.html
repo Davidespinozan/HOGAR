@@ -3155,13 +3155,28 @@ body.app-active { overflow: hidden; }
 .adm-nav-dot{ width:6px; height:6px; border-radius:50%; background:var(--terracota); opacity:.42; flex-shrink:0;
   transition:background .25s, opacity .25s; }
 .adm-nav-item.soon{ color:var(--texto-medio); }
-/* Escape hatch — secundario, nunca protagonista */
-.adm-side-foot{ margin-top:22px; padding-top:16px; border-top:1px solid var(--crema); }
-.adm-ghost-link{ display:inline-block; background:none; border:none; cursor:pointer;
+/* Escape hatch — secundario, nunca protagonista. Dos acciones, con peso distinto:
+   ver la app como usuaria es una visita (botón suave); cerrar sesión es la más
+   irreversible de las dos, así que va debajo y más callada. */
+.adm-side-foot{ margin-top:22px; padding-top:16px; border-top:1px solid var(--crema);
+  display:flex; flex-direction:column; gap:8px; align-items:stretch; }
+.adm-side-btn{ display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  cursor:pointer; font-family:'Montserrat',sans-serif; font-size:.72rem; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--terracota-oscuro);
+  background:rgba(198,107,65,.09); border:1px solid rgba(198,107,65,.18); border-radius:100px;
+  padding:11px 14px; text-align:center; line-height:1.3;
+  transition:background .25s var(--ease-premium), color .25s var(--ease-premium),
+             border-color .25s var(--ease-premium), transform .25s var(--ease-premium),
+             box-shadow .25s var(--ease-premium); }
+.adm-side-btn:hover{ background:var(--terracota); color:var(--crema); border-color:var(--terracota);
+  transform:translateY(-2px); box-shadow:0 8px 20px -8px rgba(181,88,54,.55); }
+.adm-side-btn svg{ width:15px; height:15px; flex-shrink:0; }
+.adm-side-out{ display:flex; align-items:center; justify-content:center; gap:7px;
+  background:none; border:none; cursor:pointer; border-radius:100px; padding:8px 14px;
   font-family:'Montserrat',sans-serif; font-size:11px; font-weight:500; letter-spacing:.04em;
-  color:var(--texto-medio); padding:6px 14px; text-decoration:underline; text-underline-offset:3px;
-  transition:color .25s; }
-.adm-ghost-link:hover{ color:var(--terracota); }
+  color:var(--texto-medio); transition:color .25s, background .25s; }
+.adm-side-out:hover{ color:var(--terracota-oscuro); background:rgba(198,107,65,.07); }
+.adm-side-out svg{ width:14px; height:14px; flex-shrink:0; }
 /* — Área de contenido — */
 .adm-view{ display:none; }
 .adm-view.on{ display:block; animation:hogar-rise-in .45s var(--ease-premium); }
@@ -3191,7 +3206,53 @@ body.app-active { overflow: hidden; }
   .adm-nav::-webkit-scrollbar{ display:none; }
   .adm-nav-item{ width:auto; flex:0 0 auto; padding:9px 15px; border-radius:100px; font-size:.78rem; white-space:nowrap; }
   .adm-nav-dot{ display:none; }
-  .adm-side-foot{ margin:0; padding:12px 16px 0; border-top:none; text-align:center; }
+  /* En móvil las dos acciones van en fila bajo los tabs; si no caben (pantallas
+     estrechas, textos largos), envuelven en vez de desbordar. */
+  .adm-side-foot{ margin:0; padding:14px 16px 0; border-top:none;
+    flex-direction:row; flex-wrap:wrap; justify-content:center; align-items:center; gap:10px; }
+  .adm-side-btn{ width:auto; flex:0 1 auto; padding:10px 16px; }
+}
+/* ===== CONTENIDO — bloques colapsables =====
+   La sección apila tres editores largos (inventario de 30 archivos, notas y
+   textos de las prácticas). En bloque era un scroll interminable: ahora cada uno
+   es un acordeón independiente — no exclusivos, Andrea puede abrir dos si los
+   está comparando. */
+.adm-acc{ margin-bottom:16px; }
+.adm-acc-head{ display:flex; align-items:center; gap:16px; width:100%; cursor:pointer;
+  background:#fff; border:none; border-radius:22px; padding:20px 24px; text-align:left;
+  font-family:'Montserrat',sans-serif; color:var(--texto-oscuro);
+  box-shadow:var(--highlight-top), var(--sombra-suave);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
+.adm-acc-head:hover{ transform:translateY(-3px);
+  box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
+.adm-acc-titles{ flex:1 1 auto; min-width:0; }
+.adm-acc-eyebrow{ display:block; font-size:9px; font-weight:700; letter-spacing:2.5px;
+  text-transform:uppercase; color:var(--terracota-oscuro); margin-bottom:6px; }
+.adm-acc-title{ display:block; font-size:1.02rem; font-weight:600; letter-spacing:-.01em; line-height:1.3; }
+.adm-acc-chevron{ flex-shrink:0; width:30px; height:30px; border-radius:50%;
+  background:rgba(198,107,65,.10); color:var(--terracota);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .34s var(--ease-premium), background .25s; }
+.adm-acc.open .adm-acc-chevron{ transform:rotate(180deg); background:rgba(198,107,65,.18); }
+.adm-acc-chevron svg{ width:15px; height:15px; }
+/* grid-template-rows 0fr→1fr anima hasta la altura REAL del contenido, que aquí
+   es imprevisible (el inventario son 30 filas, los textos cinco formularios).
+   Un max-height fijo obligaría a inventar un número y daría saltos o recortes. */
+.adm-acc-panel{ display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows .34s var(--ease-premium); }
+.adm-acc.open .adm-acc-panel{ grid-template-rows:1fr; }
+/* visibility (no display) para no romper la animación, y con retardo al cerrar:
+   así lo colapsado deja de ser enfocable con el tabulador en cuanto termina. */
+.adm-acc-inner{ overflow:hidden; visibility:hidden; transition:visibility 0s linear .34s; }
+.adm-acc.open .adm-acc-inner{ visibility:visible; transition-delay:0s; }
+.adm-acc-body{ padding-top:14px; }
+@media(prefers-reduced-motion:reduce){
+  .adm-acc-panel, .adm-acc-chevron, .adm-acc-head{ transition:none; }
+}
+@media(max-width:900px){
+  .adm-acc-head{ padding:17px 18px; gap:12px; }
+  .adm-acc-title{ font-size:.95rem; }
+  .adm-acc-body{ padding-top:12px; }
 }
 /* ===== COBROS y PLANES — tarjetas de información y formulario del admin ===== */
 .adm-card{ background:#fff; border-radius:22px; padding:26px 24px; margin-bottom:16px;
@@ -3848,7 +3909,14 @@ body.app-active { overflow: hidden; }
         <button class="adm-nav-item soon"   data-adm="landing"   onclick="goAdmin('landing')"><span class="adm-nav-dot"></span>Landing</button>
       </nav>
       <div class="adm-side-foot">
-        <button class="adm-ghost-link" onclick="go('dash')">Ver la app como usuaria</button>
+        <button type="button" class="adm-side-btn" onclick="go('dash')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Ver la app como usuaria
+        </button>
+        <button type="button" class="adm-side-out" onclick="cerrarSesionAdmin()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+          Cerrar sesión
+        </button>
       </div>
     </aside>
 
@@ -3860,8 +3928,8 @@ body.app-active { overflow: hidden; }
     <div class="dash-header hogar-rise-in">
       <div class="dash-header-top">
         <div class="dash-meta">— PANEL DE ANDREA</div>
-        <p class="dash-hello">El pulso de tu</p>
-        <h1 class="dash-name">HOGAR.</h1>
+        <p class="dash-hello">Tu</p>
+        <h1 class="dash-name">panel.</h1>
         <hr class="dash-rule">
       </div>
     </div>
@@ -3939,8 +4007,8 @@ body.app-active { overflow: hidden; }
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
           <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">Las mujeres de tu</p>
-          <h1 class="dash-name">HOGAR.</h1>
+          <p class="dash-hello">Tus</p>
+          <h1 class="dash-name">usuarias.</h1>
           <hr class="dash-rule">
         </div>
       </div>
@@ -3980,8 +4048,8 @@ body.app-active { overflow: hidden; }
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
           <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">Los cobros de tu</p>
-          <h1 class="dash-name">HOGAR.</h1>
+          <p class="dash-hello">Tus</p>
+          <h1 class="dash-name">cobros.</h1>
           <hr class="dash-rule">
         </div>
       </div>
@@ -3995,8 +4063,8 @@ body.app-active { overflow: hidden; }
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
           <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">El acceso a tu</p>
-          <h1 class="dash-name">HOGAR.</h1>
+          <p class="dash-hello">Tu</p>
+          <h1 class="dash-name">plan.</h1>
           <hr class="dash-rule">
         </div>
       </div>
@@ -4045,24 +4113,61 @@ body.app-active { overflow: hidden; }
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
           <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">El contenido de tu</p>
-          <h1 class="dash-name">HOGAR.</h1>
+          <p class="dash-hello">Tu</p>
+          <h1 class="dash-name">contenido.</h1>
           <hr class="dash-rule">
         </div>
       </div>
-      <div id="adm-contenido-body">
-        <div class="adm-loading">Revisando tus archivos…</div>
+      <!-- Tres bloques colapsables. Cada uno conserva su contenedor de siempre
+           (adm-contenido-body / adm-notas-body / adm-textos-body): los loaders
+           siguen escribiendo exactamente donde escribían. El primero abierto. -->
+
+      <div class="adm-acc open" id="adm-acc-medios">
+        <button type="button" class="adm-acc-head" aria-expanded="true" aria-controls="adm-contenido-body" onclick="toggleAdmAcc('adm-acc-medios')">
+          <span class="adm-acc-titles">
+            <span class="adm-acc-eyebrow">— TUS ARCHIVOS</span>
+            <span class="adm-acc-title">Videos y audios</span>
+          </span>
+          <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
+          <div id="adm-contenido-body">
+            <div class="adm-loading">Revisando tus archivos…</div>
+          </div>
+        </div></div></div>
       </div>
 
       <!-- Notas de Andrea (editor). Contenedor aparte para que recargar el
            inventario de medios no lo pise. -->
-      <div id="adm-notas-body" style="margin-top:28px;">
-        <div class="adm-loading">Cargando tus notas…</div>
+      <div class="adm-acc" id="adm-acc-notas">
+        <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-notas-body" onclick="toggleAdmAcc('adm-acc-notas')">
+          <span class="adm-acc-titles">
+            <span class="adm-acc-eyebrow">— TUS NOTAS</span>
+            <span class="adm-acc-title">Notas del dashboard</span>
+          </span>
+          <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
+          <div id="adm-notas-body">
+            <div class="adm-loading">Cargando tus notas…</div>
+          </div>
+        </div></div></div>
       </div>
 
       <!-- Textos de la voz de Andrea en las prácticas (editor). -->
-      <div id="adm-textos-body" style="margin-top:28px;">
-        <div class="adm-loading">Cargando los textos de tus prácticas…</div>
+      <div class="adm-acc" id="adm-acc-textos">
+        <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-textos-body" onclick="toggleAdmAcc('adm-acc-textos')">
+          <span class="adm-acc-titles">
+            <span class="adm-acc-eyebrow">— TEXTOS DE TUS PRÁCTICAS</span>
+            <span class="adm-acc-title">Textos de las prácticas</span>
+          </span>
+          <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
+          <div id="adm-textos-body">
+            <div class="adm-loading">Cargando los textos de tus prácticas…</div>
+          </div>
+        </div></div></div>
       </div>
     </section>
 
@@ -4070,8 +4175,8 @@ body.app-active { overflow: hidden; }
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
           <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">La cara pública de tu</p>
-          <h1 class="dash-name">HOGAR.</h1>
+          <p class="dash-hello">Tu</p>
+          <h1 class="dash-name">landing.</h1>
           <hr class="dash-rule">
         </div>
       </div>
@@ -4640,6 +4745,24 @@ function goAdmin(section){
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
+}
+
+// Abre/cierra un bloque de la sección Contenido. No son exclusivos: Andrea puede
+// tener varios abiertos a la vez si está comparando. Todo el estado vive en la
+// clase .open del contenedor; el CSS se encarga de la altura y del chevron.
+function toggleAdmAcc(id){
+  const acc=document.getElementById(id);
+  if(!acc) return;
+  const abierto=acc.classList.toggle('open');
+  const head=acc.querySelector('.adm-acc-head');
+  if(head) head.setAttribute('aria-expanded', abierto?'true':'false');
+}
+
+// Cerrar sesión desde el panel. Reutiliza doOut() —el mismo logout del perfil de
+// usuaria— para no tener dos formas distintas de cerrar sesión: limpia el timer,
+// hace signOut() en Supabase, borra U y devuelve a la pantalla de inicio.
+async function cerrarSesionAdmin(){
+  await doOut();
 }
 
 // ¿La sesión es la de Andrea? (UX; la seguridad real vive en las políticas RLS)
@@ -6591,12 +6714,33 @@ async function loadCobros(){
     if(!token){ cont.innerHTML=_admCobrosError('Tu sesión expiró. Vuelve a entrar para ver tus cobros.'); return; }
     const res=await fetch(ADM_FN+'/connect-status',{ headers:{ 'Authorization':'Bearer '+token } });
     const st=await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(st.error||('HTTP '+res.status));
+    if(!res.ok){
+      // Que el backend no esté montado todavía NO es un error de Andrea: tratarlo
+      // como "aún sin activar" en vez de mandarla a reintentar algo que no depende
+      // de ella. Un fallo de verdad sí cae al catch y conserva su Reintentar.
+      if(_admCobrosSinMontar(res.status, st)){
+        console.warn('[HOGAR admin] cobros aún sin configurar · HTTP '+res.status);
+        cont.innerHTML=_admCobrosInactivos({ reason:'stripe_pendiente' });
+        return;
+      }
+      throw new Error(st.error||('HTTP '+res.status));
+    }
     cont.innerHTML = (st.charges_enabled===true) ? _admCobrosActivos(st) : _admCobrosInactivos(st);
   }catch(e){
     console.warn('[HOGAR admin] cobros:',e.message||e);
     cont.innerHTML=_admCobrosError('No pudimos consultar el estado de tus cobros. Intenta de nuevo en un momento.');
   }finally{ _admCobrosCargando=false; }
+}
+
+// ¿El fallo es "esto todavía no está montado" o "algo se rompió"? Solo lo primero
+// merece el estado tranquilo; lo segundo tiene que seguir ofreciendo Reintentar.
+//   404 → las functions no están desplegadas (sitio servido en estático).
+//   501/503 → backend declarándose sin configurar.
+//   500 cuyo mensaje delata una variable de entorno ausente (requireEnv lanza así).
+// Un fetch que rechaza (sin conexión) ni siquiera llega aquí: va directo al catch.
+function _admCobrosSinMontar(status, st){
+  if(status===404 || status===501 || status===503) return true;
+  return /variable de entorno|no configurad|not configured/i.test(String((st&&st.error)||''));
 }
 
 function _admCobrosError(msg){
@@ -6607,12 +6751,21 @@ function _admCobrosError(msg){
     +'</div>';
 }
 
-// Estado A — todavía no puede cobrar.
+// Estado A — todavía no puede cobrar. Tres situaciones distintas, no una:
+//   pendiente → Stripe aún no está montado del lado de STRYV. No es un error ni
+//               algo que Andrea pueda arreglar reintentando: es el punto de
+//               partida normal, y aquí activará sus cobros cuando esté listo.
+//   enProceso → empezó el formulario de Stripe y lo dejó a medias.
+//   resto     → nunca lo ha empezado.
 function _admCobrosInactivos(st){
   const pendiente = st.reason==='stripe_pendiente';
   const enProceso = st.connected===true;   // ya hay cuenta, pero sin charges_enabled
-  const titulo = enProceso ? 'Te falta terminar' : 'Aún no puedes cobrar';
-  const texto = enProceso
+  const titulo = pendiente ? 'Aún no has activado tus cobros'
+               : enProceso ? 'Te falta terminar'
+               : 'Aún no puedes cobrar';
+  const texto = pendiente
+    ? 'Desde aquí vas a activar tus cobros con Stripe, que es quien procesa los pagos. Todavía estamos terminando de dejar lista la conexión: cuando lo esté, este botón te llevará directo a su formulario.'
+    : enProceso
     ? 'Empezaste el formulario de Stripe pero quedó a medias. Continúa para poder recibir pagos.'
     : 'Para vender el acceso a HOGAR necesitas conectar tu cuenta con Stripe, que es quien procesa los pagos.';
 
@@ -6627,16 +6780,13 @@ function _admCobrosInactivos(st){
       +'<li>Tú decides el precio desde la sección Planes.</li>'
     +'</ul>';
 
-  if(pendiente){
-    // Sin llaves de Stripe en el entorno: no tiene caso mandarla a ningún lado.
-    html+='<p class="adm-card-text" style="color:var(--terracota-oscuro);font-weight:500;">'
-      +'Los cobros aún no están configurados. Contacta a STRYV.</p>';
-  }else{
-    html+='<div class="adm-actions">'
-      +'<button type="button" class="btn btn-r" onclick="activarCobrosHogar(this)">'
-      +(enProceso?'Continuar configuración':'Activar mis cobros')+'</button>'
-      +'</div>';
-  }
+  // El botón principal se ofrece SIEMPRE, también con Stripe pendiente: es la
+  // acción de esta pantalla. Si todavía no se puede, activarCobrosHogar() lo dice
+  // con calma en el aviso de arriba — mejor eso que un texto sin salida.
+  html+='<div class="adm-actions">'
+    +'<button type="button" class="btn btn-r" onclick="activarCobrosHogar(this)">'
+    +(enProceso?'Continuar configuración':'Activar mis cobros')+'</button>'
+    +'</div>';
   return html+'</div>';
 }
 
@@ -6711,8 +6861,11 @@ async function activarCobrosHogar(btn){
       body:JSON.stringify({ return_path:'/' })
     });
     const json=await res.json().catch(()=>({}));
-    if(json && json.reason==='stripe_pendiente'){
-      _admCobrosMsg('Los cobros aún no están configurados. Contacta a STRYV.','warn'); return;
+    // Mismo criterio que en loadCobros: "todavía no está montado" se dice con
+    // calma, no como un fallo. Cubre tanto que lo declare el backend
+    // (stripe_pendiente) como que ni siquiera esté desplegado (404).
+    if((json && json.reason==='stripe_pendiente') || (!res.ok && _admCobrosSinMontar(res.status,json))){
+      _admCobrosMsg('Tus cobros todavía no están habilitados. Estamos dejándolo listo; te avisamos en cuanto puedas activarlos.','warn'); return;
     }
     if(res.ok && json && json.url){ window.location.href=json.url; return; }
     throw new Error((json&&json.error)||('HTTP '+res.status));
@@ -6852,8 +7005,8 @@ function _admContenidoHTML(esperados, presentes, parecidos, modo){
   let html='';
 
   // Resumen
+  // Sin eyebrow: el título del acordeón que envuelve este bloque ya lo dice.
   html+='<div class="adm-card hogar-rise-in">'
-    +'<div class="adm-card-eyebrow">— TUS ARCHIVOS</div>'
     +'<div class="adm-med-resumen">'
       +'<span class="adm-med-num'+(completo?' completo':'')+'">'+hay+'</span>'
       +'<span class="adm-med-de">de '+total+' archivos subidos</span>'
@@ -6951,8 +7104,8 @@ async function loadNotasAdmin(){
 
 function _admNotasHTML(rows){
   const activas=rows.filter(n=>n.activa===true).length;
-  let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TUS NOTAS</div>';
-  html+='<div class="adm-alert" id="adm-notas-msg"></div>';
+  // Sin eyebrow: lo dice el título del acordeón que envuelve este bloque.
+  let html='<div class="adm-alert" id="adm-notas-msg"></div>';
   html+='<p class="adm-card-text" style="margin-bottom:16px;">'
     +'Son las frases que tus usuarias ven en su dashboard. Cambia sola cada día. '
     +(rows.length
@@ -7133,8 +7286,8 @@ function _admTextosHTML(){
   _admTextos.forEach(r=>{ if(r && r.practica_key) porKey[r.practica_key]=r; });
   const sembrada=(_admTextos.length>0);
 
-  let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TEXTOS DE TUS PRÁCTICAS</div>';
-  html+='<div class="adm-alert" id="adm-textos-msg"></div>';
+  // Sin eyebrow: lo dice el título del acordeón que envuelve este bloque.
+  let html='<div class="adm-alert" id="adm-textos-msg"></div>';
   html+='<p class="adm-card-text" style="margin-bottom:16px;">'
     +'Lo que tus usuarias leen de ti en cada práctica: al elegir cómo se sienten, al proponerte la práctica y al cerrarla. '
     +(sembrada
