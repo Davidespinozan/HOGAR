@@ -3100,14 +3100,10 @@ body.app-active { overflow: hidden; }
 .adm-filters input{ flex:1; min-width:180px; }
 .adm-filters input:focus,.adm-filters select:focus{ border-color:var(--terracota); }
 /* tabla de usuarias */
-.adm-table-wrap{ background:#fff; border-radius:22px; box-shadow:var(--highlight-top), var(--sombra-suave); overflow:hidden; overflow-x:auto; }
-.adm-table{ width:100%; border-collapse:collapse; font-family:'Montserrat',sans-serif; font-size:.84rem; }
-.adm-table th{ text-align:left; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); padding:14px 16px; border-bottom:2px solid var(--crema); white-space:nowrap; }
-.adm-table td{ padding:13px 16px; border-bottom:1px solid var(--crema-claro); color:var(--texto-oscuro); vertical-align:middle; }
-.adm-table tr:last-child td{ border-bottom:none; }
-.adm-badge{ display:inline-block; font-size:10px; font-weight:600; letter-spacing:.5px; padding:3px 10px; border-radius:100px; background:var(--crema); color:var(--tierra); text-transform:capitalize; }
-.adm-badge.activa{ background:#e5efe2; color:#4e7a48; }
-.adm-badge.cancelada,.adm-badge.baja{ background:#f3d9cf; color:var(--terracota-oscuro); }
+/* Aquí vivían .adm-table-wrap/.adm-table/.adm-badge, de la tabla de usuarias que
+   este paso sustituyó por tarjetas. Ya no las usaba nadie (la ficha de detalle
+   pinta .adm-hist-*, no tablas), así que se retiran. .adm-empty se queda: lo
+   comparten las tarjetas de USO en Inicio y la ficha. */
 .adm-empty{ text-align:center; color:var(--texto-medio); font-style:italic; padding:28px 16px; font-size:.85rem; }
 /* barras de uso */
 .adm-bar-row{ display:flex; align-items:center; gap:12px; margin-bottom:12px; }
@@ -3120,6 +3116,85 @@ body.app-active { overflow: hidden; }
 .adm-uso-card:hover{ transform:translateY(-3px); box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
 .adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
 @media(max-width:900px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
+
+/* ===== USUARIAS · LISTA — tarjetas (rediseño, paso 3) ========================
+   Todo scopeado a #adm-usuarias-lista, no a #adm-view-usuarias: la ficha de
+   detalle (— SU ACTIVIDAD) vive DENTRO de la misma sección y comparte .stat-tile
+   y .adm-kpi-grid. Acotando a la lista, la ficha queda exactamente como estaba.
+
+   Adiós a la tabla: .adm-table-wrap tenía overflow-x:auto, así que en un teléfono
+   las seis columnas no cabían y Alta y Estatus quedaban fuera de vista, cortadas
+   tras el borde. Una tarjeta por usuaria no puede cortarse: cada dato tiene su
+   renglón. */
+#adm-usuarias-lista .adm-filters{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+#adm-usuarias-lista .adm-filters input,
+#adm-usuarias-lista .adm-filters select{
+  font-family:'Montserrat',sans-serif; font-size:.86rem; color:#3a2820;
+  background:#fff; border:1px solid rgba(240,228,214,.9); border-radius:14px;
+  padding:.75rem 1rem; outline:none;
+  box-shadow:0 6px 16px rgba(58,40,32,.07);
+  transition:border-color .25s, box-shadow .25s; }
+#adm-usuarias-lista .adm-filters input{ flex:1 1 220px; min-width:0; }
+#adm-usuarias-lista .adm-filters select{ flex:0 1 auto; min-width:0; cursor:pointer; }
+#adm-usuarias-lista .adm-filters input::placeholder{ color:#9a7d6c; }
+#adm-usuarias-lista .adm-filters input:focus,
+#adm-usuarias-lista .adm-filters select:focus{
+  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
+
+/* Móvil: una columna a ancho completo. Escritorio: dos, para aprovechar el ancho. */
+.adm-u-grid{ display:grid; grid-template-columns:1fr; gap:12px; }
+@media(min-width:901px){ .adm-u-grid{ grid-template-columns:1fr 1fr; gap:16px; } }
+
+.adm-u-card{ display:block; width:100%; text-align:left; cursor:pointer;
+  background:#fff; border:1px solid rgba(240,228,214,.8); border-radius:20px;
+  padding:16px 18px 14px; box-shadow:0 6px 16px rgba(58,40,32,.07);
+  transition:transform .28s var(--ease-premium), box-shadow .28s var(--ease-premium),
+             border-color .28s var(--ease-premium); }
+.adm-u-card:hover{ transform:translateY(-3px); border-color:rgba(198,107,65,.28);
+  box-shadow:0 14px 32px rgba(58,40,32,.12); }
+.adm-u-card:focus-visible{ outline:2px solid #c66b41; outline-offset:2px; }
+.adm-u-head{ display:flex; align-items:center; gap:12px; }
+.adm-u-avatar{ flex-shrink:0; width:40px; height:40px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:#f0e0d0; color:#b0654a;
+  font-family:'Montserrat',sans-serif; font-weight:600; font-size:.95rem; line-height:1; }
+.adm-u-nombre{ flex:1 1 auto; min-width:0;
+  font-family:'Montserrat',sans-serif; font-size:.95rem; font-weight:500; color:#3a2820;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.adm-u-badge{ flex-shrink:0; display:inline-block;
+  font-family:'Montserrat',sans-serif; font-size:10px; font-weight:600; letter-spacing:.5px;
+  text-transform:capitalize; padding:4px 11px; border-radius:100px;
+  background:#f2e8dd; color:#9a7d6c; }
+.adm-u-badge.activa{ background:#e4f0e2; color:#4a8a5a; }
+.adm-u-badge.cancelada,
+.adm-u-badge.baja{ background:#f7e0d6; color:#b0654a; }
+
+/* Los datos, separados del encabezado por una línea sutil. */
+.adm-u-datos{ margin-top:13px; padding-top:12px; border-top:1px solid #f2e8dd;
+  display:flex; flex-direction:column; gap:7px; }
+.adm-u-fila{ display:flex; align-items:baseline; gap:12px;
+  font-family:'Montserrat',sans-serif; font-size:11.5px; line-height:1.4; }
+.adm-u-label{ flex:0 0 auto; color:#9a7d6c; font-weight:500; }
+/* El valor se va a la derecha; el correo puede partirse por donde sea antes que
+   desbordar, pero la fecha NUNCA se parte: era justo lo que se cortaba. */
+.adm-u-valor{ flex:1 1 auto; min-width:0; text-align:right; color:#5a4636; font-weight:500;
+  overflow-wrap:anywhere; }
+.adm-u-valor.nowrap{ overflow-wrap:normal; white-space:nowrap; }
+.adm-u-ver{ margin-top:12px; font-family:'Montserrat',sans-serif; font-size:10px;
+  font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:#c66b41; }
+.adm-u-card:hover .adm-u-ver{ color:#b0654a; }
+
+/* Estado vacío: cálido, no una tabla con un hueco. */
+.adm-u-vacio{ background:#fff; border:1px solid rgba(240,228,214,.8); border-radius:20px;
+  padding:44px 26px; text-align:center; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+.adm-u-vacio-ico{ width:48px; height:48px; margin:0 auto 14px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:#f0e0d0; color:#b0654a; font-size:20px; }
+.adm-u-vacio-tit{ font-family:'Montserrat',sans-serif; font-size:1rem; font-weight:500;
+  color:#3a2820; margin-bottom:6px; }
+.adm-u-vacio-sub{ font-family:'Montserrat',sans-serif; font-size:.84rem; font-weight:300;
+  color:#9a7d6c; line-height:1.5; max-width:330px; margin:0 auto; }
+@media(prefers-reduced-motion:reduce){ .adm-u-card{ transition:none; } }
 
 /* ===== INICIO — métricas (rediseño, paso 2) ==================================
    Todo va scopeado a #adm-view-inicio a propósito: .adm-kpi-grid y .stat-tile los
@@ -3422,12 +3497,8 @@ body.app-active { overflow: hidden; }
 .stat-tile-num.adm-num-texto{ font-size:19px; line-height:1.25; }
 @media(max-width:480px){ .stat-tile-num.adm-num-texto{ font-size:17px; } }
 /* Filas clickeables de la tabla */
-.adm-row-link{ cursor:pointer; transition:background .2s var(--ease-premium); }
-.adm-row-link:hover, .adm-row-link:focus-visible{ background:#fdf6ee; outline:none; }
-.adm-row-link:focus-visible td:first-child{ box-shadow:inset 3px 0 0 var(--terracota); }
-.adm-row-chevron{ text-align:right; white-space:nowrap; font-size:11px; font-weight:700;
-  letter-spacing:1px; text-transform:uppercase; color:var(--terracota); opacity:.55; transition:opacity .2s; }
-.adm-row-link:hover .adm-row-chevron{ opacity:1; }
+/* (Aquí estaban .adm-row-link/.adm-row-chevron, el hover y el foco de las filas
+   de esa misma tabla. Las tarjetas traen los suyos: .adm-u-card.) */
 /* Volver */
 .adm-back{ display:inline-flex; align-items:center; gap:7px; background:none; border:none; cursor:pointer;
   font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600; letter-spacing:.06em;
@@ -4174,15 +4245,13 @@ body.app-active { overflow: hidden; }
               <option value="baja">Baja</option>
             </select>
           </div>
-          <div class="adm-table-wrap">
-            <table class="adm-table">
-              <thead>
-                <tr><th>Nombre</th><th>Email</th><th>Alta</th><th>Plan</th><th>Estatus</th><th></th></tr>
-              </thead>
-              <tbody id="adm-usuarias-body">
-                <tr><td colspan="6" class="adm-empty">Cargando…</td></tr>
-              </tbody>
-            </table>
+          <!-- Una tarjeta por usuaria (las pinta renderAdminUsuarias). Ya no es
+               una tabla: en móvil sus seis columnas no cabían y Alta y Estatus
+               quedaban cortadas fuera del scroll horizontal. -->
+          <div class="adm-u-grid" id="adm-usuarias-body">
+            <div class="adm-u-vacio">
+              <div class="adm-u-vacio-tit">Cargando tus usuarias…</div>
+            </div>
           </div>
         </div>
       </div>
@@ -6661,7 +6730,9 @@ async function loadAdmin(){
       renderAdminUsuarias();
     }catch(e){
       console.warn('[HOGAR admin] tabla usuarias falló:',e.message||e);
-      if(body) body.innerHTML='<tr><td colspan="6" class="adm-empty">No se pudieron cargar las usuarias.</td></tr>';
+      // El contenedor ya no es un <tbody>: la fila de tabla no pintaría nada.
+      if(body) body.innerHTML=_admUsuariasVacio('No pudimos cargar tus usuarias',
+        'Revisa tu conexión y vuelve a entrar a esta sección en un momento.');
     }
   })();
 
@@ -6754,22 +6825,58 @@ function renderAdminUsuarias(){
   let rows=_admUsuarias.slice();
   if(term) rows=rows.filter(r=> (r.nombre||'').toLowerCase().includes(term) || (r.email||'').toLowerCase().includes(term));
   if(est) rows=rows.filter(r=> (r.estatus||'').toLowerCase()===est);
-  if(!rows.length){ body.innerHTML='<tr><td colspan="6" class="adm-empty">Sin usuarias que coincidan.</td></tr>'; return; }
+  if(!rows.length){
+    const filtrando = !!(term || est);
+    body.innerHTML=_admUsuariasVacio(
+      filtrando ? 'No hay usuarias que coincidan' : 'Todavía no hay usuarias',
+      filtrando ? 'Prueba con otro nombre, otro correo o quitando el filtro de estatus.'
+                : 'Cuando alguien entre a HOGAR, aparecerá aquí.');
+    return;
+  }
   body.innerHTML=rows.map(r=>{
     const estRaw=(r.estatus||'').toLowerCase();
-    const estCell = (r.estatus&&String(r.estatus).trim()!=='')
-      ? '<span class="adm-badge '+_admEsc(estRaw)+'">'+_admEsc(r.estatus)+'</span>' : '—';
-    // Toda la fila abre la ficha; la última celda es solo la señal visual.
-    return '<tr class="adm-row-link" onclick="verUsuariaHogar(\''+_admEsc(r.id)+'\')" tabindex="0"'
-      +' onkeydown="if(event.key===\'Enter\')verUsuariaHogar(\''+_admEsc(r.id)+'\')">'
-      +'<td>'+_admEsc(_admDash(r.nombre))+'</td>'
-      +'<td>'+_admEsc(_admDash(r.email))+'</td>'
-      +'<td>'+_admFmtDate(r.created_at)+'</td>'
-      +'<td>'+_admEsc(_admDash(r.plan))+'</td>'
-      +'<td>'+estCell+'</td>'
-      +'<td class="adm-row-chevron">Ver ›</td>'
-    +'</tr>';
+    const badge = (r.estatus&&String(r.estatus).trim()!=='')
+      ? '<span class="adm-u-badge '+_admEsc(estRaw)+'">'+_admEsc(r.estatus)+'</span>' : '';
+    const id=_admEsc(r.id);
+    // La tarjeta entera abre la ficha, igual que antes lo hacía la fila entera.
+    // Se muestran siempre desplegadas: colapsarlas exigiría que el toque
+    // significara dos cosas a la vez (expandir y abrir la ficha).
+    return '<article class="adm-u-card" onclick="verUsuariaHogar(\''+id+'\')" tabindex="0" role="button"'
+      +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();verUsuariaHogar(\''+id+'\');}">'
+      +'<div class="adm-u-head">'
+        +'<div class="adm-u-avatar" aria-hidden="true">'+_admEsc(_admInicial(r))+'</div>'
+        +'<div class="adm-u-nombre">'+_admEsc(_admDash(r.nombre))+'</div>'
+        +badge
+      +'</div>'
+      +'<div class="adm-u-datos">'
+        +_admFilaDato('Correo', _admEsc(_admDash(r.email)))
+        +_admFilaDato('Alta', _admFmtDate(r.created_at), true)
+        +_admFilaDato('Plan', _admEsc(_admDash(r.plan)))
+      +'</div>'
+      +'<div class="adm-u-ver">Ver su ficha &rsaquo;</div>'
+    +'</article>';
   }).join('');
+}
+
+// Un renglón label/valor de la tarjeta. nowrap para lo que no debe partirse nunca
+// (la fecha de alta, que era justo lo que se cortaba en la tabla).
+function _admFilaDato(label, valor, nowrap){
+  return '<div class="adm-u-fila"><span class="adm-u-label">'+label+'</span>'
+    +'<span class="adm-u-valor'+(nowrap?' nowrap':'')+'">'+valor+'</span></div>';
+}
+
+// Inicial del avatar: del nombre; si no hay, del correo; si tampoco, un punto.
+function _admInicial(r){
+  const base=String((r && (r.nombre || r.email)) || '').trim();
+  return (base.charAt(0) || '·').toUpperCase();
+}
+
+function _admUsuariasVacio(titulo, sub){
+  return '<div class="adm-u-vacio">'
+    +'<div class="adm-u-vacio-ico" aria-hidden="true">&#9675;</div>'
+    +'<div class="adm-u-vacio-tit">'+_admEsc(titulo)+'</div>'
+    +'<div class="adm-u-vacio-sub">'+_admEsc(sub)+'</div>'
+    +'</div>';
 }
 
 // Escape mínimo para texto que viene de la BD (nombres, emails) antes de meterlo en innerHTML.
