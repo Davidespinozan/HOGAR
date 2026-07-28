@@ -3917,7 +3917,11 @@ body.app-active { overflow: hidden; }
       </div>
       <div class="dash-andrea-glass">
         <div class="dash-andrea-photo">
-          <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg" alt="Andrea">
+          <!-- La misma foto de Andrea que el avatar del chat: la pinta
+               _landingSetFotoAndrea() desde andrea_foto_chat. El src que viene
+               escrito es la red de seguridad — si no hay valor en la base, si el
+               SQL aún no se corrió o si la foto nueva no carga, se queda ésta. -->
+          <img id="dash-andrea-img" src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg" alt="Andrea">
         </div>
         <div class="dash-andrea-text">
           <div class="dash-aside-meta" id="dash-aside-meta">ANDREA · HOY</div>
@@ -5832,14 +5836,35 @@ function _landingSetHeroMovilImg(url){
   tag.textContent='@media(max-width:480px){.hero{background-image:url("'+safe+'") !important;}}';
 }
 
-// La foto redonda de Andrea en el chat de la práctica. .msg-avatar la trae en un
-// shorthand `background:`, así que basta pisar background-image.
-function _landingSetFotoChat(url){
+// Foto del código para Andrea. Es la red de seguridad de los DOS sitios donde
+// aparece: si la de la base no carga, se vuelve a ésta en vez de dejar un hueco.
+const FOTO_ANDREA_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg';
+
+// La foto de Andrea, en los dos lugares donde la ven sus usuarias: el avatar
+// redondo del chat de la práctica y la foto del aside de su dashboard. Es UNA
+// sola foto (andrea_foto_chat), así que se pintan juntas — si se actualizara solo
+// una, quedarían dos Andreas distintas conviviendo en la misma app.
+//
+// Son dos mecanismos porque son dos cosas distintas: .msg-avatar la trae como
+// fondo CSS (shorthand `background:`, basta pisar background-image) y la del
+// dashboard es un <img>, que se cambia por src.
+function _landingSetFotoAndrea(url){
   if(!url) return;
   let tag=document.getElementById('landing-foto-chat-override');
   if(!tag){ tag=document.createElement('style'); tag.id='landing-foto-chat-override'; document.head.appendChild(tag); }
   const safe=String(url).replace(/["\\]/g,'\\$&');
   tag.textContent='.msg-avatar{background-image:url("'+safe+'") !important;}';
+
+  const img=document.getElementById('dash-andrea-img');
+  if(img){
+    // Si la nueva no carga (borrada del bucket, red caída), vuelve a la del
+    // código en vez de quedarse rota. El guard evita un bucle si la del código
+    // tampoco cargara.
+    img.onerror=function(){
+      if(this.src!==FOTO_ANDREA_COD){ this.onerror=null; this.src=FOTO_ANDREA_COD; }
+    };
+    img.src=url;
+  }
 }
 
 async function precargarLandingHogar(){
@@ -5872,7 +5897,7 @@ async function precargarLandingHogar(){
     // Cada foto cae por su cuenta: sin valor (o sin la columna todavía) se queda
     // la que trae el CSS, que es la que se ve hoy. Nunca un hueco.
     if(imgMovil && /^https:\/\//i.test(imgMovil)) _landingSetHeroMovilImg(imgMovil);
-    if(fotoChat && /^https:\/\//i.test(fotoChat)) _landingSetFotoChat(fotoChat);
+    if(fotoChat && /^https:\/\//i.test(fotoChat)) _landingSetFotoAndrea(fotoChat);
     if(precio && pc) pc.innerHTML=precio;
     console.log('[HOGAR landing] landing cargada desde Supabase ✓');
   }catch(e){
@@ -8071,7 +8096,7 @@ function _admLandingHTML(c){
           +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
       +'</div>'
       +'<div class="adm-lp-chat-txt">'
-        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">Es la que ven tus usuarias junto a tus mensajes, dentro de la práctica.</div>'
+        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">Es la que ven tus usuarias: junto a tus mensajes dentro de la práctica, y en su inicio. Con cambiarla aquí, cambia en los dos sitios.</div>'
         +'<input type="file" id="adm-lp-file-chat" accept="image/*" style="display:none" onchange="subirFotoChatHogar(this)">'
         +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-chat" '
           +'onclick="document.getElementById(\'adm-lp-file-chat\').click()">Cambiar foto</button>'
@@ -8142,7 +8167,7 @@ const ADM_FOTOS={
   movil:  { col:'landing_hero_imagen_movil', prefijo:'hero-movil-',   btn:'adm-lp-subir-movil',
             prev:'adm-lp-preview-movil', aplicar:u=>_landingSetHeroMovilImg(u) },
   chat:   { col:'andrea_foto_chat',          prefijo:'andrea-chat-',  btn:'adm-lp-subir-chat',
-            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoChat(u) }
+            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoAndrea(u) }
 };
 
 // SUBIDA DIRECTA de una de las fotos. Andrea elige un archivo de su compu; se sube

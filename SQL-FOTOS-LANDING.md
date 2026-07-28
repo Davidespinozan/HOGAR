@@ -8,7 +8,7 @@ no hay forma de tocarlas sin editar el código:
 |---|---|---|
 | Hero escritorio | landing, en computadora | ✅ `landing_hero_imagen` |
 | Hero móvil (vertical) | landing, en celular | ⛔ fija en el CSS |
-| Foto de Andrea | el chat de la práctica | ⛔ fija en el CSS |
+| Foto de Andrea | el chat de la práctica **y** el inicio de la usuaria | ⛔ fija en el CSS |
 
 Este SQL añade las dos columnas que faltan y las **siembra con las URLs que ya se usan
 hoy**, así que al correrlo no cambia nada de lo que se ve: la app sigue mostrando
@@ -104,11 +104,14 @@ la vertical de siempre en el celular y la foto de siempre en el chat. Nunca qued
 hueco. Por eso puedes correrlo cuando quieras — antes, la app funciona con las fotos
 del código; después, Andrea las controla.
 
-## Nota sobre una cuarta foto
+## Una sola foto de Andrea, en los dos sitios
 
-`hero-meditacion.jpg` se usa **en dos sitios**: el avatar del chat (que este cambio
-vuelve editable) y la foto de Andrea del dashboard de la usuaria, que sigue fija en el
-HTML. Si cambias *Tu foto* desde el panel, el chat se actualiza y el dashboard no:
-quedarían dos fotos distintas de Andrea. Está así a propósito porque el encargo pedía
-solo la del chat; decir si el dashboard debe seguirla también es una decisión de
-producto, no técnica.
+`hero-meditacion.jpg` se usaba **en dos lugares**: el avatar redondo del chat de la
+práctica y la foto del aside en el inicio de la usuaria. Los dos leen ahora la misma
+columna `andrea_foto_chat`, así que **con cambiar *Tu foto* una vez, cambia en los
+dos** — no pueden quedar dos Andreas distintas conviviendo en la app.
+
+Son dos mecanismos distintos por debajo, porque son dos cosas distintas: la del chat
+es un fondo CSS (`.msg-avatar`) y la del inicio es un `<img>`. La del inicio además
+tiene una red de seguridad extra: si la foto nueva no llegara a cargar (borrada del
+bucket, red caída), vuelve sola a `hero-meditacion.jpg` en vez de quedarse rota.
