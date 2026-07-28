@@ -3117,6 +3117,56 @@ body.app-active { overflow: hidden; }
 .adm-uso-card h4{ font-family:'Montserrat',sans-serif; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--tierra); margin-bottom:16px; }
 @media(max-width:900px){ .adm-uso-grid{ grid-template-columns:1fr; } .adm-bar-label{ flex-basis:100px; font-size:.76rem; } }
 
+/* ===== PLANES — precio destacado y editor (rediseño, paso 5) =================
+   Scopeado a #adm-view-planes: .adm-card, .adm-field y .adm-alert los comparten
+   Cobros, Contenido y Landing (47 usos de .adm-card en total), que son de otros
+   pasos. Aquí solo se re-viste lo de esta sección. */
+
+/* La card del precio manda, como la métrica de HOY en Inicio: mismo café, mismo
+   círculo de luz detrás, mismo número fino. */
+#adm-view-planes .adm-precio-hero{ position:relative; overflow:hidden;
+  background:linear-gradient(145deg,#3f2c20,#2a1c14);
+  border:1px solid rgba(198,107,65,.22); border-radius:26px;
+  padding:28px 26px 30px; margin-bottom:16px;
+  box-shadow:0 12px 30px rgba(37,24,17,.24); }
+#adm-view-planes .adm-precio-hero::before{ content:""; position:absolute;
+  top:-80px; right:-60px; width:240px; height:240px; border-radius:50%; pointer-events:none;
+  background:radial-gradient(circle, rgba(198,107,65,.34), transparent 66%); }
+#adm-view-planes .adm-precio-hero > *{ position:relative; }
+#adm-view-planes .adm-precio-hero-eyebrow{ font-family:'Montserrat',sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:2.4px; text-transform:uppercase;
+  color:#c9a892; margin-bottom:14px; }
+#adm-view-planes .adm-precio-hero-cifra{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+#adm-view-planes .adm-precio-hero-num{ font-family:'Montserrat',sans-serif;
+  font-weight:200; font-size:44px; line-height:1; letter-spacing:-1.5px; color:#f5d9bf; }
+#adm-view-planes .adm-precio-hero-moneda{ font-family:'Montserrat',sans-serif;
+  font-size:13px; font-weight:600; letter-spacing:1.4px; color:#c9a892; }
+#adm-view-planes .adm-precio-hero-sub{ font-family:'Montserrat',sans-serif;
+  font-size:12px; font-weight:300; color:#d4b8a4; margin-top:12px; line-height:1.5; }
+@media(min-width:901px){ #adm-view-planes .adm-precio-hero-num{ font-size:50px; } }
+
+/* Las cards del editor, alineadas al sistema de los pasos 2 y 3. */
+#adm-view-planes .adm-card{ background:#fff; border-radius:20px; padding:24px 22px;
+  border:1px solid rgba(240,228,214,.8); box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-planes .adm-card:hover{ transform:none; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+#adm-view-planes .adm-card-eyebrow{ font-size:10px; font-weight:700; letter-spacing:2.4px; color:#b0654a; }
+#adm-view-planes .adm-card-text{ color:#9a7d6c; }
+#adm-view-planes .adm-card-text strong{ color:#3a2820; }
+#adm-view-planes .adm-field label{ font-size:10px; font-weight:700; letter-spacing:1.6px; color:#9a7d6c; }
+#adm-view-planes .adm-field input,
+#adm-view-planes .adm-field textarea{
+  border:1px solid rgba(240,228,214,.9); border-radius:14px; padding:.75rem 1rem;
+  color:#3a2820; background:#fff; box-shadow:0 6px 16px rgba(58,40,32,.05);
+  transition:border-color .25s, box-shadow .25s; }
+#adm-view-planes .adm-field input::placeholder,
+#adm-view-planes .adm-field textarea::placeholder{ color:#c3ab99; }
+#adm-view-planes .adm-field input:focus,
+#adm-view-planes .adm-field textarea:focus{
+  border-color:#c66b41; box-shadow:0 0 0 3px rgba(198,107,65,.13); }
+#adm-view-planes .adm-field-hint{ color:#9a7d6c; }
+#adm-view-planes .adm-precio-sign{ color:#c66b41; font-weight:200; font-size:1.4rem; }
+#adm-view-planes .adm-moneda-fija{ background:#f0e0d0; color:#b0654a; }
+
 /* ===== USUARIAS · LISTA — tarjetas (rediseño, paso 3) ========================
    Todo scopeado a #adm-usuarias-lista, no a #adm-view-usuarias: la ficha de
    detalle (— SU ACTIVIDAD) vive DENTRO de la misma sección y comparte .stat-tile
@@ -4286,6 +4336,19 @@ body.app-active { overflow: hidden; }
         </div>
       </div>
 
+      <!-- El precio, tal como está guardado. Lo pinta _admPlanPintarPrecio() al
+           cargar la sección y otra vez tras guardar, con el valor que DEVUELVE la
+           base — no con el que se tecleó, para que nunca enseñe algo que no llegó
+           a persistirse. Sin precio escrito en el HTML. -->
+      <div class="adm-precio-hero hogar-rise-in">
+        <div class="adm-precio-hero-eyebrow">— ACCESO COMPLETO</div>
+        <div class="adm-precio-hero-cifra">
+          <span class="adm-precio-hero-num" id="adm-plan-precio-vista">—</span>
+          <span class="adm-precio-hero-moneda" id="adm-plan-moneda-vista">MXN</span>
+        </div>
+        <div class="adm-precio-hero-sub" id="adm-plan-hero-sub">pago único · acceso de por vida</div>
+      </div>
+
       <!-- Aviso cuando el precio sigue en 0: nadie puede comprar todavía -->
       <div class="adm-alert warn" id="adm-plan-aviso">
         Aún no has definido tu precio. Las usuarias no podrán comprar hasta que lo configures.
@@ -4311,7 +4374,7 @@ body.app-active { overflow: hidden; }
         </div>
 
         <div class="adm-field">
-          <label for="adm-plan-precio">Precio</label>
+          <label for="adm-plan-precio">Precio del acceso</label>
           <div class="adm-precio-wrap">
             <span class="adm-precio-sign">$</span>
             <input type="number" id="adm-plan-precio" min="1" step="1" inputmode="numeric" placeholder="499">
@@ -7937,6 +8000,32 @@ function _admPlanAviso(mostrar){
   if(el) el.className='adm-alert warn'+(mostrar?' show':'');
 }
 
+// Centavos → texto de precio. Sin decimales cuando son redondos (49900 → $499),
+// con dos cuando no lo son (49950 → $499.50), para no enseñar ".00" a todas horas
+// ni esconder los centavos cuando los hay.
+function _admPlanPrecioTexto(centavos){
+  const c=Number(centavos)||0;
+  if(c<=0) return '—';
+  return '$'+(c/100).toLocaleString('es-MX',{
+    minimumFractionDigits:(c%100)?2:0, maximumFractionDigits:2 });
+}
+
+// Pinta la card destacada con el precio REAL. Se llama al cargar la sección y de
+// nuevo al guardar, siempre con lo que devuelve la base: si un UPDATE se quedara
+// a medias, la card seguiría enseñando lo que de verdad cobrará el checkout, no
+// lo que Andrea acababa de teclear.
+function _admPlanPintarPrecio(centavos, moneda){
+  const num=document.getElementById('adm-plan-precio-vista');
+  const mon=document.getElementById('adm-plan-moneda-vista');
+  const sub=document.getElementById('adm-plan-hero-sub');
+  const c=Number(centavos)||0;
+  if(num) num.textContent=_admPlanPrecioTexto(c);
+  if(mon) mon.textContent=(moneda||'mxn').toUpperCase();
+  if(sub) sub.textContent = c>0
+    ? 'pago único · acceso de por vida'
+    : 'aún sin definir · nadie puede comprar todavía';
+}
+
 async function loadPlanes(){
   const $=id=>document.getElementById(id);
   _admPlanMsg('');
@@ -7953,6 +8042,7 @@ async function loadPlanes(){
     // Centavos → pesos para el formulario (49900 → 499).
     if($('adm-plan-precio')) $('adm-plan-precio').value = cent>0 ? String(Math.round(cent/100)) : '';
     if($('adm-plan-moneda')) $('adm-plan-moneda').textContent=(c.moneda||'mxn').toUpperCase();
+    _admPlanPintarPrecio(cent, c.moneda);
     _admPlanAviso(cent<=0);
   }catch(e){
     console.warn('[HOGAR admin] planes:',e.message||e);
@@ -7987,8 +8077,12 @@ async function guardarPlanHogar(btn){
       _admPlanMsg('No se pudo guardar: falta el permiso de escritura en hogar_config. Corre el SQL de SQL-PLANES.md en Supabase.','error');
       return;
     }
+    // El .select() de arriba ya devolvió la fila guardada: se pinta con ESE
+    // precio, no con el local, para que la card refleje la base y no el teclado.
+    const guardado=(data[0] && data[0].precio_centavos!=null) ? data[0].precio_centavos : centavos;
     _admPlanMsg('Guardado','ok');
-    _admPlanAviso(centavos<=0);
+    _admPlanPintarPrecio(guardado, (document.getElementById('adm-plan-moneda')||{}).textContent);
+    _admPlanAviso(guardado<=0);
   }catch(e){
     console.warn('[HOGAR admin] guardar plan:',e.message||e);
     const m=(e && e.message)||'';
