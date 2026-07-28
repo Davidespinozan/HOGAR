@@ -3321,22 +3321,29 @@ body.app-active { overflow: hidden; }
 #s-admin.on{ background:linear-gradient(175deg,#fdf6ee,#f7e9db) !important; }
 
 /* — Top bar (solo móvil) — */
+/* Crema tostado, un punto más cálido y oscuro que el crema del contenido
+   (#fdf6ee→#f7e9db). Antes era un crema translúcido casi idéntico al fondo y la
+   barra se perdía; ahora se separa por el propio color, más borde y sombra.
+   Se va el backdrop-filter: con un fondo opaco no desenfocaba nada, solo costaba. */
 .adm-topbar{ position:sticky; top:0; z-index:30;
   display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
-  padding:12px 16px; background:rgba(253,246,238,.82);
-  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
-  border-bottom:.5px solid rgba(58,40,32,.07); }
+  padding:12px 16px; background:#f0e0d0;
+  border-bottom:1px solid rgba(198,107,65,.12);
+  box-shadow:0 4px 16px rgba(58,40,32,.08); }
 .adm-topbar-logo{ display:flex; justify-content:center; }
+/* SIN el filter de aclarado: aquí el fondo es claro, así que va el logo tal cual,
+   en su oscuro original. El filtro es solo para el sidebar y el drawer, que son
+   café. Si algún día esta barra se oscurece, entonces sí habría que aclararlo. */
 .adm-topbar-logo img{ height:30px; width:auto; }
-/* Hamburguesa: la tercera línea es más corta y terracota, a propósito. */
+/* Hamburguesa: blanca para recortarse contra el tostado. La tercera línea es más
+   corta y terracota, a propósito. */
 .adm-burger{ width:42px; height:42px; flex-shrink:0; cursor:pointer;
   display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px;
-  padding:0 12px; border-radius:14px;
-  background:rgba(255,255,255,.7); border:1px solid rgba(198,107,65,.15);
-  box-shadow:0 4px 12px rgba(58,40,32,.07);
-  transition:background .25s var(--ease-premium), transform .25s var(--ease-premium),
-             box-shadow .25s var(--ease-premium); }
-.adm-burger:hover{ background:#fff; transform:translateY(-1px); box-shadow:0 6px 16px rgba(58,40,32,.11); }
+  padding:0 12px; border-radius:13px;
+  background:#fff; border:none;
+  box-shadow:0 2px 6px rgba(58,40,32,.08);
+  transition:transform .25s var(--ease-premium), box-shadow .25s var(--ease-premium); }
+.adm-burger:hover{ transform:translateY(-1px); box-shadow:0 5px 14px rgba(58,40,32,.13); }
 .adm-burger:active{ transform:scale(.96); }
 .adm-burger span{ display:block; height:2px; border-radius:2px; background:#3a2820; transition:width .25s var(--ease-premium); }
 .adm-burger span:nth-child(1),
