@@ -1279,6 +1279,18 @@ body.app-active { overflow: hidden; }
   color: var(--terracota);
 }
 
+/* Aviso de prácticas que no se pudieron guardar. Informativo, no alarma: color
+   cálido y descartable, no rojo de error. */
+.hist-aviso{ display:flex; align-items:flex-start; gap:12px;
+  background:#fbeae1; border:1px solid rgba(198,107,65,.22); border-radius:16px;
+  padding:14px 16px; margin-bottom:16px; }
+.hist-aviso-txt{ flex:1 1 auto; font-family:'Montserrat',sans-serif; font-size:.82rem;
+  font-weight:300; line-height:1.55; color:#8a4a2e; }
+.hist-aviso-x{ flex-shrink:0; background:none; border:none; cursor:pointer;
+  font-size:20px; line-height:1; color:#b0654a; padding:0 2px; opacity:.7;
+  transition:opacity .2s; }
+.hist-aviso-x:hover{ opacity:1; }
+
 /* ===== HISTORIAL EXPANDIDO ===== */
 .historial-filters {
   display: flex;
@@ -6612,7 +6624,11 @@ function qFinish(){
       // campos de compatibilidad con renderHistory() y renderPaisaje()
       p: sP, r: sR, d: 'Hoy'
     };
-    hi.unshift(ses);          // cache local inmediato (respaldo)
+    // Se pinta ya en la lista en memoria para que la pantalla de cierre y el
+    // dashboard la muestren al instante. OJO: esto NO es un respaldo — `hi` vive
+    // solo en memoria y refrescarHistorialYStats() lo sobrescribe con lo que
+    // traiga la nube. Si el guardado de abajo falla, esta entrada desaparece.
+    hi.unshift(ses);
     guardarSesionNube(ses);   // guardado en la nube en segundo plano
   }
   go('done');
@@ -7048,10 +7064,13 @@ async function renderHistory(filter){
   }
   if(!list || list.length===0){
     const isFiltered=(filter&&filter!=='todos');
-    c.innerHTML='<div class="historial-empty-state"><h3>'+(isFiltered?'Sin prácticas en este filtro':'Aún no tienes sesiones registradas')+'</h3><p>'+(isFiltered?'Probá cambiando de filtro.':'Tu camino se va construyendo cada vez que vuelves.')+'</p></div>';
+    c.innerHTML=_avisoSesionesNoGuardadas()
+      +'<div class="historial-empty-state"><h3>'+(isFiltered?'Sin prácticas en este filtro':'Aún no tienes sesiones registradas')+'</h3><p>'+(isFiltered?'Probá cambiando de filtro.':'Tu camino se va construyendo cada vez que vuelves.')+'</p></div>';
     return;
   }
-  c.innerHTML=list.map(h=>histCard(h)).join('');
+  // El aviso va arriba del todo: si una práctica no se guardó, es lo primero que
+  // debe ver al buscarla y no encontrarla.
+  c.innerHTML=_avisoSesionesNoGuardadas()+list.map(h=>histCard(h)).join('');
 }
 
 // ============================================
@@ -7086,16 +7105,73 @@ function mapSesionFromCloud(row){
   };
 }
 
-// Guarda una sesión en la nube (segundo plano; el cache local es el respaldo)
+const SES_REINTENTOS=3;
+const SES_ESPERA_MS=[1000,3000];        // espera antes del 2.º y del 3.er intento
+
+// ── Prácticas que no se pudieron guardar ─────────────────────────────────────
+// Es una MARCA, no una cola: se anota que una práctica se perdió, y nada más. NO
+// se reintenta después ni se reinserta, y por eso no hace falta deduplicar —que
+// es lo que encarece la cola con sincronización (ver el final de este bloque).
+//
+// Vive en localStorage para sobrevivir a una recarga, que es justo cuando ella
+// miraría su historial. Todo va entre try/catch: en modo privado o con la cuota
+// llena, localStorage lanza, y perder la marca nunca debe romper la app.
+const SES_PERDIDAS_KEY='hogar_practicas_no_guardadas';
+const SES_PERDIDAS_MAX=10;
+
+function _marcarSesionNoGuardada(ses){
+  try{
+    const lista=_sesionesNoGuardadas();
+    lista.unshift({ cuando:new Date().toISOString(), practica:(ses&&ses.practica)||'' });
+    localStorage.setItem(SES_PERDIDAS_KEY, JSON.stringify(lista.slice(0,SES_PERDIDAS_MAX)));
+    console.warn('[HOGAR] Práctica NO guardada tras '+SES_REINTENTOS+' intentos; anotada para avisar a la usuaria.');
+  }catch(_){ /* sin localStorage no hay marca, pero la app sigue */ }
+}
+function _sesionesNoGuardadas(){
+  try{
+    const v=JSON.parse(localStorage.getItem(SES_PERDIDAS_KEY)||'[]');
+    return Array.isArray(v)?v:[];
+  }catch(_){ return []; }
+}
+function descartarSesionesNoGuardadas(){
+  try{ localStorage.removeItem(SES_PERDIDAS_KEY); }catch(_){}
+  renderHistory(window._histFilter||'todos');
+}
+
+// Aviso para el historial. Se muestra solo si hay marcas, y con un botón para
+// descartarlo: es información, no una alarma que deba perseguirla para siempre.
+function _avisoSesionesNoGuardadas(){
+  const l=_sesionesNoGuardadas();
+  if(!l.length) return '';
+  const una=(l.length===1);
+  const cuando=una ? (_admFmtDate ? _admFmtDate(l[0].cuando) : '') : '';
+  return '<div class="hist-aviso">'
+    +'<div class="hist-aviso-txt">'
+      +(una
+        ? 'Una práctica'+(cuando?' del '+cuando:'')+' no se pudo guardar y no aparece aquí.'
+        : l.length+' prácticas no se pudieron guardar y no aparecen aquí.')
+      +' Escríbenos y la añadimos a tu registro.'
+    +'</div>'
+    +'<button type="button" class="hist-aviso-x" onclick="descartarSesionesNoGuardadas()" aria-label="Descartar aviso">&times;</button>'
+    +'</div>';
+}
+
+// Guarda una sesión en la nube, en segundo plano y con reintentos.
+//
+// NO hay respaldo local: `hi` es un array en memoria que se sobrescribe desde la
+// nube en cuanto la usuaria vuelve al dashboard o al perfil. Si esto falla del
+// todo, la práctica se pierde del historial, del paisaje y de los tres
+// contadores. Por eso se reintenta, y por eso el último fallo deja una marca que
+// el historial le muestra (ver _marcarSesionNoGuardada).
 async function guardarSesionNube(ses){
   try{
     if(!window.sb) return;
     const { data:{ session } } = await window.sb.auth.getSession();
     if(!session || !session.user){
-      console.warn('[HOGAR] Sin sesión activa: la práctica quedó solo en el cache local.');
+      console.warn('[HOGAR] Sin sesión activa: la práctica NO se guardó.');
       return;
     }
-    const { error } = await window.sb.from('hogar_sesiones').insert({
+    const fila={
       user_id: session.user.id,
       emo: ses.emo,
       emo_name: ses.emoName,
@@ -7103,11 +7179,29 @@ async function guardarSesionNube(ses){
       ritmo: ses.ritmo,
       path: ses.path,
       answers: ses.answers
-    });
-    if(error) console.warn('[HOGAR] No se pudo guardar la sesión en la nube:', error.message);
-    else console.log('[HOGAR] Sesión guardada en la nube ✓');
+    };
+
+    // Reintentos con espera creciente. La mayoría de los fallos de guardado son
+    // un tropiezo momentáneo de red, y volver a intentarlo un segundo después los
+    // resuelve sin que la usuaria se entere de nada. Un fallo permanente (una
+    // policy mal, un dato que la tabla rechaza) agota los tres intentos rápido y
+    // cae a la marca de abajo.
+    for(let intento=1; intento<=SES_REINTENTOS; intento++){
+      const { error } = await window.sb.from('hogar_sesiones').insert(fila);
+      if(!error){
+        console.log('[HOGAR] Sesión guardada en la nube ✓'+(intento>1?' (intento '+intento+')':''));
+        return true;
+      }
+      console.warn('[HOGAR] No se pudo guardar la sesión (intento '+intento+'/'+SES_REINTENTOS+'):', error.message);
+      if(intento<SES_REINTENTOS) await new Promise(r=>setTimeout(r, SES_ESPERA_MS[intento-1]||3000));
+    }
+    // Agotados los intentos: se deja constancia para que ella pueda reclamarla.
+    _marcarSesionNoGuardada(ses);
+    return false;
   }catch(err){
     console.warn('[HOGAR] Error guardando la sesión en la nube:', err);
+    _marcarSesionNoGuardada(ses);
+    return false;
   }
 }
 
