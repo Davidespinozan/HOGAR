@@ -34,7 +34,7 @@
 .scr{display:none;}
 .scr.on{display:block;animation:scrIn .5s ease;}
 /* Todas las screens que NO son landing se fijan al viewport */
-#s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on,#s-admin.on{
+#s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on,#s-admin.on,#s-acceso.on{
   position:fixed;top:0;left:0;width:100%;height:100%;overflow-y:auto;z-index:200;background:var(--crema);
 }
 @keyframes scrIn{from{opacity:0}to{opacity:1}}@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(244,200,184,.3)}50%{box-shadow:0 0 40px rgba(244,200,184,.5)}}
@@ -589,7 +589,7 @@
 #s-payment.on,#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,
 #s-dash.on,#s-ci1.on,#s-ci2.on,
 #s-prac.on,#s-quest.on,
-#s-done.on,#s-profile.on,#s-history.on,#s-admin.on{
+#s-done.on,#s-profile.on,#s-history.on,#s-admin.on,#s-acceso.on{
   background: linear-gradient(180deg, var(--salmon-claro) 0%, var(--crema-claro) 100%) !important;
 }
 
@@ -3392,6 +3392,31 @@ body.app-active { overflow: hidden; }
 .hogar-rise-in:nth-child(5){ animation-delay: 0.24s; }
 .hogar-rise-in:nth-child(6){ animation-delay: 0.29s; }
 /* Header glass — solo en el panel admin, para no tocar el nav del resto de la app */
+/* ===== PANTALLA DE ACCESO — la ve quien aún no ha activado su acceso ========= */
+.acc-wrap{ min-height:100svh; display:flex; align-items:center; justify-content:center; padding:2rem 1.25rem; }
+.acc-card{ width:100%; max-width:460px; background:#fff; border-radius:24px;
+  padding:2.4rem 1.9rem; text-align:center;
+  border:1px solid rgba(240,228,214,.8); box-shadow:0 20px 60px rgba(216,135,102,.12); }
+.acc-logo{ height:44px; margin:0 auto 1.4rem; }
+.acc-eyebrow{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
+  letter-spacing:2.4px; text-transform:uppercase; color:#b0654a; margin-bottom:12px; }
+.acc-tit{ font-family:'Montserrat',sans-serif; font-style:italic; font-weight:400;
+  font-size:1.6rem; line-height:1.25; color:#3a2820; margin:0 0 .8rem; }
+.acc-txt{ font-family:'Montserrat',sans-serif; font-size:.88rem; font-weight:300;
+  line-height:1.65; color:#9a7d6c; margin:0 0 1.4rem; }
+.acc-precio{ font-family:'Montserrat',sans-serif; font-weight:200; font-size:2.4rem;
+  line-height:1; letter-spacing:-1.5px; color:#c66b41; margin-bottom:.35rem; }
+.acc-precio-sub{ font-family:'Montserrat',sans-serif; font-size:.76rem; color:#9a7d6c; margin-bottom:1.6rem; }
+.acc-lista{ list-style:none; text-align:left; margin:0 0 1.6rem; padding:0; }
+.acc-lista li{ font-family:'Montserrat',sans-serif; font-size:.84rem; font-weight:300;
+  color:#5a4636; line-height:1.5; padding:.42rem 0 .42rem 1.6rem; position:relative; }
+.acc-lista li::before{ content:'✓'; position:absolute; left:0; color:#4a8a5a; font-weight:700; }
+.acc-nota{ font-family:'Montserrat',sans-serif; font-size:.74rem; color:#9a7d6c; margin-top:1.1rem; line-height:1.55; }
+.acc-salir{ background:none; border:none; cursor:pointer; margin-top:1rem;
+  font-family:'Montserrat',sans-serif; font-size:.76rem; color:#9a7d6c; text-decoration:underline;
+  text-underline-offset:3px; }
+.acc-salir:hover{ color:#c66b41; }
+
 /* ===== SISTEMA VISUAL DEL PANEL (paso 8) =====================================
    El rediseño fue sección a sección, así que cada paso reescribió lo suyo
    scopeado (#adm-view-inicio, #adm-view-planes…). Resultado: el mismo sistema
@@ -4222,6 +4247,33 @@ body.app-active { overflow: hidden; }
       <div class="filter-chip" onclick="filtrarHistorial(this,'tensa')">Tensa</div>
     </div>
     <div id="historial-full-content"></div>
+  </div>
+</div>
+
+<!-- ===== ACCESO — la ve quien inició sesión pero aún no ha activado su acceso.
+     No es un muro de verdad (el contenido sigue en un bucket público): es el
+     punto donde se le pide activar antes de entrar a la práctica. -->
+<div id="s-acceso" class="scr">
+  <div class="acc-wrap">
+    <div class="acc-card">
+      <img class="acc-logo" src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
+      <div class="acc-eyebrow">— TU ACCESO</div>
+      <h2 class="acc-tit">Activa tu <em>HOGAR</em>.</h2>
+      <p class="acc-txt" id="acc-txt">Tu cuenta está lista. Falta activar tu acceso para entrar a las prácticas.</p>
+      <!-- El precio real lo pinta _accPintarPrecio() desde la landing pública;
+           el del código es el respaldo si esa lectura no llega. -->
+      <div class="acc-precio" id="acc-precio">$499</div>
+      <div class="acc-precio-sub">Pago único · acceso de por vida</div>
+      <ul class="acc-lista">
+        <li>5 caminos de práctica según cómo te sientas</li>
+        <li>Sesiones en video de 15, 30 y 45 minutos</li>
+        <li>La voz de Andrea acompañándote en cada una</li>
+        <li>Tu registro privado, sin juicio</li>
+      </ul>
+      <button class="btn btn-r btn-full" id="acc-btn" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
+      <p class="acc-nota" id="acc-nota">El pago se procesa con Stripe. Al terminar vuelves aquí y entras directo.</p>
+      <button type="button" class="acc-salir" onclick="doOut()">Cerrar sesión</button>
+    </div>
   </div>
 </div>
 
@@ -5267,6 +5319,11 @@ function irTrasAuth(){
   // se leen recién cuando la usuaria entra al flujo, más tarde que esta carga.
   precargarNotasHogar();
   precargarTextosHogar();
+  // El acceso se pide YA, sin await: la navegación no espera a la red. Para
+  // cuando la usuaria elija emoción y duración, la respuesta suele haber
+  // llegado; y si no, pT() espera esta misma promesa antes de decidir.
+  _olvidarAcceso();
+  cargarAccesoHogar();
   // ?ver=landing — lo pone el botón "Ver landing" del panel. Sin esto el botón no
   // serviría de nada: la landing es una pantalla de esta misma app, así que al
   // abrir otra pestaña se restauraría la sesión de Andrea y el redirect por rol la
@@ -5570,11 +5627,124 @@ async function doLog(){
   }
 }
 
+// ============================================
+// ACCESO — ¿esta usuaria puede entrar a las prácticas?
+// ============================================
+// El estado tiene TRES valores, no dos, y esa es la pieza importante:
+//   true  → pagó, confirmado contra la base
+//   false → NO pagó, confirmado contra la base
+//   null  → no se pudo saber (red caída, RLS sin aplicar, consulta a medias)
+//
+// Cada decisión cae hacia el lado generoso cuando es null: se deja practicar
+// (para no dejar fuera a quien pagó) y se muestra el botón de pagar (para no
+// impedir pagar a quien no). Es la única combinación en la que un fallo de
+// lectura no hace daño en ninguna de las dos direcciones.
+//
+// La fuente es hogar_usuarias.pagado, que marca el webhook de Stripe. NO se usa
+// `estatus`: hoy vale 'activa' para todas desde el registro, pagadas o no, así
+// que no distingue nada. Ver SQL-ACCESO.md.
+let _accesoPromesa = null;   // lectura en vuelo, para que pT() pueda esperarla
+
+// Lee el acceso y lo deja en U.acceso. Idempotente: si ya hay una lectura en
+// curso, devuelve esa misma en vez de lanzar otra.
+function cargarAccesoHogar(){
+  if(_accesoPromesa) return _accesoPromesa;
+  _accesoPromesa = (async()=>{
+    if(!U) return null;
+    // Andrea entra siempre. Sin esto, "Ver la app como usuaria" la dejaría
+    // bloqueada en su propia app: su fila tiene pagado=false.
+    if(esAdmin(U.email)){ U.acceso=true; return true; }
+    try{
+      if(!window.sb) throw new Error('sin cliente Supabase');
+      const { data:{ session } } = await window.sb.auth.getSession();
+      if(!session || !session.user){ U.acceso=null; return null; }
+      const { data, error } = await window.sb.from('hogar_usuarias')
+        .select('pagado').eq('id', session.user.id).maybeSingle();
+      if(error) throw error;
+      // Sin fila NO es "no pagó": es que no se pudo ver. Con RLS, una policy
+      // ausente devuelve vacío sin error, y confundir eso con un impago
+      // bloquearía a todo el mundo. Queda en null y se deja pasar.
+      if(!data){
+        console.warn('[HOGAR acceso] sin fila legible; ¿falta correr SQL-ACCESO.md? Se deja pasar.');
+        U.acceso=null; return null;
+      }
+      U.acceso = (data.pagado===true);
+      return U.acceso;
+    }catch(e){
+      console.warn('[HOGAR acceso] no se pudo leer:', (e&&e.message)||e);
+      U.acceso=null; return null;
+    }
+  })();
+  return _accesoPromesa;
+}
+
+// Espera la lectura si sigue en vuelo. La usa pT() antes de abrir la práctica.
+async function _asegurarAcceso(){
+  if(!U) return null;
+  if(U.acceso===true || U.acceso===false) return U.acceso;
+  try{ return await cargarAccesoHogar(); }catch(_){ return null; }
+}
+
+// Vuelve a preguntar desde cero (tras volver de Stripe, por ejemplo).
+function _olvidarAcceso(){
+  _accesoPromesa=null;
+  if(U) U.acceso=null;
+}
+
+// Precio real en la pantalla de acceso. Sale de la vista pública hogar_landing,
+// la misma que alimenta la landing, para que no puedan discrepar. Si no llega,
+// se queda el del código.
+async function _accPintarPrecio(){
+  try{
+    if(!window.sb) return;
+    const { data } = await window.sb.from('hogar_landing').select('precio_centavos').maybeSingle();
+    const c=Number(data && data.precio_centavos)||0;
+    if(c<=0) return;
+    const el=document.getElementById('acc-precio');
+    if(el) el.textContent='$'+(c/100).toLocaleString('es-MX',{minimumFractionDigits:(c%100)?2:0, maximumFractionDigits:2});
+  }catch(_){ /* se queda el precio del código */ }
+}
+
+// Manda a la pantalla de acceso.
+function irAAcceso(){
+  _accPintarPrecio();
+  go('acceso');
+}
+
+// Vuelta de Stripe con ?pago=exito.
+//
+// Hay una carrera real: Stripe devuelve a la clienta en cuanto cobra, pero
+// `pagado` lo marca el WEBHOOK, que llega por su cuenta y puede tardar unos
+// segundos. Sin esto, la clienta pagaría y se encontraría bloqueada justo
+// después — el peor momento posible para desconfiar.
+//
+// Se reintenta la lectura unas cuantas veces antes de rendirse. Si al final
+// sigue sin constar, se lo decimos con honestidad ("se está confirmando") en vez
+// de afirmar que ya tiene acceso, que es lo que hacía antes sin comprobar nada.
+async function _confirmarPagoHogar(){
+  const INTENTOS=5, ESPERA_MS=2000;
+  for(let i=0;i<INTENTOS;i++){
+    _olvidarAcceso();
+    const acceso=await cargarAccesoHogar();
+    if(acceso===true){
+      if(typeof uP==='function') uP();          // el botón de pagar ya sobra
+      alert('¡Pago recibido! Tu acceso a HOGAR ya está activo. 🌿');
+      return;
+    }
+    // null (no se pudo leer) también reintenta: puede ser un tropiezo de red.
+    if(i<INTENTOS-1) await new Promise(r=>setTimeout(r, ESPERA_MS));
+  }
+  console.warn('[HOGAR acceso] pago=exito pero `pagado` sigue sin constar tras '+INTENTOS+' intentos.');
+  alert('Recibimos tu pago y se está confirmando. Puede tardar un momento: '
+    +'vuelve a entrar en unos minutos y tu acceso estará listo. Si no, escríbenos.');
+}
+
 // LOGOUT REAL
 async function doOut(){
   if(tm){ clearInterval(tm); tm=null; }
   try{ if(window.sb) await window.sb.auth.signOut(); }catch(err){}
   U=null;
+  _olvidarAcceso();   // la próxima que entre no hereda el acceso de la anterior
   go('landing');
 }
 
@@ -5630,9 +5800,8 @@ async function _authInit(){
       // Limpiar el query param para que no reaparezca al recargar
       history.replaceState(null,'',window.location.pathname);
       if(pago==='exito'){
-        // El webhook es quien marca 'activa'; refrescamos y avisamos.
         if(typeof refrescarHistorialYStats==='function') refrescarHistorialYStats();
-        setTimeout(()=>alert('¡Pago recibido! Tu acceso a HOGAR ya está activo. 🌿'), 300);
+        _confirmarPagoHogar();
       }else if(pago==='cancelado'){
         setTimeout(()=>alert('El pago se canceló. Puedes intentarlo de nuevo cuando quieras.'), 300);
       }
@@ -5945,9 +6114,11 @@ function uP(){
     if(STRIPE_PORTAL_URL){ sb.href=STRIPE_PORTAL_URL; sb.style.display=''; }
     else { sb.style.display='none'; }
   }
-  // Botón de pago: solo si el pago está activo (Andrea afina "solo no-activas" más adelante).
+  // Botón de pago: solo a quien NO tiene el acceso confirmado. `!== true` y no
+  // `=== false` a propósito: con el acceso desconocido el botón se muestra, para
+  // que un fallo de lectura nunca deje a alguien sin forma de pagar.
   const ab=$('perfil-activar-btn');
-  if(ab) ab.style.display = STRIPE_PAGO_ACTIVO ? '' : 'none';
+  if(ab) ab.style.display = (STRIPE_PAGO_ACTIVO && U.acceso!==true) ? '' : 'none';
 }
 
 // ============================================
@@ -6493,7 +6664,16 @@ function stopPracVideo(){
 }
 
 // TIME
-function pT(time,rhy){
+// ASÍNCRONA a propósito: es el embudo único hacia el contenido —todos los
+// caminos (las tres tiempo-card del HTML, pickTime y pickTimeGo) pasan por
+// aquí—, así que es donde vive la guarda de acceso. Se espera la lectura si
+// sigue en vuelo; sin ese await, la primera práctica tras iniciar sesión se
+// colaría siempre, que es justo el momento más probable.
+// Nadie usa su valor de retorno: se llama desde onclick y desde dos wrappers.
+async function pT(time,rhy){
+  // Bloqueo SOLO ante un "no pagó" confirmado. Si la lectura falló o no llegó,
+  // se deja pasar: preferimos un colado ocasional a dejar fuera a quien pagó.
+  if(await _asegurarAcceso()===false){ irAAcceso(); return; }
   sR=rhy;
   const $=id=>document.getElementById(id);
   if($('prT'))$('prT').textContent='Práctica de '+sP;
