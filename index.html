@@ -1966,7 +1966,6 @@ body.app-active { overflow: hidden; }
 
 /* RESPONSIVE móvil dashboard conversacional */
 @media (max-width: 720px) {
-  .dash-avatar-circle { width: 48px; height: 48px; }
   /* Se mantienen las 3 en fila (antes se apilaban a 1 columna aquí) */
   .dash-stats-gallery { gap: 10px; }
   .stat-tile { padding: 18px 12px; }
@@ -2716,7 +2715,6 @@ body.app-active { overflow: hidden; }
 .bloque-precio h2,
 .andrea-info h2,
 .faq-header h2,
-.dash-hero-title,
 .preview-title,
 .cierre-title,
 .check-title,
@@ -2735,7 +2733,6 @@ body.app-active { overflow: hidden; }
 .bloque-precio h2 em,
 .andrea-info h2 em,
 .faq-header h2 em,
-.dash-hero-title em,
 .preview-title em,
 .cierre-title em,
 .check-title em {
@@ -4081,7 +4078,10 @@ body.app-active { overflow: hidden; }
         </div>
         <div class="vp-pendiente" id="vp-pendiente" style="display:none;">
           <div class="vp-pendiente-eyebrow">✦ EN PREPARACIÓN</div>
-          <h3 class="vp-pendiente-title" id="vp-pendiente-title">Esta práctica de 45 min<br>llega pronto</h3>
+          <!-- Sin duración escrita: _vpMostrarPendiente() la pone con los minutos
+               reales. Antes decía "45 min" fijo, de cuando el overlay era solo
+               para esa duración, y habría mentido si el JS fallara antes. -->
+          <h3 class="vp-pendiente-title" id="vp-pendiente-title">Esta práctica<br>llega pronto</h3>
           <p class="vp-pendiente-desc" id="vp-pendiente-desc">Estamos preparándola con calma. Mientras tanto, puedes elegir Micro o Base.</p>
           <button type="button" class="btn btn-r" onclick="go('dash')">Volver al inicio</button>
         </div>
@@ -6114,6 +6114,10 @@ function uD(){
 }
 
 // Pegar aquí el link del Customer Portal de Stripe (dejar vacío oculta el botón "Gestionar suscripción").
+// Vacío a propósito: mientras lo esté, el botón "Gestionar suscripción" del
+// perfil queda oculto. OJO SI ALGÚN DÍA SE RELLENA: ese texto contradice el
+// modelo, que es de PAGO ÚNICO y no una suscripción. Habría que renombrarlo
+// (algo como "Ver mi comprobante") antes de encenderlo.
 const STRIPE_PORTAL_URL = '';
 
 // ===== PAGO REAL (Stripe Checkout · pago único) =====

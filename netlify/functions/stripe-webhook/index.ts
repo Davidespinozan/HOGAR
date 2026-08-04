@@ -126,6 +126,20 @@ export const handler: Handler = async (event) => {
       case 'account.updated':
         await sincronizarCuenta(stripeEvent.data.object as Stripe.Account);
         break;
+      // PENDIENTE — reembolsos y disputas (hallazgo #10 de la auditoría). Hoy,
+      // si a una clienta se le devuelve el dinero, CONSERVA el acceso: nada pone
+      // `pagado` en false. Está sin hacer a la espera de que Andrea decida si el
+      // reembolso debe revocar automáticamente o prefiere manejarlo a mano.
+      //
+      // Dos cosas ya verificadas que ahorran trabajo cuando se retome:
+      //  · charge.refunded SÍ encaja tal cual — el Charge copia la metadata del
+      //    PaymentIntent, así que trae app y user_id y pasa esDeHogar().
+      //  · charge.dispute.created NO — el objeto es una Dispute, cuyo metadata
+      //    nace vacío, así que esDeHogar() lo descartaría en silencio. Hay que
+      //    expandir dispute.charge para sacar el user_id.
+      //
+      // El análisis completo, las dos opciones de modelado y los eventos que hay
+      // que suscribir en el Dashboard: PENDIENTE-REEMBOLSOS.md en la raíz.
       default:
         console.log('[stripe-webhook] evento de', APP_TAG, 'sin manejar:', stripeEvent.type);
     }
