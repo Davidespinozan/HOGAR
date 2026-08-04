@@ -26,6 +26,26 @@ const ORIGEN_PRODUCCION = 'https://hogarbyandrea.netlify.app';
 const VENTANA_IDEMPOTENCIA_MS = 30_000;
 
 /**
+ * Rango válido del precio, en centavos.
+ *
+ * El mínimo NO es una preferencia nuestra: Stripe rechaza cualquier cobro por
+ * debajo de 10 MXN (ver la tabla de importes mínimos en
+ * https://docs.stripe.com/currencies). Con menos, sessions.create lanza
+ * `amount_too_small` y la clienta se queda sin poder pagar.
+ *
+ * El máximo sí es nuestro. El techo técnico de Stripe son 999.999,99 MXN, pero
+ * ese número no protege de lo que de verdad pasa: una errata. Un 499 que se
+ * convierte en 4990000, o teclear el importe ya en centavos creyendo que son
+ * pesos. 50.000 MXN deja muchísimo margen y caza los dedazos.
+ *
+ * OJO — UMBRALES FIJOS PARA MXN. hogar_config.moneda existe y hoy siempre es
+ * MXN. Si algún día se cobra en otra, HAY QUE REVISAR EL MÍNIMO: cada moneda
+ * tiene el suyo y varían mucho (USD 0,50 · GBP 0,30 · HUF 175 · MXN 10).
+ */
+const PRECIO_MIN_CENTAVOS = 1000;       //     10 MXN — límite de Stripe
+const PRECIO_MAX_CENTAVOS = 5_000_000;  // 50.000 MXN — nuestro, contra erratas
+
+/**
  * Cubo de tiempo para la clave de idempotencia del checkout.
  *
  * La clave era `hogar_checkout_${user.id}`, constante y para siempre. Stripe
@@ -131,6 +151,24 @@ export const handler: Handler = async (event) => {
     const precio = config.precio_centavos ?? 0;
     if (!precio || precio <= 0) {
       return badRequest('precio_no_configurado');
+    }
+    // Red de seguridad, no duplicado del panel: el panel solo impide GUARDAR un
+    // precio inválido de aquí en adelante, y aquí se ve el valor que hay ahora
+    // mismo —que pudo escribirse antes de existir esa validación—. Además, sin
+    // esto el importe llegaría a Stripe, que lanzaría, y el catch de abajo lo
+    // aplanaría a "No pudimos iniciar el pago": la clienta reintentaría para
+    // siempre algo que no depende de ella.
+    if (precio < PRECIO_MIN_CENTAVOS || precio > PRECIO_MAX_CENTAVOS) {
+      console.error(
+        '[crear-checkout] precio fuera de rango:',
+        precio,
+        'centavos (válido:',
+        PRECIO_MIN_CENTAVOS,
+        '-',
+        PRECIO_MAX_CENTAVOS,
+        ')'
+      );
+      return badRequest('precio_invalido');
     }
 
     const stripeAccount = config.stripe_account_id;

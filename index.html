@@ -4553,7 +4553,9 @@ body.app-active { overflow: hidden; }
           <label for="adm-plan-precio">Precio del acceso</label>
           <div class="adm-precio-wrap">
             <span class="adm-precio-sign">$</span>
-            <input type="number" id="adm-plan-precio" min="1" step="1" inputmode="numeric" placeholder="499">
+            <!-- min/max son señal visual, no validación: no hay <form>, así que
+                 el navegador nunca los aplica. Quien valida es guardarPlanHogar(). -->
+            <input type="number" id="adm-plan-precio" min="10" max="50000" step="1" inputmode="numeric" placeholder="499">
             <span class="adm-moneda-fija" id="adm-plan-moneda">MXN</span>
           </div>
           <div class="adm-field-hint">En pesos. Si escribes 499, la usuaria paga $499.00 MXN una sola vez.</div>
@@ -6111,6 +6113,18 @@ const STRIPE_PAGO_ACTIVO = true;
 // así que no hace falta apikey: la función autentica con el Bearer de Supabase.
 const STRIPE_CHECKOUT_FN = '/.netlify/functions/crear-checkout';
 
+// Las causas que crear-checkout sabe nombrar. Todas dependen de que Andrea
+// termine de configurar algo, así que ninguna se resuelve reintentando: el
+// mensaje lo dice y le pide a la clienta que avise, en vez de dejarla dando
+// clics contra un muro. La causa técnica queda en consola, no en el aviso.
+const _PAGO_CAUSAS={
+  cobros_no_activos:  'Los pagos todavía no están habilitados. Estamos terminando de configurarlos; '
+                     +'escríbenos y te avisamos en cuanto puedas activar tu acceso.',
+  precio_no_configurado: 'El precio todavía no está publicado. Escríbenos y lo resolvemos enseguida.',
+  precio_invalido:    'Hay un problema con el precio configurado y no podemos cobrarte de momento. '
+                     +'Ya estamos avisados; escríbenos y lo resolvemos enseguida.'
+};
+
 // Llama a crear-checkout con el JWT de la clienta y la manda a Stripe.
 async function iniciarPagoHogar(btn){
   if(!STRIPE_PAGO_ACTIVO){ alert('El pago aún no está disponible. Estamos terminando de configurarlo.'); return; }
@@ -6129,8 +6143,18 @@ async function iniciarPagoHogar(btn){
     });
     const json = await res.json().catch(()=>({}));
     if(res.ok && json.url){ window.location.href = json.url; return; }
+    // crear-checkout distingue sus causas; hasta ahora todas se aplanaban a
+    // "intenta de nuevo en un momento". Ninguna de las tres se arregla sola:
+    // pedirle a la clienta que reintente era mandarla a un bucle.
+    if(_PAGO_CAUSAS[json.error]){
+      if(btn){ btn.disabled=false; btn.textContent=txt||'Activar mi acceso'; }
+      alert(_PAGO_CAUSAS[json.error]);
+      return;
+    }
     throw new Error(json.error || ('HTTP '+res.status));
   }catch(e){
+    // Aquí solo llega lo que SÍ puede ser pasajero: red caída, 5xx, un fallo
+    // inesperado de Stripe. Ahí "intenta de nuevo" es un consejo honesto.
     console.error('[HOGAR] no se pudo iniciar el pago:', e);
     if(btn){ btn.disabled=false; btn.textContent=txt||'Activar mi acceso'; }
     alert('No pudimos iniciar el pago. Intenta de nuevo en un momento.');
@@ -8337,6 +8361,19 @@ function _admLandingPreview(){
   if(img && /^https:\/\//i.test(url)){ img.style.display=''; img.src=url; }
 }
 
+// Rango válido del precio, en centavos. Mismos umbrales que crear-checkout, y
+// por los mismos motivos: el mínimo lo impone Stripe (rechaza cobros bajo 10 MXN
+// con amount_too_small, ver https://docs.stripe.com/currencies) y el máximo es
+// nuestro, contra erratas — el techo técnico de Stripe son 999.999,99 MXN, que
+// no protege de escribir 4990000 en vez de 499.
+//
+// OJO — FIJOS PARA MXN. Hoy hogar_config.moneda siempre es MXN. Si se añade otra
+// moneda HAY QUE REVISAR EL MÍNIMO: cada una tiene el suyo (USD 0,50 · GBP 0,30 ·
+// HUF 175 · MXN 10).
+const PRECIO_MIN_CENTAVOS=1000;       //     10 MXN — límite de Stripe
+const PRECIO_MAX_CENTAVOS=5000000;    // 50.000 MXN — nuestro, contra erratas
+const _admMiles=n=>Number(n).toLocaleString('es-MX');
+
 // Límite de tamaño para la imagen del hero.
 const ADM_HERO_MAX_MB=5;
 
@@ -8566,6 +8603,20 @@ async function guardarPlanHogar(btn){
   if(!isFinite(pesos) || pesos<=0){ _admPlanMsg('El precio debe ser un número mayor que 0.','error'); return; }
   // Pesos → centavos, que es como lo lee crear-checkout (499 → 49900).
   const centavos=Math.round(pesos*100);
+  // El rango NO es capricho: por debajo de 10 MXN, Stripe rechaza el cobro con
+  // amount_too_small y ninguna clienta podría pagar. Antes esto se guardaba con
+  // un "Guardado" en verde y el fallo aparecía después, en el checkout de una
+  // clienta, como un "intenta de nuevo más tarde" que nunca iba a funcionar.
+  if(centavos<PRECIO_MIN_CENTAVOS){
+    _admPlanMsg('El precio mínimo es $'+(PRECIO_MIN_CENTAVOS/100)+' MXN: Stripe no procesa cobros menores. '
+      +'Pon un precio entre $'+(PRECIO_MIN_CENTAVOS/100)+' y $'+_admMiles(PRECIO_MAX_CENTAVOS/100)+'.','error');
+    return;
+  }
+  if(centavos>PRECIO_MAX_CENTAVOS){
+    _admPlanMsg('El precio máximo es $'+_admMiles(PRECIO_MAX_CENTAVOS/100)+' MXN. '
+      +'¿Escribiste de más? Recuerda que va en pesos, no en centavos.','error');
+    return;
+  }
 
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
