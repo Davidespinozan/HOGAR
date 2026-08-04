@@ -4463,11 +4463,12 @@ body.app-active { overflow: hidden; }
           <div class="adm-section-title">— USUARIAS</div>
           <div class="adm-filters">
             <input type="text" id="adm-search" placeholder="Buscar por nombre o email…" oninput="renderAdminUsuarias()">
-            <select id="adm-estatus" onchange="renderAdminUsuarias()">
-              <option value="">Todos los estatus</option>
+            <!-- Filtra por PAGO, no por la columna `estatus`: esa vale 'activa'
+                 para todas desde el registro, así que no distinguía nada. -->
+            <select id="adm-pago" onchange="renderAdminUsuarias()">
+              <option value="">Todas</option>
               <option value="activa">Activa</option>
-              <option value="cancelada">Cancelada</option>
-              <option value="baja">Baja</option>
+              <option value="pendiente">Pendiente</option>
             </select>
           </div>
           <!-- Una tarjeta por usuaria (las pinta renderAdminUsuarias). Ya no es
@@ -7293,22 +7294,31 @@ function _admRenderBars(elId, items){
 function renderAdminUsuarias(){
   const body=document.getElementById('adm-usuarias-body'); if(!body) return;
   const term=(document.getElementById('adm-search')?.value||'').trim().toLowerCase();
-  const est=(document.getElementById('adm-estatus')?.value||'').trim().toLowerCase();
+  const pago=(document.getElementById('adm-pago')?.value||'').trim().toLowerCase();
   let rows=_admUsuarias.slice();
   if(term) rows=rows.filter(r=> (r.nombre||'').toLowerCase().includes(term) || (r.email||'').toLowerCase().includes(term));
-  if(est) rows=rows.filter(r=> (r.estatus||'').toLowerCase()===est);
+  // Mismo criterio que el badge, a propósito: filtrar por lo que se ve. Antes el
+  // filtro miraba `estatus` y el badge también, pero ambos mentían igual; si solo
+  // se hubiera cambiado el badge, elegir "Activa" habría devuelto también a las
+  // pendientes y Andrea habría filtrado por una cosa obteniendo otra.
+  if(pago==='activa') rows=rows.filter(r=> r.pagado===true);
+  else if(pago==='pendiente') rows=rows.filter(r=> r.pagado!==true);
   if(!rows.length){
-    const filtrando = !!(term || est);
+    const filtrando = !!(term || pago);
     body.innerHTML=_admUsuariasVacio(
       filtrando ? 'No hay usuarias que coincidan' : 'Todavía no hay usuarias',
-      filtrando ? 'Prueba con otro nombre, otro correo o quitando el filtro de estatus.'
+      filtrando ? 'Prueba con otro nombre, otro correo o quitando el filtro.'
                 : 'Cuando alguien entre a HOGAR, aparecerá aquí.');
     return;
   }
   body.innerHTML=rows.map(r=>{
-    const estRaw=(r.estatus||'').toLowerCase();
-    const badge = (r.estatus&&String(r.estatus).trim()!=='')
-      ? '<span class="adm-u-badge '+_admEsc(estRaw)+'">'+_admEsc(r.estatus)+'</span>' : '';
+    // El badge deriva de `pagado`, el dato que marca el webhook de Stripe, y no
+    // de `estatus`: esa columna vale 'activa' para todas desde el registro, así
+    // que el panel enseñaba seis badges verdes habiendo pagado una.
+    // "Pendiente" y no "Sin pagar": es algo que todavía puede ocurrir.
+    const pagada = (r.pagado===true);
+    const badge = '<span class="adm-u-badge'+(pagada?' activa':'')+'">'
+      +(pagada?'Activa':'Pendiente')+'</span>';
     const id=_admEsc(r.id);
     // La tarjeta entera abre la ficha, igual que antes lo hacía la fila entera.
     // Se muestran siempre desplegadas: colapsarlas exigiría que el toque
@@ -7447,7 +7457,9 @@ function _admFichaHTML(u, ses){
     +_admFila('Fecha de alta', _admFmtDate(u.created_at))
     +_admFila('Pago', _admEsc(pagoValor), u.pagado===true?'ok':'')
     +_admFila('Plan', _admEsc(_admDash(u.plan)))
-    +_admFila('Estatus', _admEsc(_admDash(u.estatus)))
+    // Sin fila "Estatus": la de Pago de arriba ya dice la verdad y con más
+    // detalle. Mostrar las dos juntas era contradictorio — a cinco de las seis
+    // usuarias les salía "Pago: Sin compra" y justo debajo "Estatus: activa".
     +'</div>';
 
   // ── Métricas ──
