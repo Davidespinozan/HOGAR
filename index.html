@@ -7245,6 +7245,20 @@ async function refrescarHistorialYStats(){
 // ============================================
 const ADMIN_EMAIL='andrealaso1997@hotmail.com';
 // Correos de prueba que se excluyen SIEMPRE de conteos y de la tabla de usuarias.
+// Los usan cuatro consultas de loadAdmin(): prácticas de hoy, altas del mes,
+// prácticas del mes y la lista de usuarias.
+//
+// SÍ, ESTÁN EN UN ARCHIVO PÚBLICO, y es una decisión tomada (agosto de 2026), no
+// un descuido. Vaciar la lista los quitaría de aquí, pero devolvería esas cuatro
+// cuentas al panel de Andrea: contarían como altas y sus prácticas engordarían
+// las métricas. El coste real de dejarlos es spam a cuatro direcciones propias;
+// el de quitarlos, que Andrea vea clientas que no existen.
+//
+// SI ALGÚN DÍA MOLESTA, el camino es moverlos a una columna de hogar_config y
+// leerlos al cargar el panel: los saca del archivo público y conserva el filtro.
+// Cuesta un ALTER TABLE y un retoque en loadAdmin(). La otra salida es borrar esas
+// cuentas de Supabase — entonces no hay nada que excluir y la lista sobra de
+// verdad.
 const ADMIN_TEST_EMAILS=['magalyb.1804@gmail.com','magalybl.1804@gmail.com','magalyblltt@gmail.com','daen97@hotmail.com'];
 let _admUsuarias=[]; // cache de la última carga, para filtrar en cliente sin re-consultar
 
