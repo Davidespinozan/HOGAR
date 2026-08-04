@@ -3407,6 +3407,14 @@ body.app-active { overflow: hidden; }
 .acc-precio{ font-family:'Montserrat',sans-serif; font-weight:200; font-size:2.4rem;
   line-height:1; letter-spacing:-1.5px; color:#c66b41; margin-bottom:.35rem; }
 .acc-precio-sub{ font-family:'Montserrat',sans-serif; font-size:.76rem; color:#9a7d6c; margin-bottom:1.6rem; }
+.acc-caminos-tit{ font-family:'Montserrat',sans-serif; font-size:.84rem; font-weight:500;
+  color:#3a2820; text-align:left; margin-bottom:.6rem; }
+.acc-caminos{ list-style:none; text-align:left; margin:0 0 1.2rem; padding:0; }
+.acc-caminos li{ display:flex; align-items:baseline; gap:.5rem;
+  font-family:'Montserrat',sans-serif; font-size:.84rem; font-weight:400;
+  color:#5a4636; line-height:1.5; padding:.34rem 0 .34rem .6rem; }
+.acc-candado{ flex-shrink:0; font-size:.78rem; opacity:.85; }
+.acc-dur{ color:#9a7d6c; font-weight:300; }
 .acc-lista{ list-style:none; text-align:left; margin:0 0 1.6rem; padding:0; }
 .acc-lista li{ font-family:'Montserrat',sans-serif; font-size:.84rem; font-weight:300;
   color:#5a4636; line-height:1.5; padding:.42rem 0 .42rem 1.6rem; position:relative; }
@@ -4260,18 +4268,24 @@ body.app-active { overflow: hidden; }
       <div class="acc-eyebrow">— TU ACCESO</div>
       <h2 class="acc-tit">Activa tu <em>HOGAR</em>.</h2>
       <p class="acc-txt" id="acc-txt">Tu cuenta está lista. Falta activar tu acceso para entrar a las prácticas.</p>
-      <!-- El precio real lo pinta _accPintarPrecio() desde la landing pública;
-           el del código es el respaldo si esa lectura no llega. -->
+      <!-- Precio y lista de prácticas los pinta _accPintarAcceso(): el precio
+           desde la vista pública hogar_landing, y las cinco prácticas desde
+           EMOCIONES + DUR_MINUTOS, que son la fuente única de ambas cosas. Lo
+           escrito aquí es el respaldo si esas lecturas no llegan. -->
       <div class="acc-precio" id="acc-precio">$499</div>
       <div class="acc-precio-sub">Pago único · acceso de por vida</div>
+      <div class="acc-caminos-tit">5 caminos de práctica según cómo te sientas:</div>
+      <ul class="acc-caminos" id="acc-caminos">
+        <li><span class="acc-candado" aria-hidden="true">🔒</span>En calma <span class="acc-dur">· 15, 30 o 45 min</span></li>
+        <li><span class="acc-candado" aria-hidden="true">🔒</span>Desconectada <span class="acc-dur">· 15, 30 o 45 min</span></li>
+        <li><span class="acc-candado" aria-hidden="true">🔒</span>Cansada <span class="acc-dur">· 15, 30 o 45 min</span></li>
+        <li><span class="acc-candado" aria-hidden="true">🔒</span>Sensible <span class="acc-dur">· 15, 30 o 45 min</span></li>
+        <li><span class="acc-candado" aria-hidden="true">🔒</span>Tensa <span class="acc-dur">· 15, 30 o 45 min</span></li>
+      </ul>
       <ul class="acc-lista">
-        <li>5 caminos de práctica según cómo te sientas</li>
-        <li>Sesiones en video de 15, 30 y 45 minutos</li>
-        <li>La voz de Andrea acompañándote en cada una</li>
         <li>Tu registro privado, sin juicio</li>
       </ul>
       <button class="btn btn-r btn-full" id="acc-btn" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
-      <p class="acc-nota" id="acc-nota">El pago se procesa con Stripe. Al terminar vuelves aquí y entras directo.</p>
       <button type="button" class="acc-salir" onclick="doOut()">Cerrar sesión</button>
     </div>
   </div>
@@ -5148,6 +5162,14 @@ const QUEST_TREE = {
 };
 
 function go(id){
+  // MURO DE ACCESO. Va aquí y no solo en irTrasAuth() porque al dashboard se
+  // llega por muchas puertas: el login, el botón de inicio de la nav, volver
+  // desde el historial o el perfil, terminar una práctica… Puesto en go() se
+  // cubren todas de una vez, incluidas las que se añadan después.
+  // Solo desvía ante un false CONFIRMADO: con el acceso desconocido se deja
+  // pasar, igual que en pT(). Andrea nunca llega aquí con false (esAdmin la
+  // resuelve en true sin consultar).
+  if(id==='dash' && U && U.acceso===false) id='acceso';
   // Scroll to absolute top FIRST, before switching screens
   window.scrollTo({top:0,left:0,behavior:'instant'});
   document.documentElement.scrollTop=0;
@@ -5161,6 +5183,7 @@ function go(id){
     document.documentElement.scrollTop=0;
     document.body.scrollTop=0;
   });
+  if(id==='acceso')_accPintarAcceso();
   if(id==='dash'){resetDashChat();uD();refrescarHistorialYStats();}
   if(id==='profile'){uP();refrescarHistorialYStats();}
   if(id==='history')renderHistory(window._histFilter||'todos');
@@ -5312,18 +5335,22 @@ function esAdmin(email){ return (email||'').toLowerCase().trim()===ADMIN_EMAIL; 
 
 // Redirect por rol — patrón useRoleRedirect de EKKO/SALA adaptado a single-tenant:
 // Andrea entra directo al área administrativa, nunca al dashboard de usuaria.
-function irTrasAuth(){
+// ASÍNCRONA: espera el acceso antes de decidir a dónde entra. Nadie usa su valor
+// de retorno (se llama desde doLog y desde _authInit, ambos sin await).
+async function irTrasAuth(){
   // Precarga del contenido que vive en Supabase. Sin await a propósito: la
   // navegación no espera a la red, y mientras tanto se ve el contenido del
   // código. Las notas repintan solas si llegan tarde; los textos de práctica
   // se leen recién cuando la usuaria entra al flujo, más tarde que esta carga.
   precargarNotasHogar();
   precargarTextosHogar();
-  // El acceso se pide YA, sin await: la navegación no espera a la red. Para
-  // cuando la usuaria elija emoción y duración, la respuesta suele haber
-  // llegado; y si no, pT() espera esta misma promesa antes de decidir.
+  // El acceso SÍ se espera, y es la diferencia con las precargas de arriba: de
+  // él depende a qué pantalla se entra. Sin este await, go('dash') correría con
+  // el acceso todavía en null, entraría al dashboard igualmente y el muro solo
+  // aparecería más tarde — un parpadeo del dashboard antes del bloqueo.
+  // Cuesta una consulta (~200 ms) en el momento de entrar, una sola vez.
   _olvidarAcceso();
-  cargarAccesoHogar();
+  await _asegurarAcceso();
   // ?ver=landing — lo pone el botón "Ver landing" del panel. Sin esto el botón no
   // serviría de nada: la landing es una pantalla de esta misma app, así que al
   // abrir otra pestaña se restauraría la sesión de Andrea y el redirect por rol la
@@ -5691,25 +5718,41 @@ function _olvidarAcceso(){
   if(U) U.acceso=null;
 }
 
-// Precio real en la pantalla de acceso. Sale de la vista pública hogar_landing,
-// la misma que alimenta la landing, para que no puedan discrepar. Si no llega,
-// se queda el del código.
-async function _accPintarPrecio(){
+// Contenido de la pantalla de acceso: precio y lista de prácticas.
+//
+// Las cinco prácticas se generan desde EMOCIONES y las duraciones desde
+// DUR_MINUTOS —las mismas constantes que usa la app de verdad— en vez de
+// escribirlas a mano. Así la lista no puede acabar prometiendo algo que la app
+// ya no ofrece si mañana se renombra una emoción o cambia una duración.
+function _accPintarAcceso(){
+  // Precio: de la vista pública hogar_landing, la misma que alimenta la landing,
+  // para que no puedan discrepar. Si no llega, se queda el del código.
+  (async()=>{
+    try{
+      if(!window.sb) return;
+      const { data } = await window.sb.from('hogar_landing').select('precio_centavos').maybeSingle();
+      const c=Number(data && data.precio_centavos)||0;
+      if(c<=0) return;
+      const el=document.getElementById('acc-precio');
+      if(el) el.textContent='$'+(c/100).toLocaleString('es-MX',{minimumFractionDigits:(c%100)?2:0, maximumFractionDigits:2});
+    }catch(_){ /* se queda el precio del código */ }
+  })();
+
   try{
-    if(!window.sb) return;
-    const { data } = await window.sb.from('hogar_landing').select('precio_centavos').maybeSingle();
-    const c=Number(data && data.precio_centavos)||0;
-    if(c<=0) return;
-    const el=document.getElementById('acc-precio');
-    if(el) el.textContent='$'+(c/100).toLocaleString('es-MX',{minimumFractionDigits:(c%100)?2:0, maximumFractionDigits:2});
-  }catch(_){ /* se queda el precio del código */ }
+    const ul=document.getElementById('acc-caminos');
+    if(!ul || !Array.isArray(EMOCIONES) || !EMOCIONES.length) return;
+    const dur=(typeof DUR_MINUTOS!=='undefined' && DUR_MINUTOS.length)
+      ? DUR_MINUTOS.slice(0,-1).join(', ')+' o '+DUR_MINUTOS[DUR_MINUTOS.length-1]
+      : '15, 30 o 45';
+    ul.innerHTML=EMOCIONES.map(e=>
+      '<li><span class="acc-candado" aria-hidden="true">🔒</span>'
+      +_admEsc(e.nombre)+' <span class="acc-dur">· '+dur+' min</span></li>'
+    ).join('');
+  }catch(_){ /* se queda la lista del código */ }
 }
 
-// Manda a la pantalla de acceso.
-function irAAcceso(){
-  _accPintarPrecio();
-  go('acceso');
-}
+// Manda a la pantalla de acceso. go() se encarga de pintarla.
+function irAAcceso(){ go('acceso'); }
 
 // Vuelta de Stripe con ?pago=exito.
 //
