@@ -94,6 +94,37 @@ hay que tocar nada más.
 panel, indistinguible de quien nunca compró. Y sin `estatus` no hay forma de
 revertir una disputa ganada salvo volver a poner `pagado: true` a mano.
 
+### Precedente: el webhook de SALA (patrón a copiar)
+
+`sala-studio` (`netlify/functions/stripe-webhook/index.ts`) ya resuelve la forma
+de un webhook de Connect con varios eventos. Sus **7 casos**:
+
+| evento | para qué |
+|---|---|
+| `checkout.session.completed` | alta tras pagar |
+| `customer.subscription.deleted` | baja |
+| `invoice.paid` + `invoice.payment_succeeded` | renovación (comparten handler) |
+| `invoice.payment_failed` | cobro fallido |
+| `payment_intent.succeeded` | compra suelta de tienda |
+| `account.updated` | estado de la cuenta conectada |
+
+HOGAR escucha hoy solo dos: `checkout.session.completed` y `account.updated`.
+
+Lo que vale la pena copiar es la **estructura**, no los eventos:
+
+- Un `switch` con un `case` por evento y **filtro por `metadata.app` dentro de
+  cada rama** (`if (session.metadata?.app !== 'sala') break;`), en vez del filtro
+  único y previo que hace `esDeHogar()`. Esto importa para reembolsos: cada tipo
+  de objeto guarda la metadata en un sitio distinto, y un filtro global no puede
+  con la asimetría de la disputa descrita arriba.
+- Dos eventos distintos compartiendo un mismo handler cuando significan lo mismo.
+- Firma verificada una sola vez arriba, con `constructEvent` sobre el cuerpo crudo
+  — igual que HOGAR ya hace.
+
+**Ojo, no es una implementación de reembolsos.** Se comprobó: ninguno de los 7
+eventos es `charge.refunded` ni `charge.dispute.*`. SALA tampoco los maneja. Lo
+que aporta es el molde del webhook multi-evento, no la lógica de revocación.
+
 ### Qué habría que añadir en Stripe
 
 **No está suscrito hoy** — es configuración del Dashboard, no del repo, así que hay
