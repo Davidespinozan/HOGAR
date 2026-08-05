@@ -1,5 +1,21 @@
 # Plan — capa 3: comprimir el contenido, bucket privado y URLs firmadas
 
+> ## ⚠️ SUPERADO — no ejecutar sin leer antes `PENDIENTES.md` § 3
+>
+> En agosto de 2026 se decidió **migrar el vídeo a Bunny Stream**, que trae de
+> serie el streaming adaptativo y las URLs firmadas con token. Eso hace
+> innecesaria buena parte de este plan: montar aquí el bucket privado y el
+> emisor de URLs firmadas sería construir a mano algo que Bunny ya da hecho.
+>
+> La fase de recompresión también quedó descartada por medición: `crf 28` +
+> `maxrate 2M` sobre `DESCARGASEGURA15` bajó un 30% con pérdida visible, y el
+> bitrate salió por debajo del techo — H.264 ya está exprimido. El problema no
+> es la compresión, es servir archivos completos.
+>
+> **Evaluar Bunny primero.** Después decidir qué queda vivo de aquí: la parte de
+> audios e imágenes puede seguir teniendo sentido en Supabase. El inventario y
+> el análisis de más abajo siguen siendo válidos y útiles.
+
 Cierra el hallazgo #1 de la auditoría: hoy los vídeos y audios están en un bucket
 **público** con nombres predecibles (`{SLUG}{minutos}.mp4`), así que se descargan
 con el enlace directo **sin sesión siquiera**. El muro que existe hoy vive en el

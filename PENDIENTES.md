@@ -8,6 +8,7 @@ esto está roto, son decisiones aplazadas.
 |---|---|---|---|
 | 1 | [Reembolsos y disputas](#1--reembolsos-y-disputas) | Decisión de negocio de Andrea | `stripe-webhook`, quizá Supabase |
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
+| 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 
 ---
 
@@ -183,3 +184,62 @@ color del texto**: eso es esta decisión, no aquella.
 
 Llegar a 4,5 de verdad exigiría un tono más oscuro que ninguno de la paleta
 actual, o engordar la tipografía de la píldora.
+
+---
+
+## 3 · Migrar el vídeo a Bunny Stream
+
+**Estado: decidido en agosto de 2026, sin ejecutar.**
+**Sustituye a `PLAN-CAPA-3.md`. No ejecutar ese plan sin leer esto antes.**
+
+Prioridad **media**. No bloquea la venta —los vídeos funcionan hoy— pero conviene
+resolverlo antes de tener volumen de clientas.
+
+### El problema
+
+Los 15 vídeos pesan **5,1 GB**. El mayor, `RITMOSUAVE45`, son **729 MB**.
+
+Hoy se sirven como archivos completos desde Supabase Storage, así que cada
+reproducción descarga cientos de MB. Eso duele por dos lados a la vez:
+
+- **La usuaria.** Con datos móviles, esperar a que arranque una práctica de 45
+  minutos son varios minutos y un pedazo del plan. Muchas cerrarán la app antes
+  de empezar.
+- **La factura.** Supabase cobra el egress. Cien prácticas al mes son decenas de
+  GB. Con un precio de 499 MXN, eso se come el margen deprisa.
+
+### Por qué NO es un problema de compresión
+
+Esto se probó y se descartó, así que **no volver a intentarlo**:
+
+- Se recomprimió `DESCARGASEGURA15` con `crf 28` + `maxrate 2M`: bajó de 297 MB a
+  209 MB (**−30%**) con **pérdida de calidad visible**. Descartado.
+- El bitrate resultante fue **1759 kbit/s, por debajo del techo de 2M**. Es el
+  dato clave: el archivo no estaba tocando el límite, o sea que no le sobraba
+  nada. **H.264 ya está exprimido.**
+- Se descartó **H.265**: comprime entre un 30 y un 50% mejor, pero no lo
+  soportan todos los navegadores Android, y el público de HOGAR es mixto
+  iOS/Android.
+
+**Conclusión: el problema no es cómo están comprimidos, es servir archivos
+completos.** Ninguna pasada de ffmpeg arregla eso.
+
+### Por qué Bunny Stream
+
+Resuelve cuatro cosas de una vez:
+
+1. **Streaming adaptativo.** Arranca en segundos y ajusta la calidad a la
+   conexión, en vez de descargar el archivo entero antes de reproducir.
+2. **Más barato** que el egress de Supabase para vídeo.
+3. **URLs firmadas con token, incluidas de serie.**
+4. Por el punto 3, **hace innecesaria buena parte de `PLAN-CAPA-3.md`.**
+
+### Lo que esto implica para PLAN-CAPA-3.md
+
+`PLAN-CAPA-3.md` propone construir a mano lo que Bunny trae hecho: bucket
+privado, URLs firmadas con caducidad y una función que las emita. Ejecutarlo
+antes de evaluar Bunny sería trabajo tirado, y además dejaría los vídeos
+sirviéndose igual de pesados.
+
+**Evaluar Bunny primero. Después decidir qué queda vivo de ese plan** — la parte
+de los audios y las imágenes puede seguir teniendo sentido en Supabase.
