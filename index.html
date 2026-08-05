@@ -1267,6 +1267,17 @@ body.app-active { overflow: hidden; }
   border-bottom: 1px solid rgba(92, 58, 40, 0.1);
 }
 .perfil-field:last-child { border-bottom: none; }
+/* Estado del acceso. Antes eran estilos en línea con el verde fijo; ahora hay dos
+   estados y el color lo decide la clase, con la misma paleta que el badge del
+   panel de Andrea para que "activa" se vea igual en los dos lados. */
+.perfil-badge {
+  font-size: .62rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: .3rem .75rem; border-radius: 50px; white-space: nowrap;
+  background: #f2e8dd; color: #9a7d6c; border: 1px solid rgba(240,228,214,.9);
+}
+.perfil-badge.activa {
+  background: #e4f0e2; color: #4a8a5a; border-color: rgba(74,138,90,.22);
+}
 .perfil-field-label {
   font-family: 'Montserrat', sans-serif;
   font-size: 10px;
@@ -4323,16 +4334,18 @@ body.app-active { overflow: hidden; }
       </div>
     </div>
     <div class="perfil-section">
-      <div class="perfil-section-title">Mi suscripción</div>
+      <div class="perfil-section-title">Mi acceso</div>
       <div class="perfil-field">
         <div>
           <div class="perfil-field-label">Plan</div>
           <div class="perfil-field-value">HOGAR</div>
         </div>
-        <span style="font-size:.62rem;color:#5a6e54;background:rgba(197,205,176,.18);border:1px solid rgba(197,205,176,.4);padding:.3rem .75rem;border-radius:50px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Activa</span>
+        <!-- Lo pinta uP() desde U.acceso. Antes decía "Activa" escrito a mano,
+             así que a alguien sin acceso confirmado le afirmaba que su plan
+             estaba activo justo encima del botón para activarlo. -->
+        <span class="perfil-badge" id="perfil-acceso-badge">—</span>
       </div>
-      <a id="perfil-stripe-btn" href="#" target="_blank" rel="noopener" class="btn btn-o" style="display:none;width:100%;margin-top:14px;">Gestionar suscripción</a>
-      <!-- Pago real (Stripe Checkout). Oculto hasta que STRIPE_PAGO_ACTIVO=true y la clienta no esté activa. -->
+      <!-- Pago real (Stripe Checkout). Oculto a quien ya tiene acceso confirmado. -->
       <button id="perfil-activar-btn" class="btn btn-r" style="display:none;width:100%;margin-top:14px;" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
     </div>
     <div class="perfil-section" style="display:none;">
@@ -6266,12 +6279,6 @@ function uD(){
   renderPaisaje();
 }
 
-// Pegar aquí el link del Customer Portal de Stripe (dejar vacío oculta el botón "Gestionar suscripción").
-// Vacío a propósito: mientras lo esté, el botón "Gestionar suscripción" del
-// perfil queda oculto. OJO SI ALGÚN DÍA SE RELLENA: ese texto contradice el
-// modelo, que es de PAGO ÚNICO y no una suscripción. Habría que renombrarlo
-// (algo como "Ver mi comprobante") antes de encenderlo.
-const STRIPE_PORTAL_URL = '';
 
 // ===== PAGO REAL (Stripe Checkout · pago único) =====
 // Andrea: pon STRIPE_PAGO_ACTIVO en true SOLO después de configurar Stripe en
@@ -6340,10 +6347,15 @@ function uP(){
   if($('pd'))$('pd').textContent=U.days;
   if($('ps'))$('ps').textContent=U.sessions;
   if($('pk'))$('pk').textContent=U.streak;
-  const sb=$('perfil-stripe-btn');
-  if(sb){
-    if(STRIPE_PORTAL_URL){ sb.href=STRIPE_PORTAL_URL; sb.style.display=''; }
-    else { sb.style.display='none'; }
+  // El estado del acceso, con el mismo criterio que el badge del panel de Andrea
+  // y que el botón de abajo: solo un acceso CONFIRMADO cuenta como activa. Con el
+  // acceso desconocido dice "Pendiente", que es lo honesto, y además concuerda
+  // con que el botón de activar sí se muestre.
+  const bg=$('perfil-acceso-badge');
+  if(bg){
+    const activa = (U.acceso===true);
+    bg.textContent = activa ? 'Activa' : 'Pendiente';
+    bg.className = 'perfil-badge'+(activa?' activa':'');
   }
   // Botón de pago: solo a quien NO tiene el acceso confirmado. `!== true` y no
   // `=== false` a propósito: con el acceso desconocido el botón se muestra, para
