@@ -12,11 +12,9 @@
   --salmon-rosa: #E8A99A;
   --terracota: #D88766;
   --terracota-oscuro: #B85F3D;
-  --naranja: #E8916B;
   --tierra: #8B5A3C;
   --tierra-oscuro: #5C3A28;
   --sage: #C5CDB0;
-  --sage-oscuro: #9BA888;
   --crema: #F5EBD9;
   --crema-claro: #FAF3E5;
   --rosa-vino: #C77789;
@@ -42,7 +40,7 @@
 .btn-r{background:var(--terracota);color:var(--crema);}.btn-r:hover{background:var(--terracota-oscuro);transform:translateY(-2px);box-shadow:0 8px 25px rgba(216,135,102,.3);}
 .btn-b{background:var(--salmon);color:var(--texto-oscuro);}.btn-b:hover{background:var(--salmon-claro);transform:translateY(-1px);}
 .btn-o{background:transparent;border:1.5px solid var(--salmon-rosa);color:var(--terracota);}.btn-o:hover{background:var(--terracota);color:var(--crema);border-color:var(--terracota);}
-.btn-w{background:var(--crema);color:var(--terracota);box-shadow:0 6px 22px rgba(58,40,32,.28);}.btn-w:hover{background:var(--white);transform:translateY(-2px);box-shadow:0 10px 28px rgba(58,40,32,.16);}
+.btn-w{background:var(--crema);color:var(--terracota);box-shadow:0 6px 22px rgba(61,36,24,.28);}.btn-w:hover{background:var(--white);transform:translateY(-2px);box-shadow:0 10px 28px rgba(61,36,24,.16);}
 .btn-full{width:100%;}
 .fg{margin-bottom:1rem;text-align:left;width:100%;max-width:420px;}
 .fg label{display:block;font-size:.73rem;font-weight:500;color:var(--texto-medio);margin-bottom:.3rem;letter-spacing:.04em;text-transform:uppercase;}
@@ -74,7 +72,7 @@
 .legal-ov.open{opacity:1;visibility:visible;transition:opacity .28s ease,visibility 0s;}
 .legal-modal{position:relative;display:flex;flex-direction:column;width:100%;max-width:640px;
   max-height:min(86vh,900px);background:#fff;border-radius:24px;overflow:hidden;
-  box-shadow:0 30px 80px rgba(58,40,32,.32);
+  box-shadow:0 30px 80px rgba(61,36,24,.32);
   transform:translateY(14px) scale(.985);transition:transform .28s cubic-bezier(0.4,0,0.2,1);}
 .legal-ov.open .legal-modal{transform:none;}
 /* Cabecera fija: el título no se pierde al bajar por el texto */
@@ -112,7 +110,7 @@
 }
 .hero-menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;opacity:0;pointer-events:none;transition:opacity 0.3s;}
 .hero-menu-overlay.open{opacity:1;pointer-events:auto;}
-.hero-menu-drawer{position:fixed;top:0;left:0;width:min(360px,88vw);height:100vh;background:var(--texto-oscuro);z-index:10000;transform:translateX(-100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);padding:96px 36px 40px;box-shadow:4px 0 30px rgba(58,40,32,0.32);overflow-y:auto;}
+.hero-menu-drawer{position:fixed;top:0;left:0;width:min(360px,88vw);height:100vh;background:var(--texto-oscuro);z-index:10000;transform:translateX(-100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);padding:96px 36px 40px;box-shadow:4px 0 30px rgba(61,36,24,0.32);overflow-y:auto;}
 .hero-menu-drawer.open{transform:translateX(0);}
 .hero-menu-drawer-close{position:absolute;top:24px;right:24px;background:none;border:none;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
 .hero-menu-drawer-close::before,.hero-menu-drawer-close::after{content:'';position:absolute;width:22px;height:2px;background:var(--crema-claro);}
@@ -153,14 +151,19 @@
 
 /* SECTIONS */
 .sect{padding:4rem 3rem;}.sect-in{max-width:1100px;margin:0 auto;}
-.sect-lab{font-size:.63rem;letter-spacing:.35em;text-transform:uppercase;color:var(--terracota);font-weight:600;background:var(--crema-claro);display:inline-block;padding:.3rem .8rem;border-radius:50px;}
+/* Una sola definición: antes estaba dos veces con fondos distintos (crema-claro
+   aquí y salmon-claro más abajo), y ganaba la segunda por orden. Se funden,
+   conservando los valores que de verdad se veían. */
+.sect-lab{font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;color:var(--terracota);font-weight:700;
+  background:var(--salmon-claro);border:1px solid rgba(216,135,102,.14);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:inline-block;padding:.35rem .9rem;border-radius:50px;}
 .sect-t{font-size:clamp(1.35rem,2.5vw,1.9rem);line-height:1.3;margin:.8rem 0;}
 .sect-d{font-size:.9rem;font-weight:300;color:var(--texto-medio);line-height:1.9;max-width:500px;}
 
 /* PREVIEW */
-.prev-sect{background:var(--white);position:relative;overflow:hidden;padding:2.8rem 3rem;}
+.prev-sect{background:var(--crema-claro);position:relative;overflow:hidden;padding:2.8rem 3rem;}
 .prev-sect .sect-t{font-size:clamp(1.15rem,2vw,1.5rem);margin:.6rem 0;}
-.prev-sect::after{content:'';position:absolute;inset:0;background:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_girly_home_workout_space_with_clean_aesthetics_soft_neutral_colors_and_femi-0.jpg_qnmvgk.png') center/cover;opacity:.15;pointer-events:none;}
 .prev-sect .sect-in{position:relative;z-index:1;}
 .prev-head{text-align:left;}
 .prev-head .sect-d{max-width:900px;}
@@ -174,8 +177,8 @@
 .pp-hi{font-family:'Montserrat',sans-serif;font-weight:800;font-size:14px;color:var(--texto-oscuro);letter-spacing:-.01em;}
 .pp-hs{font-size:8.5px;color:var(--texto-medio);font-weight:400;margin-top:2px;}
 .pp-emolist{display:flex;flex-direction:column;gap:6px;margin-bottom:0.7rem;}
-.pp-emo-card{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.85);border-radius:11px;box-shadow:0 4px 12px rgba(58,40,32,0.09);padding:7px 9px;}
-.pp-emo-card.sel{box-shadow:0 5px 14px rgba(58,40,32,0.14);}
+.pp-emo-card{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.85);border-radius:11px;box-shadow:0 4px 12px rgba(61,36,24,0.09);padding:7px 9px;}
+.pp-emo-card.sel{box-shadow:0 5px 14px rgba(61,36,24,0.14);}
 .pp-emo-ic{width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .pp-emo-ic svg{width:15px;height:15px;}
 .pp-emo-tx{text-align:left;}
@@ -197,7 +200,7 @@
 .how-row{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;padding:2.5rem 0;border-top:1px solid rgba(244,200,184,.15);}
 .how-row:nth-child(even){direction:rtl;}.how-row:nth-child(even)>*{direction:ltr;}
 .how-mockup{display:flex;justify-content:center;}
-.how-laptop{background:#1a1a1a;border-radius:10px 10px 0 0;padding:8px 8px 0;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(58,40,32,.22);}
+.how-laptop{background:#1a1a1a;border-radius:10px 10px 0 0;padding:8px 8px 0;max-width:400px;width:100%;box-shadow:0 20px 50px rgba(61,36,24,.22);}
 .how-laptop-frame{position:relative;}
 .how-laptop-frame::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:#333;z-index:2;}
 .how-laptop-screen{background:var(--crema);border-radius:4px 4px 0 0;overflow:hidden;aspect-ratio:16/10;}
@@ -209,29 +212,45 @@
 .how-info{text-align:left;}.how-info .how-num{font-family:'Montserrat',sans-serif;font-size:2.5rem;font-style:italic;color:var(--salmon);opacity:.6;margin-bottom:.5rem;}.how-info h3{font-size:1.3rem;color:var(--crema);margin-bottom:.6rem;}.how-desc{font-size:.85rem;color:rgba(250,243,229,.82);line-height:1.8;}
 
 /* TRANSFORM */
-.trans-sect{background:var(--crema);}
+/* Transición de entrada al bloque oscuro. En vez de un corte recto crema →
+   café, una banda de 72px que arranca en el crema EXACTO de la sección de
+   arriba (#sec-prev, crema-claro) y se desvanece sobre el fondo oscuro.
+   Va como ::before absoluto y no como elemento de flujo, y el contenido se
+   levanta con z-index para que la banda nunca lo tape.
+   No afecta a la curva de 80px de .trans-img-box: esa vive dentro. */
+.trans-sect{background:var(--crema);position:relative;}
+.trans-sect::before{content:'';position:absolute;top:0;left:0;right:0;height:72px;
+  background:linear-gradient(180deg,var(--crema-claro) 0%,rgba(250,243,229,0) 100%);
+  pointer-events:none;z-index:0;}
+.trans-sect .sect-in{position:relative;z-index:1;}
+/* Misma idea al entrar al pie, que viene de FAQ (crema). */
+.lft{position:relative;}
+.lft::before{content:'';position:absolute;top:0;left:0;right:0;height:72px;
+  background:linear-gradient(180deg,var(--crema) 0%,rgba(245,235,217,0) 100%);
+  pointer-events:none;z-index:0;}
+.lft-top,.lft-bottom{position:relative;z-index:1;}
 .trans-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;margin-top:2rem;}
 .tr-i{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--crema-claro);}
 .tr-ck{width:28px;height:28px;border-radius:50%;background:var(--salmon);display:flex;align-items:center;justify-content:center;color:var(--white);font-size:.65rem;font-weight:700;flex-shrink:0;}
 .tr-i h4{font-size:.92rem;font-weight:400;}
 .trans-img-box{width:100%;height:420px;background-size:cover;background-position:center;border-radius:20px 80px 20px 20px;box-shadow:0 24px 60px rgba(61,36,24,.18);}
-.tr-quote{position:absolute;bottom:-15px;right:-10px;background:var(--white);border-radius:18px;padding:1.2rem 1.5rem;max-width:260px;box-shadow:0 14px 36px rgba(58,40,32,.16);}
+.tr-quote{position:absolute;bottom:-15px;right:-10px;background:var(--white);border-radius:18px;padding:1.2rem 1.5rem;max-width:260px;box-shadow:0 14px 36px rgba(61,36,24,.16);}
 .tr-quote p{font-family:'Montserrat',sans-serif;font-size:.88rem;font-style:italic;color:var(--terracota);line-height:1.6;text-align:left;}
 
 /* CREADORA */
-.cre-sect{background:var(--white);}
+.cre-sect{background:var(--crema-claro);}
 .cre-layout{display:grid;grid-template-columns:400px 1fr;gap:3.5rem;align-items:center;}
 .cre-photo{position:relative;display:flex;justify-content:center;}
 .cre-frame{position:relative;width:320px;height:420px;}
 .cre-frame::before{content:'';position:absolute;inset:-8px;background:var(--salmon);border-radius:8px;transform:rotate(-3deg);z-index:0;opacity:.5;}
 .cre-frame::after{content:'';position:absolute;inset:-4px;background:var(--salmon-rosa);border-radius:6px;transform:rotate(1.5deg);z-index:0;opacity:.3;}
-.cre-frame-img{position:relative;z-index:1;width:100%;height:100%;border-radius:6px;overflow:hidden;box-shadow:0 18px 50px rgba(58,40,32,.22),0 2px 8px rgba(58,40,32,.10);}
+.cre-frame-img{position:relative;z-index:1;width:100%;height:100%;border-radius:6px;overflow:hidden;box-shadow:0 18px 50px rgba(61,36,24,.22),0 2px 8px rgba(61,36,24,.10);}
 .cre-frame-img img{width:100%;height:100%;object-fit:cover;}
 .cre-text{}
 .cre-quote{margin-top:1.5rem;padding:1.2rem 0 1.2rem 1.5rem;border-left:3px solid var(--terracota);font-family:'Montserrat',sans-serif;font-size:1.15rem;font-style:italic;color:var(--terracota);line-height:1.8;}
 
 /* PRICING */
-.price-sect{background:linear-gradient(180deg,var(--crema) 0%,var(--crema-claro) 100%);text-align:center;padding:2.6rem 3rem;}
+.price-sect{background:var(--crema-claro);text-align:center;padding:2.6rem 3rem;}
 .price-sect .sect-t{font-size:clamp(1.15rem,2vw,1.5rem);margin:.5rem 0;}
 .price-card{max-width:400px;margin:1.3rem auto 0;background:var(--white);border-radius:24px;padding:1.6rem 1.7rem;box-shadow:0 20px 60px rgba(216,135,102,.12);position:relative;overflow:hidden;}
 .price-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:4px;background:linear-gradient(90deg,var(--terracota),var(--salmon),var(--terracota));}
@@ -268,7 +287,7 @@
 
 /* FAQ */
 .faq-w{max-width:650px;margin:2rem auto 0;display:flex;flex-direction:column;gap:10px;}
-.faq-i{background:linear-gradient(135deg,var(--crema-claro),var(--salmon-claro));border-radius:16px;box-shadow:0 6px 16px rgba(58,40,32,0.08);overflow:hidden;text-align:left;}
+.faq-i{background:linear-gradient(135deg,var(--crema-claro),var(--salmon-claro));border-radius:16px;box-shadow:0 6px 16px rgba(61,36,24,0.08);overflow:hidden;text-align:left;}
 .faq-i.open{background:linear-gradient(135deg,var(--salmon-claro),var(--salmon));box-shadow:0 12px 28px rgba(184,95,61,0.18);}
 .faq-q{width:100%;background:none;border:none;padding:17px 20px;display:flex;justify-content:space-between;align-items:center;gap:1rem;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:var(--tierra-oscuro);text-align:left;}
 .faq-q span{width:30px;height:30px;flex-shrink:0;border-radius:50%;background:var(--terracota);color:#FFFFFF;display:flex;align-items:center;justify-content:center;font-size:1.05rem;line-height:1;transition:transform .3s,background-color .25s ease;}
@@ -491,7 +510,7 @@
   .marquee-bar{padding:12px 0;font-size:13px;}
   /* Fondo limpio solido (sin foto) seccion ¿Qué es HOGAR? solo en móvil */
   .prev-sect::after{display:none;}
-  .prev-sect{background:var(--white) !important;}
+  .prev-sect{background:var(--crema-claro) !important;}
   /* HERO — móvil completo */
   .hero{padding:5rem 1rem 6rem;min-height:100svh;align-items:flex-end;background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-andrea-vertical-NUEVA.jpg');background-position:center center;background-size:cover;}
   .hero::before{background:linear-gradient(180deg,rgba(40,26,18,0) 0%,rgba(40,26,18,0.15) 25%,rgba(40,26,18,0.62) 52%,rgba(40,26,18,0.82) 100%);}
@@ -565,8 +584,8 @@
   .cre-frame{width:82%;max-width:330px;height:auto;aspect-ratio:3/4;margin:0 auto;}
   .cre-frame::before{display:none;}
   .cre-frame::after{display:none;}
-  .cre-frame-img{border-radius:18px;box-shadow:0 14px 36px rgba(58,40,32,.18);}
-  .cre-text{background:var(--white);border-radius:20px;padding:1.8rem 1.4rem 2rem;box-shadow:0 10px 28px rgba(58,40,32,.10);}
+  .cre-frame-img{border-radius:18px;box-shadow:0 14px 36px rgba(61,36,24,.18);}
+  .cre-text{background:var(--white);border-radius:20px;padding:1.8rem 1.4rem 2rem;box-shadow:0 10px 28px rgba(61,36,24,.10);}
   .cre-text .sect-t{font-size:1.3rem;margin-bottom:.2rem;}
   .cre-quote{font-size:.95rem;border-left:3px solid var(--terracota);padding-left:1rem;margin-top:1.2rem;color:var(--terracota);}
 
@@ -720,17 +739,10 @@
 .tr-quote p{ font-weight: 700; }
 
 /* — Refined kickers — */
-.sect-lab, .pr-read-lab{
+.pr-read-lab{
   font-weight: 700;
   letter-spacing: 0.22em;
   font-size: 0.65rem;
-}
-.sect-lab{
-  padding: 0.35rem 0.9rem;
-  border: 1px solid rgba(216,135,102,.14);
-  background: var(--salmon-claro);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 /* — Stat cards (dashboard + profile) — */
@@ -1552,7 +1564,7 @@ body.app-active { overflow: hidden; }
   width:62px; height:62px;
   border-radius:50%;
   border:2.5px solid #fdf6ee;
-  box-shadow:0 1px 4px rgba(58,40,32,.12);
+  box-shadow:0 1px 4px rgba(61,36,24,.12);
   overflow:hidden;
   background:var(--salmon);
 }
@@ -1621,7 +1633,7 @@ body.app-active { overflow: hidden; }
 }
 .stat-tile:hover {
   transform: translateY(-3px);
-  box-shadow: 0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10);
+  box-shadow: 0 24px 64px rgba(61,36,24,0.22), 0 6px 16px rgba(61,36,24,0.10);
 }
 /* Las 3 tarjetas comparten fondo blanco; la variedad va en el contenido */
 .stat-tile.salmon, .stat-tile.accent { background: #FFFFFF; }
@@ -1979,7 +1991,7 @@ body.app-active { overflow: hidden; }
 }
 .pill:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(58,40,32,0.14);
+  box-shadow: 0 10px 24px rgba(61,36,24,0.14);
 }
 .pill.selected {
   background: var(--terracota);
@@ -2030,7 +2042,7 @@ body.app-active { overflow: hidden; }
   cursor:pointer;
   transition:transform .25s ease, box-shadow .25s ease;
 }
-#dash-pills-tiempo .pill:hover{ transform:translateY(-2px); box-shadow:0 6px 16px -8px rgba(58,40,32,.18) !important; }
+#dash-pills-tiempo .pill:hover{ transform:translateY(-2px); box-shadow:0 6px 16px -8px rgba(61,36,24,.18) !important; }
 #dash-pills-tiempo .pill:active{ transform:scale(.985); }
 #dash-pills-tiempo .pill-ico{
   flex-shrink:0; width:44px; height:44px;
@@ -2444,7 +2456,7 @@ body.app-active { overflow: hidden; }
   color: #FFFFFF;
   font-size: 30px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(58,40,32,0.3);
+  box-shadow: 0 8px 24px rgba(61,36,24,0.3);
   transition: all 0.3s;
 }
 
@@ -2631,7 +2643,7 @@ body.app-active { overflow: hidden; }
   margin-bottom: 40px;
   position: relative;
   border-left: 4px solid var(--terracota);
-  box-shadow: 0 16px 40px rgba(58,40,32,0.12);
+  box-shadow: 0 16px 40px rgba(61,36,24,0.12);
 }
 
 .practica-guia-label {
@@ -2858,12 +2870,12 @@ body.app-active { overflow: hidden; }
   background: #FFFFFF;
   border-radius: 14px !important;
   border: 1.5px solid transparent;
-  box-shadow: 0 6px 16px rgba(58,40,32,0.10);
+  box-shadow: 0 6px 16px rgba(61,36,24,0.10);
   transition: all 0.3s ease;
   cursor: pointer;
 }
 .opcion-suave:hover {
-  box-shadow: 0 10px 24px rgba(58,40,32,0.14);
+  box-shadow: 0 10px 24px rgba(61,36,24,0.14);
 }
 .opcion-suave.selected {
   background: radial-gradient(circle at 82% 18%, rgba(255,255,255,0.22), transparent 55%), linear-gradient(135deg, var(--salmon-rosa), var(--terracota));
@@ -2907,7 +2919,7 @@ body.app-active { overflow: hidden; }
   background: rgba(255,255,255,0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 12px 32px rgba(58,40,32,0.10);
+  box-shadow: 0 12px 32px rgba(61,36,24,0.10);
   font-family: 'Montserrat', sans-serif;
   font-style: italic;
   font-size: 16px;
@@ -2989,7 +3001,7 @@ body.app-active { overflow: hidden; }
 .trans-sect .sect-d{color:var(--crema-claro);opacity:.92;}
 .trans-sect .tr-i{border-bottom-color:rgba(245,235,217,.18);}
 .faq-i{transition:transform .3s ease,box-shadow .3s ease,background-color .3s ease,opacity .5s ease;}
-.faq-i:not(.open):hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(58,40,32,0.13);}
+.faq-i:not(.open):hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(61,36,24,0.13);}
 
 /* — Paneles flotantes de la app interna (look premium) — */
 .dash-chat-section,
@@ -3000,15 +3012,15 @@ body.app-active { overflow: hidden; }
 .perfil-section{
   background: #FFFFFF;
   border-radius: 20px;
-  box-shadow: 0 14px 44px rgba(58,40,32,0.12), 0 3px 10px rgba(58,40,32,0.06);
+  box-shadow: 0 14px 44px rgba(61,36,24,0.12), 0 3px 10px rgba(61,36,24,0.06);
 }
 .historial-empty-state{ border-radius: 20px; }
 .practica-guia{
   border-radius: 18px;
-  box-shadow: 0 12px 40px rgba(58,40,32,0.10), 0 3px 10px rgba(58,40,32,0.05);
+  box-shadow: 0 12px 40px rgba(61,36,24,0.10), 0 3px 10px rgba(61,36,24,0.05);
 }
 /* Pills de emoción — sombrita suave para integrarse al look flotante */
-.pill{ box-shadow: 0 6px 18px rgba(58,40,32,0.10); }
+.pill{ box-shadow: 0 6px 18px rgba(61,36,24,0.10); }
 /* Burbujas del chat — planas (sin sombra), conversación tranquila */
 .bubble{ box-shadow: none; }
 
@@ -3048,11 +3060,11 @@ body.app-active { overflow: hidden; }
 }
 /* Primario crema — botón "Comenzar mi práctica" (cierre) */
 .btn-w{
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), 0 10px 26px rgba(58,40,32,0.28);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), 0 10px 26px rgba(61,36,24,0.28);
 }
 .btn-w:hover{
   transform: translateY(-2px);
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), 0 16px 38px rgba(58,40,32,0.38);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), 0 16px 38px rgba(61,36,24,0.38);
 }
 /* Primario café — botón "Unirme" (barra de navegación) */
 .hero-header-cta{
@@ -3091,7 +3103,7 @@ body.app-active { overflow: hidden; }
   .stat-tile-sub{display:none;}
   /* C) CHECK-IN DE EMOCIONES */
   .pills-row{padding-left:0;gap:10px;margin-top:14px;}
-  .pill{display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:16px;border:1px solid transparent;box-shadow:0 7px 16px -9px rgba(58,40,32,.20);transition:transform .25s ease,box-shadow .25s ease;}
+  .pill{display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:16px;border:1px solid transparent;box-shadow:0 7px 16px -9px rgba(61,36,24,.20);transition:transform .25s ease,box-shadow .25s ease;}
   .pill:active{transform:scale(.985);}
   .pill-ico{flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:13px;}
   #dash-pills-emocion .pill .pill-ico svg{width:24px;height:24px;background:none;padding:0;border-radius:0;}
@@ -3116,7 +3128,7 @@ body.app-active { overflow: hidden; }
   #s-prac{background:radial-gradient(ellipse 135% 62% at 50% -8%,#f8ddc8 0%,#f1e2d6 72%);min-height:100svh;}
   /* A) Encabezado */
   #s-prac .app-nav{background:rgba(248,221,200,.92);border-bottom:none;padding:14px 16px;}
-  #s-prac .app-nav-back{background:rgba(255,255,255,.72);padding:9px 16px;box-shadow:0 2px 8px -2px rgba(58,40,32,.18);}
+  #s-prac .app-nav-back{background:rgba(255,255,255,.72);padding:9px 16px;box-shadow:0 2px 8px -2px rgba(61,36,24,.18);}
   #s-prac .app-nav-logo{height:28px;}
   /* B) Titulo */
   #s-prac .practica-header{margin-bottom:24px;}
@@ -3124,14 +3136,14 @@ body.app-active { overflow: hidden; }
   #s-prac .practica-title{font-size:26px;color:#3a2820;}
   /* C) Reproductor */
   #s-prac .video-frame{background:transparent;padding:0;box-shadow:none;margin-bottom:30px;}
-  #s-prac .video-container{border-radius:16px;box-shadow:0 0 40px -6px rgba(200,107,65,.45),0 12px 24px -8px rgba(58,40,32,.3);}
-  #s-prac .video-play-btn{width:72px;height:72px;background:rgba(255,255,255,.92);border:none;color:#c0673f;font-size:26px;box-shadow:0 6px 20px -4px rgba(58,40,32,.4);}
+  #s-prac .video-container{border-radius:16px;box-shadow:0 0 40px -6px rgba(200,107,65,.45),0 12px 24px -8px rgba(61,36,24,.3);}
+  #s-prac .video-play-btn{width:72px;height:72px;background:rgba(255,255,255,.92);border:none;color:#c0673f;font-size:26px;box-shadow:0 6px 20px -4px rgba(61,36,24,.4);}
   #s-prac .video-placeholder>div:not(.video-play-btn){display:none;}
   #s-prac .video-fs-btn{display:flex;width:40px;height:40px;bottom:14px;right:14px;background:rgba(30,20,15,.52);border-color:rgba(255,255,255,.4);}
   #s-prac .video-fs-btn svg{width:18px;height:18px;}
   #s-prac .video-frame::after{content:'Toca play cuando estés lista';display:block;text-align:center;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:#9c6b5c;margin-top:14px;}
   /* E) Recuadro de cierre */
-  #s-prac .practica-guia{background:#fff;border-left:none;border-radius:20px 20px 14px 14px;padding:24px 22px;box-shadow:0 -8px 28px -12px rgba(58,40,32,.16),0 8px 20px -14px rgba(58,40,32,.12);animation:guiaIn .6s ease .15s both;}
+  #s-prac .practica-guia{background:#fff;border-left:none;border-radius:20px 20px 14px 14px;padding:24px 22px;box-shadow:0 -8px 28px -12px rgba(61,36,24,.16),0 8px 20px -14px rgba(61,36,24,.12);animation:guiaIn .6s ease .15s both;}
   #s-prac .practica-guia-label{font-size:0;letter-spacing:0;display:flex;align-items:center;margin-bottom:14px;}
   #s-prac .practica-guia-label::before{content:'✦';font-size:11px;display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#c66b41,#b55836);color:#fdf6ee;flex-shrink:0;margin-right:9px;}
   #s-prac .practica-guia-label::after{content:'PARA INTEGRAR';font-size:10px;letter-spacing:2px;font-weight:700;color:#c0673f;}
@@ -3144,7 +3156,7 @@ body.app-active { overflow: hidden; }
   #s-history{background:linear-gradient(180deg,#f8d9cb 0%,#f5e6da 58%);min-height:100svh;}
   /* A) Encabezado */
   #s-history .app-nav{background:rgba(248,217,203,.92);border-bottom:none;padding:14px 16px;}
-  #s-history .app-nav-back{background:#fdf6ee;padding:9px 16px;box-shadow:0 2px 8px -2px rgba(58,40,32,.18);}
+  #s-history .app-nav-back{background:#fdf6ee;padding:9px 16px;box-shadow:0 2px 8px -2px rgba(61,36,24,.18);}
   #s-history .app-nav-logo{height:28px;}
   /* B) Titulo */
   #s-history .app-eyebrow{font-size:10px;letter-spacing:3px;color:#9c4a2e;}
@@ -3259,7 +3271,7 @@ body.app-active { overflow: hidden; }
 #adm-view-landing .adm-lp-foto-nota{ font-family:'Montserrat',sans-serif; font-size:.76rem;
   font-weight:300; color:#9a7d6c; line-height:1.45; margin-top:8px; }
 #adm-view-landing .adm-lp-marco{ position:relative; border-radius:18px; overflow:hidden;
-  background:#f0e0d0; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+  background:#f0e0d0; box-shadow:0 6px 16px rgba(61,36,24,.07); }
 /* object-position al 30% de la altura, no al centro: en un retrato la cara está
    en el tercio de arriba, y un cover centrado la decapita. */
 #adm-view-landing .adm-lp-marco img{ display:block; width:100%; object-fit:cover;
@@ -3272,7 +3284,7 @@ body.app-active { overflow: hidden; }
 }
 /* La del chat se ve redonda porque redonda se ve en la práctica. */
 #adm-view-landing .adm-lp-marco.redondo{ flex-shrink:0; width:84px; height:84px;
-  border-radius:50%; border:2px solid #fff; box-shadow:0 6px 16px rgba(58,40,32,.14); }
+  border-radius:50%; border:2px solid #fff; box-shadow:0 6px 16px rgba(61,36,24,.14); }
 #adm-view-landing .adm-lp-marco.redondo img{ height:84px; }
 #adm-view-landing .adm-lp-chat-fila{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
 #adm-view-landing .adm-lp-chat-txt{ flex:1 1 190px; min-width:0; }
@@ -3280,10 +3292,10 @@ body.app-active { overflow: hidden; }
   font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700; letter-spacing:1.2px;
   text-transform:uppercase; color:#c66b41;
   background:rgba(255,255,255,.85); border:none; border-radius:100px; padding:9px 16px;
-  box-shadow:0 4px 12px rgba(58,40,32,.16);
+  box-shadow:0 4px 12px rgba(61,36,24,.16);
   transition:background .25s, transform .25s var(--ease-premium), box-shadow .25s; }
 #adm-view-landing .adm-lp-cambiar:hover{ background:#fff; transform:translateY(-1px);
-  box-shadow:0 6px 16px rgba(58,40,32,.22); }
+  box-shadow:0 6px 16px rgba(61,36,24,.22); }
 #adm-view-landing .adm-lp-cambiar[disabled]{ opacity:.75; cursor:default; transform:none; }
 
 /* Cards y campos, iguales a Planes y Contenido. */
@@ -3296,7 +3308,7 @@ body.app-active { overflow: hidden; }
   width:100%; font-family:'Montserrat',sans-serif; font-size:.88rem; line-height:1.6;
   color:#3a2820; background:#fff; border:1px solid rgba(240,228,214,.9); border-radius:14px;
   padding:.75rem 1rem; outline:none; resize:vertical;
-  box-shadow:0 6px 16px rgba(58,40,32,.05);
+  box-shadow:0 6px 16px rgba(61,36,24,.05);
   transition:border-color .25s, box-shadow .25s; }
 #adm-view-landing textarea:focus,
 #adm-view-landing .adm-lp-avanzado input:focus{
@@ -3406,7 +3418,7 @@ body.app-active { overflow: hidden; }
   transition:transform .28s var(--ease-premium), box-shadow .28s var(--ease-premium),
              border-color .28s var(--ease-premium); }
 .adm-u-card:hover{ transform:translateY(-3px); border-color:rgba(198,107,65,.28);
-  box-shadow:0 14px 32px rgba(58,40,32,.12); }
+  box-shadow:0 14px 32px rgba(61,36,24,.12); }
 .adm-u-card:focus-visible{ outline:2px solid #c66b41; outline-offset:2px; }
 .adm-u-head{ display:flex; align-items:center; gap:12px; }
 .adm-u-avatar{ flex-shrink:0; width:40px; height:40px; border-radius:50%;
@@ -3441,7 +3453,7 @@ body.app-active { overflow: hidden; }
 
 /* Estado vacío: cálido, no una tabla con un hueco. */
 .adm-u-vacio{ background:#fff; border:1px solid rgba(240,228,214,.8); border-radius:20px;
-  padding:44px 26px; text-align:center; box-shadow:0 6px 16px rgba(58,40,32,.07); }
+  padding:44px 26px; text-align:center; box-shadow:0 6px 16px rgba(61,36,24,.07); }
 .adm-u-vacio-ico{ width:48px; height:48px; margin:0 auto 14px; border-radius:50%;
   display:flex; align-items:center; justify-content:center;
   background:#f0e0d0; color:#b0654a; font-size:20px; }
@@ -3468,7 +3480,7 @@ body.app-active { overflow: hidden; }
 }
 #adm-view-inicio .adm-section{ margin-bottom:42px; }
 
-#adm-view-inicio .adm-kpi:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(58,40,32,.12); }
+#adm-view-inicio .adm-kpi:hover{ transform:translateY(-3px); box-shadow:0 14px 32px rgba(61,36,24,.12); }
 #adm-view-inicio .adm-kpi-eyebrow{ font-family:'Montserrat',sans-serif; font-size:10px; font-weight:700;
   letter-spacing:2px; text-transform:uppercase; color:#b0654a; margin-bottom:12px; }
 /* weight 200: el número fino es lo que le da el aire editorial */
@@ -3551,8 +3563,8 @@ body.app-active { overflow: hidden; }
   --adm-card-bg:#fff;
   --adm-card-radio:20px;
   --adm-card-borde:1px solid rgba(240,228,214,.8);
-  --adm-card-sombra:0 6px 16px rgba(58,40,32,.07);
-  --adm-card-sombra-alta:0 14px 32px rgba(58,40,32,.12);
+  --adm-card-sombra:0 6px 16px rgba(61,36,24,.07);
+  --adm-card-sombra-alta:0 14px 32px rgba(61,36,24,.12);
   --adm-eyebrow-color:#b0654a;
   --adm-eyebrow-size:10px;
   --adm-eyebrow-ls:2.4px;
@@ -3560,7 +3572,7 @@ body.app-active { overflow: hidden; }
   --adm-texto-2:#9a7d6c;
   --adm-campo-radio:14px;
   --adm-campo-borde:1px solid rgba(240,228,214,.9);
-  --adm-campo-sombra:0 6px 16px rgba(58,40,32,.05);
+  --adm-campo-sombra:0 6px 16px rgba(61,36,24,.05);
   --adm-foco:0 0 0 3px rgba(198,107,65,.13);
 }
 
@@ -3583,7 +3595,7 @@ body.app-active { overflow: hidden; }
   display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:14px;
   padding:12px 16px; background:#f0e0d0;
   border-bottom:1px solid rgba(198,107,65,.12);
-  box-shadow:0 4px 16px rgba(58,40,32,.08); }
+  box-shadow:0 4px 16px rgba(61,36,24,.08); }
 .adm-topbar-logo{ display:flex; justify-content:center; }
 /* SIN el filter de aclarado: aquí el fondo es claro, así que va el logo tal cual,
    en su oscuro original. El filtro es solo para el sidebar y el drawer, que son
@@ -3595,9 +3607,9 @@ body.app-active { overflow: hidden; }
   display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px;
   padding:0 12px; border-radius:13px;
   background:#fff; border:none;
-  box-shadow:0 2px 6px rgba(58,40,32,.08);
+  box-shadow:0 2px 6px rgba(61,36,24,.08);
   transition:transform .25s var(--ease-premium), box-shadow .25s var(--ease-premium); }
-.adm-burger:hover{ transform:translateY(-1px); box-shadow:0 5px 14px rgba(58,40,32,.13); }
+.adm-burger:hover{ transform:translateY(-1px); box-shadow:0 5px 14px rgba(61,36,24,.13); }
 .adm-burger:active{ transform:scale(.96); }
 .adm-burger span{ display:block; height:2px; border-radius:2px; background:#3a2820; transition:width .25s var(--ease-premium); }
 .adm-burger span:nth-child(1),
@@ -3609,7 +3621,7 @@ body.app-active { overflow: hidden; }
 .adm-avatar{ flex-shrink:0; display:flex; align-items:center; justify-content:center;
   width:44px; height:44px; border-radius:50%;
   background:linear-gradient(135deg,#f0c9a8,#db9b6c);
-  border:2.5px solid #fff; box-shadow:0 4px 12px rgba(58,40,32,.14);
+  border:2.5px solid #fff; box-shadow:0 4px 12px rgba(61,36,24,.14);
   font-family:'Montserrat',sans-serif; font-weight:700; font-size:1rem; color:#6d3418;
   line-height:1; user-select:none; }
 .adm-avatar.sm{ width:40px; height:40px; font-size:.92rem; border-width:2px; }
@@ -3707,7 +3719,7 @@ body.app-active { overflow: hidden; }
   box-shadow:var(--highlight-top), var(--sombra-suave);
   transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium); }
 .adm-acc-head:hover{ transform:translateY(-3px);
-  box-shadow:0 24px 64px rgba(58,40,32,0.22), 0 6px 16px rgba(58,40,32,0.10); }
+  box-shadow:0 24px 64px rgba(61,36,24,0.22), 0 6px 16px rgba(61,36,24,0.10); }
 .adm-acc-titles{ flex:1 1 auto; min-width:0; }
 .adm-acc-eyebrow{ display:block; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:var(--adm-eyebrow-ls);
   text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:6px; }
@@ -3966,7 +3978,7 @@ body.app-active { overflow: hidden; }
 <section class="sect trans-sect" style="background:linear-gradient(160deg,var(--texto-oscuro) 0%,var(--terracota-oscuro) 100%);color:var(--crema);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" style="background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
 
 <section class="sect parati-sect" style="background:var(--crema);" id="sec-parati"><div class="sect-in parati-in"><p class="sect-lab rv">¿Es para ti?</p><h2 class="sect-t rv rd1">HOGAR es para ti <em>si…</em></h2><p class="parati-p rv rd2">Ya probaste métodos. Ya te prometiste constancia. Ya te cansaste de sentir que nunca alcanza.</p><p class="parati-p rv rd3">Esto no es para empezar de cero otra vez. Es para entrenar con estructura, <strong>pero sin látigo</strong>.</p></div></section>
-<section class="sect" style="background:var(--crema-claro);" id="sec-testimonios"><div class="sect-in" style="text-align:center;"><p class="sect-lab rv">— Testimonios</p><h2 class="sect-t rv rd1">Lo que dicen quienes <em>ya son parte.</em></h2><div class="tst-grid">
+<section class="sect" style="background:var(--crema);" id="sec-testimonios"><div class="sect-in" style="text-align:center;"><p class="sect-lab rv">— Testimonios</p><h2 class="sect-t rv rd1">Lo que dicen quienes <em>ya son parte.</em></h2><div class="tst-grid">
       <div class="tst-card rv "><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Lo uso muchísimo más de lo que esperaba.</p><p class="tst-txt">He comprado cursos que termino dejando a medias, pero con HOGAR ha sido diferente. Puedo entrar desde el celular, elegir el tiempo que tengo y empezar. Esa facilidad hizo toda la diferencia para mí.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">F</div><div class="tst-nombre">Fernanda</div></div></div>
       <div class="tst-card rv rd1"><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Me quitó la excusa de &#8216;hoy no tengo tiempo&#8217;.</p><p class="tst-txt">Antes pensaba que si no tenía una hora libre no valía la pena practicar. Ahora hay días en los que hago una práctica corta y me encanta poder mantener ese espacio para mí sin complicarme.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">A</div><div class="tst-nombre">Alejandra</div></div></div>
       <div class="tst-card rv rd2"><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Me ayuda a volver a mí cuando todo me sobrepasa.</p><p class="tst-txt">Hay días en los que llego con la cabeza llena y muy acelerada. Hacer una práctica, aunque sea corta, me ayuda a bajar el ritmo, respirar y sentirme mucho más tranquila. Se ha convertido en uno de mis espacios favoritos del día.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">V</div><div class="tst-nombre">Valeria</div></div></div>
