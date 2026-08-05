@@ -139,7 +139,7 @@ export const handler: Handler = async (event) => {
       //    expandir dispute.charge para sacar el user_id.
       //
       // El análisis completo, las dos opciones de modelado y los eventos que hay
-      // que suscribir en el Dashboard: PENDIENTE-REEMBOLSOS.md en la raíz.
+      // que suscribir en el Dashboard: PENDIENTES.md en la raíz.
       default:
         console.log('[stripe-webhook] evento de', APP_TAG, 'sin manejar:', stripeEvent.type);
     }

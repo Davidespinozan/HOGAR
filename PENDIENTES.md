@@ -1,4 +1,17 @@
-# Pendiente — reembolsos y disputas
+# Pendientes de HOGAR
+
+Cosas conocidas, decididas conscientemente y **sin hacer**. Cada una dice por qué
+sigue abierta y qué haría falta para cerrarla. No es una lista de bugs: nada de
+esto está roto, son decisiones aplazadas.
+
+| # | Pendiente | Bloqueado por | Alcance |
+|---|---|---|---|
+| 1 | [Reembolsos y disputas](#1--reembolsos-y-disputas) | Decisión de negocio de Andrea | `stripe-webhook`, quizá Supabase |
+| 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
+
+---
+
+## 1 · Reembolsos y disputas
 
 **Estado: sin implementar, a la espera de una decisión de Andrea.**
 Hallazgo #10 de la auditoría de agosto de 2026.
@@ -10,7 +23,7 @@ retirárselo desde el panel: habría que editar la fila a mano en Supabase.
 No corre prisa —no hay clientas todavía—, pero conviene resolverlo antes de la
 primera venta real.
 
-## La decisión que falta
+### La decisión que falta
 
 **¿El reembolso debe retirar el acceso automáticamente, o prefiere Andrea
 manejarlo a mano?**
@@ -20,7 +33,7 @@ persona termine lo que empezó; automatizarlo le quita esa opción. Todo lo de a
 supone que la respuesta es "sí, automático" — si es que no, lo único que hace falta
 es un control en el panel para revocar el acceso a mano.
 
-## Lo que ya está resuelto (y no es poco)
+### Lo que ya está resuelto (y no es poco)
 
 Verificado sobre el código en agosto de 2026:
 
@@ -35,7 +48,7 @@ Verificado sobre el código en agosto de 2026:
 
 El reembolso encaja en la arquitectura actual sin tocarla.
 
-## La asimetría de la disputa
+### La asimetría de la disputa
 
 **La disputa NO encaja igual, y es el detalle que más fácil se pasa por alto.**
 
@@ -54,9 +67,9 @@ Y una diferencia de fondo: **una disputa no es definitiva**. Puede resolverse a
 favor de Andrea, y entonces habría que devolver el acceso. Si se modela igual que
 un reembolso, ese camino de vuelta no existe.
 
-## Dos formas de modelarlo
+### Dos formas de modelarlo
 
-### a) Un estado, no un booleano
+#### a) Un estado, no un booleano
 
 Reutilizar `estatus` —que hoy no sirve para nada: vale `'activa'` para todas desde
 el registro— o añadir una columna, con valores del tipo:
@@ -71,7 +84,7 @@ disputa ganada. Conserva `fecha_compra` y `monto_centavos` como historia.
 (que en agosto de 2026 se cambiaron para derivar de `pagado`), y el gate de acceso
 tendría que mirar el estado y no solo `pagado`.
 
-### b) Solo `pagado: false`
+#### b) Solo `pagado: false`
 
 **A favor:** una línea. El muro y el badge ya funcionan sobre `pagado`, así que no
 hay que tocar nada más.
@@ -80,7 +93,7 @@ hay que tocar nada más.
 panel, indistinguible de quien nunca compró. Y sin `estatus` no hay forma de
 revertir una disputa ganada salvo volver a poner `pagado: true` a mano.
 
-## Qué habría que añadir en Stripe
+### Qué habría que añadir en Stripe
 
 **No está suscrito hoy** — es configuración del Dashboard, no del repo, así que hay
 que comprobarlo y añadirlo allí:
@@ -96,7 +109,7 @@ que el endpoint tiene que recibir eventos **de cuentas conectadas**, no solo de 
 plataforma. Eso ya funciona (por eso llega `checkout.session.completed`), pero al
 añadir los nuevos hay que confirmar que quedan en el mismo ámbito.
 
-## Qué debería ver la clienta
+### Qué debería ver la clienta
 
 La pantalla de acceso actual (`#s-acceso`) diría *"Tu cuenta está lista. Falta
 activar tu acceso"* a alguien que **sí** activó, usó la app y recibió su dinero de
@@ -112,7 +125,7 @@ vuelta. Suena a que se le olvidó pagar. Hace falta al menos un texto distinto:
 Esa diferencia solo es posible con la opción (a). Con la (b), las dos verían el
 mismo mensaje que quien nunca pagó.
 
-## Resumen de lo que habría que tocar
+### Resumen de lo que habría que tocar
 
 | Dónde | Qué |
 |---|---|
@@ -123,3 +136,50 @@ mismo mensaje que quien nunca pagó.
 | Supabase | Solo si se elige la opción (a): migración de `estatus` |
 | `index.html` | El gate y la pantalla de acceso, si se distinguen estados |
 | `index.html` | El badge y el filtro del panel, si se elige (a) |
+
+---
+
+## 2 · Contraste de las píldoras `.sect-lab`
+
+**Estado: sin resolver, decisión de paleta global.**
+Detectado en agosto de 2026, al reasignar los fondos de la landing.
+
+Las seis píldoras de sección de la landing —"¿QUÉ ES HOGAR?", "TRANSFORMACIÓN",
+"¿ES PARA TI?", "— TESTIMONIOS", "TU ESPACIO", "DETRÁS DE HOGAR"— usan
+`color:var(--terracota)` sobre fondo claro. El contraste queda **por debajo del
+4,5 que pide WCAG AA**, y también del 3,0 de texto grande:
+
+| combinación | ratio |
+|---|---|
+| terracota `#D88766` sobre salmón claro `#F8DDD0` (píldora de serie) | **2,14** |
+| terracota `#D88766` sobre crema claro `#FAF3E5` (píldora de `.cre-sect`) | **2,51** |
+
+Agrava que son 10,4 px en mayúsculas con `letter-spacing:.22em`: texto pequeño,
+justo donde el contraste importa más.
+
+**Esto NO es una regresión de ningún cambio reciente.** Es el valor que la píldora
+ha tenido siempre. Se anota aquí porque salió a la luz al medir la paleta, no
+porque algo lo haya empeorado.
+
+### La corrección, si se decide hacerla
+
+Cambiar el color del texto de `--terracota` a `--terracota-oscuro` (`#B85F3D`):
+
+| combinación | ratio |
+|---|---|
+| terracota oscuro sobre salmón claro | 3,43 |
+| terracota oscuro sobre crema claro | **4,01** |
+
+Sigue sin llegar a 4,5, pero pasa el umbral de 3,0 y casi dobla el actual.
+
+### Por qué no se hizo ya
+
+Es **una sola línea** —el `color` de `.sect-lab` en index.html— pero afecta a las
+seis píldoras a la vez, en toda la landing. Es una decisión estética de marca que
+oscurece un acento que Andrea eligió, no un arreglo local. La regla acotada
+`.cre-sect .sect-lab` que se añadió junto a `.trans-sect .sect-lab` resuelve la
+visibilidad de la píldora sobre su fondo nuevo, pero deliberadamente **no toca el
+color del texto**: eso es esta decisión, no aquella.
+
+Llegar a 4,5 de verdad exigiría un tono más oscuro que ninguno de la paleta
+actual, o engordar la tipografía de la píldora.

@@ -212,23 +212,7 @@
 .how-info{text-align:left;}.how-info .how-num{font-family:'Montserrat',sans-serif;font-size:2.5rem;font-style:italic;color:var(--salmon);opacity:.6;margin-bottom:.5rem;}.how-info h3{font-size:1.3rem;color:var(--crema);margin-bottom:.6rem;}.how-desc{font-size:.85rem;color:rgba(250,243,229,.82);line-height:1.8;}
 
 /* TRANSFORM */
-/* Transición de entrada al bloque oscuro. En vez de un corte recto crema →
-   café, una banda de 72px que arranca en el crema EXACTO de la sección de
-   arriba (#sec-prev, crema-claro) y se desvanece sobre el fondo oscuro.
-   Va como ::before absoluto y no como elemento de flujo, y el contenido se
-   levanta con z-index para que la banda nunca lo tape.
-   No afecta a la curva de 80px de .trans-img-box: esa vive dentro. */
-.trans-sect{background:var(--crema);position:relative;}
-.trans-sect::before{content:'';position:absolute;top:0;left:0;right:0;height:72px;
-  background:linear-gradient(180deg,var(--crema-claro) 0%,rgba(250,243,229,0) 100%);
-  pointer-events:none;z-index:0;}
-.trans-sect .sect-in{position:relative;z-index:1;}
-/* Misma idea al entrar al pie, que viene de FAQ (crema). */
-.lft{position:relative;}
-.lft::before{content:'';position:absolute;top:0;left:0;right:0;height:72px;
-  background:linear-gradient(180deg,var(--crema) 0%,rgba(245,235,217,0) 100%);
-  pointer-events:none;z-index:0;}
-.lft-top,.lft-bottom{position:relative;z-index:1;}
+.trans-sect{background:var(--crema);}
 .trans-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:center;margin-top:2rem;}
 .tr-i{display:flex;align-items:center;gap:1rem;padding:1rem 0;border-bottom:1px solid var(--crema-claro);}
 .tr-ck{width:28px;height:28px;border-radius:50%;background:var(--salmon);display:flex;align-items:center;justify-content:center;color:var(--white);font-size:.65rem;font-weight:700;flex-shrink:0;}
@@ -238,7 +222,7 @@
 .tr-quote p{font-family:'Montserrat',sans-serif;font-size:.88rem;font-style:italic;color:var(--terracota);line-height:1.6;text-align:left;}
 
 /* CREADORA */
-.cre-sect{background:var(--crema-claro);}
+.cre-sect{background:var(--salmon-claro);}
 .cre-layout{display:grid;grid-template-columns:400px 1fr;gap:3.5rem;align-items:center;}
 .cre-photo{position:relative;display:flex;justify-content:center;}
 .cre-frame{position:relative;width:320px;height:420px;}
@@ -583,7 +567,6 @@
 
   /* CREADORA */
   /* Creadora — rediseño móvil */
-  .cre-sect{background:var(--crema-claro);}
   .cre-layout{gap:1.6rem;}
   .cre-photo{margin-bottom:0;}
   .cre-frame{width:82%;max-width:330px;height:auto;aspect-ratio:3/4;margin:0 auto;}
@@ -3011,7 +2994,17 @@ body.app-active { overflow: hidden; }
 }
 
 /* — Pulido de contraste (trans-sect) + hover FAQ — */
+/* La píldora .sect-lab lleva de serie background:var(--salmon-claro), y eso solo
+   funciona sobre fondo crema. Las dos secciones que se salen de ahí necesitan
+   rescatarla, cada una hacia su lado:
+     · trans-sect es oscura  → la píldora se aclara con un tinte translúcido.
+     · cre-sect  es salmón   → el fondo de la píldora Y el de la sección serían
+       el mismo tono (--salmon-claro, L* 90,0), así que "DETRÁS DE HOGAR"
+       desaparecería. Se sube a crema-claro: 6 puntos de L* de separación.
+   Mismo patrón, extremos opuestos. Si algún día se cambia el fondo de otra
+   sección, mirar aquí primero. */
 .trans-sect .sect-lab{background:rgba(244,200,184,.18);color:var(--salmon-claro);}
+.cre-sect .sect-lab{background:var(--crema-claro);}
 .trans-sect .sect-d{color:var(--crema-claro);opacity:.92;}
 .trans-sect .tr-i{border-bottom-color:rgba(245,235,217,.18);}
 .faq-i{transition:transform .3s ease,box-shadow .3s ease,background-color .3s ease,opacity .5s ease;}
