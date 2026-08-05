@@ -264,7 +264,14 @@
 
 /* CIERRE */
 .cierre{
-  background:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png') center/cover no-repeat;
+  /* El color va PRIMERO en el atajo: si la imagen no carga, el ::before
+     pinta su degradado marron sobre el, no sobre el crema del body, y el
+     texto claro y el boton siguen legibles. */
+  /* Servida por el transformador, igual que la variante movil de abajo: el
+     PNG crudo pesa 836 KB. width=1600 es un techo, no un objetivo — el
+     original mide 1312 px y el transformador no reescala hacia arriba, asi
+     que devuelve 1312x736 en WebP por 29 KB. */
+  background:var(--texto-oscuro) url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png?width=1600&quality=70') center/cover no-repeat;
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:5rem 3rem;text-align:center;position:relative;overflow:hidden;
 }
 .cierre::before{
@@ -595,8 +602,18 @@
   .pc-feats li{font-size:.8rem;padding:.3rem 0;}
   .pc-note{font-size:.7rem;}
 
-  /* CIERRE — oculta solo en móvil (HTML intacto, escritorio sin cambios) */
-  .cierre{padding:3.8rem 1.4rem;background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-3_lhuvck.png');display:none;}
+  /* CIERRE */
+  /* Se mostraba solo en escritorio (50a34c2). En movil la clienta perdia el
+     segundo CTA de registro, y precio y Andrea quedaban pegados en un unico
+     bloque palido. Vuelve, con tres arreglos:
+       · La imagen que apuntaba aqui (…-3_lhuvck.png) ya no existe en el
+         bucket: devuelve 400. Se usa la misma que escritorio.
+       · Servida por el transformador: 900px de ancho y calidad 62. El
+         navegador negocia WebP y baja de 836 KB a ~20 KB. Es un fondo
+         decorativo bajo un velo del 55-70%, no se nota la perdida.
+       · La base es min-height:100vh; aqui seria una pantalla entera para un
+         titular y un boton. 62vh basta. */
+  .cierre{padding:3.4rem 1.4rem;min-height:62vh;background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png?width=900&quality=62');}
   .cierre-in h2{font-size:1.6rem;line-height:1.3;}
   .cierre-sub{font-size:.88rem;}
   .cierre::after{font-size:1rem;}
