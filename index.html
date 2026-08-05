@@ -136,15 +136,7 @@
 .hero-label{font-family:'Montserrat',sans-serif;font-style:italic;font-size:1rem;font-weight:600;letter-spacing:.02em;text-transform:none;color:var(--salmon-claro);margin-bottom:14px;display:inline-block;text-shadow:0 1px 10px rgba(0,0,0,.4);opacity:0;animation:fadeUp .8s ease .2s forwards;}
 .hero h1{font-family:'Montserrat',sans-serif;font-weight:800;font-size:clamp(30px,3.2vw,46px);letter-spacing:-1px;line-height:1.08;margin-bottom:16px;color:var(--crema-claro);text-shadow:0 2px 20px rgba(0,0,0,.4);text-wrap:balance;opacity:0;animation:fadeUp .8s ease .35s forwards;}
 .hero h1 em{font-family:'Montserrat',sans-serif;font-style:italic;font-weight:500;color:var(--salmon-claro);}
-.hero-desc{font-family:'Montserrat',sans-serif;font-style:italic;font-size:.95rem;font-weight:300;color:var(--salmon-claro);line-height:1.7;margin-bottom:6px;max-width:440px;text-shadow:0 1px 12px rgba(0,0,0,.4);opacity:0;animation:fadeUp .8s ease .5s forwards;}
-/* Segunda línea de la bajada. Va en SU PROPIO elemento y no dentro de
-   .hero-desc porque precargarLandingHogar() escribe esa bajada con
-   textContent: cualquier <br> o <span> ahí dentro se borraría en cuanto
-   llegara el valor de la base. Además, así el dato de las duraciones no
-   queda a merced de un campo de texto libre y no puede contradecir a la app.
-   Recta frente a la itálica de arriba, y más pequeña: se leen como unidad
-   pero la de abajo no compite. */
-.hero-desc-min{font-family:'Montserrat',sans-serif;font-size:.8rem;font-weight:400;letter-spacing:.06em;color:var(--salmon-claro);line-height:1.6;margin-bottom:28px;text-shadow:0 1px 12px rgba(0,0,0,.4);opacity:0;animation:fadeUp .8s ease .58s forwards;}
+.hero-desc{font-family:'Montserrat',sans-serif;font-style:italic;font-size:.95rem;font-weight:300;color:var(--salmon-claro);line-height:1.7;margin-bottom:28px;max-width:440px;text-shadow:0 1px 12px rgba(0,0,0,.4);opacity:0;animation:fadeUp .8s ease .5s forwards;}
 .hero-ctas{display:flex;flex-direction:row;gap:16px;align-items:center;flex-wrap:nowrap;max-width:none;opacity:0;animation:fadeUp .8s ease .65s forwards;}
 .hero-ctas .btn-r{background:var(--salmon);color:var(--tierra-oscuro);width:auto;flex:0 0 auto;white-space:nowrap;}
 .hero-ctas .btn-r:hover{background:var(--salmon-claro);color:var(--tierra-oscuro);}
@@ -376,6 +368,41 @@
 .pf-s .n{font-family:'Montserrat',sans-serif;font-size:1.6rem;color:var(--terracota);}.pf-s .l{font-size:.63rem;color:var(--salmon-rosa);letter-spacing:.05em;text-transform:uppercase;}
 
 /* REVEAL */
+/* ===== TESTIMONIOS (landing) ==================================================
+   Cuadrícula de dos por fila en escritorio y una en móvil. Reusa los tokens de
+   color y la tipografía del resto de la landing; lo único ajeno es la comilla
+   decorativa, en serif a propósito: la landing entera es Montserrat, y una
+   comilla tipográfica de verdad pide una serif. */
+.tst-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:2.4rem;text-align:left;}
+.tst-card{position:relative;overflow:hidden;background:var(--white);
+  border:1px solid rgba(184,95,61,.08);border-radius:18px;padding:30px 28px 24px;
+  /* Dos capas: una de contacto muy corta que asienta la tarjeta, y otra difusa
+     que le da profundidad. Teñidas de terracota, como el resto de sombras. */
+  box-shadow:0 1px 2px rgba(184,95,61,.06), 0 14px 40px rgba(184,95,61,.09);
+  transition:transform .3s var(--ease-premium), box-shadow .3s var(--ease-premium);}
+.tst-card:hover{transform:translateY(-3px);
+  box-shadow:0 2px 4px rgba(184,95,61,.07), 0 22px 56px rgba(184,95,61,.14);}
+.tst-card::before{content:'\201D';position:absolute;top:-20px;right:16px;pointer-events:none;
+  font-family:Georgia,'Times New Roman',serif;font-size:7rem;line-height:1;
+  color:var(--terracota);opacity:.13;}
+.tst-stars{position:relative;font-size:.72rem;letter-spacing:.22em;color:var(--terracota);margin-bottom:14px;}
+.tst-frase{position:relative;font-family:'Montserrat',sans-serif;font-size:1rem;font-weight:700;
+  line-height:1.45;letter-spacing:-.01em;color:var(--texto-oscuro);margin-bottom:10px;}
+.tst-txt{position:relative;font-family:'Montserrat',sans-serif;font-size:.86rem;font-weight:300;
+  line-height:1.85;color:var(--texto-medio);margin:0;}
+.tst-pie{display:flex;align-items:center;gap:12px;margin-top:20px;padding-top:16px;
+  border-top:1px solid rgba(184,95,61,.10);}
+.tst-ini{flex-shrink:0;width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:#F0E0D0;color:var(--terracota-oscuro);
+  font-family:'Montserrat',sans-serif;font-weight:700;font-size:.9rem;line-height:1;}
+.tst-nombre{font-family:'Montserrat',sans-serif;font-size:.86rem;font-weight:600;color:var(--texto-oscuro);}
+@media(max-width:900px){ .tst-grid{grid-template-columns:1fr;gap:18px;margin-top:2rem;} }
+@media(max-width:480px){
+  .tst-card{padding:26px 22px 20px;}
+  .tst-card::before{font-size:5.5rem;top:-15px;right:12px;}
+  .tst-frase{font-size:.95rem;}
+}
 .rv{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.16,1,.3,1);}.rv.vis{opacity:1;transform:translateY(0);}
 .rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}
 
@@ -461,8 +488,7 @@
   .hero-label{text-align:left;color:var(--salmon-claro);font-size:.8rem;letter-spacing:.02em;margin:0 0 12px;}
   .hero h1{text-align:left;color:var(--crema);text-shadow:0 2px 8px rgba(0,0,0,.2);font-size:1.3rem;line-height:1.28;}
   .hero h1 em{color:var(--salmon-claro) !important;text-shadow:0 1px 6px rgba(0,0,0,.25);}
-  .hero-desc{text-align:left;color:rgba(245,235,217,.9);text-shadow:0 1px 6px rgba(0,0,0,.15);font-size:.74rem;line-height:1.75;max-width:100%;margin:0 0 4px;}
-  .hero-desc-min{text-align:left;color:rgba(245,235,217,.82);font-size:.68rem;letter-spacing:.05em;margin:0;}
+  .hero-desc{text-align:left;color:rgba(245,235,217,.9);text-shadow:0 1px 6px rgba(0,0,0,.15);font-size:.74rem;line-height:1.75;max-width:100%;margin:0 0 0;}
   .hero-ctas{flex-direction:column;align-items:stretch;gap:.65rem;width:100%;max-width:100%;padding:0;margin-top:1.8rem;}
   .hero-ctas .btn-r,.hero-ctas .btn-o{width:100%;}
   .hero-ctas .btn{width:100%;text-align:center;justify-content:center;padding:.85rem 1.2rem;font-size:.75rem;}
@@ -3922,13 +3948,19 @@ body.app-active { overflow: hidden; }
   </nav>
   <a href="#sec-price" class="hero-menu-drawer-cta" onclick="closeHeroMenu()">Únete</a>
 </aside>
-<section class="hero"><div class="hero-text"><p class="hero-label">Regulación a través del movimiento</p><h1>El ejercicio está dejando de ser sólo una herramienta para <em>cambiar el cuerpo.</em></h1><p class="hero-desc">Prácticas guiadas que se adaptan a cómo te sientes hoy.</p><p class="hero-desc-min">15, 30 o 45 minutos.</p><div class="hero-ctas"><a href="#sec-price" class="btn btn-r">Comenzar mi práctica</a><a href="#sec-prev" class="btn btn-o">Ver cómo funciona</a></div></div></section>
+<section class="hero"><div class="hero-text"><p class="hero-label">Regulación a través del movimiento</p><h1>El ejercicio está dejando de ser sólo una herramienta para <em>cambiar el cuerpo.</em></h1><p class="hero-desc">Prácticas guiadas de 15, 30 o 45 minutos, según cómo te sientes hoy.</p><div class="hero-ctas"><a href="#sec-price" class="btn btn-r">Comenzar mi práctica</a><a href="#sec-prev" class="btn btn-o">Ver cómo funciona</a></div></div></section>
 <div class="marquee-bar"><div class="marquee-track">Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> </div></div>
 <section class="sect prev-sect" id="sec-prev"><div class="sect-in"><div class="prev-head"><p class="sect-lab rv">¿Qué es HOGAR?</p><h2 class="sect-t rv rd1">Un espacio para entrenar con estructura, sin exigencia.</h2><p class="sect-d rv rd2">Aquí no vienes a exigir ni a corregirte, sino a escuchar tu cuerpo y acompañarlo con movimiento y presencia. Una práctica que se adapta a cómo estás hoy.</p></div><div class="prev-grid"><div class="prev-howto"><p class="prev-howto-pill">Cómo funciona</p><h3 class="prev-howto-title">Tu práctica, paso a paso</h3></div><div class="prev-feats prev-feats-left rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Check-in antes de cada práctica</h4><p>HOGAR te sugiere una práctica.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Movimiento consciente</h4><p>Sesiones de 15, 30 o 45 minutos.</p></div></div></div><div class="prev-phone rv"><div class="prev-phone-in"><div class="pp-screen" id="pp-screen"></div></div></div><div class="prev-feats prev-feats-right rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Integrando lo que viviste</h4><p>Lectura breve al terminar.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Cuestionario + registro</h4><p>Privado, sin juicio.</p></div></div></div></div></div></section>
 
 <section class="sect trans-sect" style="background:linear-gradient(160deg,var(--texto-oscuro) 0%,var(--terracota-oscuro) 100%);color:var(--crema);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" style="background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
 
 <section class="sect" style="background:var(--crema);" id="sec-parati"><div class="sect-in"><div class="trans-grid" style="direction:rtl;"><div style="direction:ltr;"><p class="sect-lab rv">¿Es para ti?</p><h2 class="sect-t rv rd1" style="text-align:left;">HOGAR es para ti si…</h2><div class="rv rd2" style="max-width:550px;margin:1.5rem 0 0;text-align:left;"><div class="tr-i"><div class="tr-ck">✓</div><h4>Quieres entrenar con estructura, pero sin rigidez extrema</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Buscas constancia real, no motivación pasajera</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Deseas sentir fuerza sin desconectarte de tu cuerpo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás lista para comprometerte contigo desde la calma</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Estás cansada de "trabajar en ti misma" y necesitas descanso interno</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Has probado muchos métodos y sientes saturación</h4></div></div></div><div class="trans-img rv rd1"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_minimalist_home_wellness_corner_inside_a_serene_modern_house_empty_peaceful-1.jpg_avnn4e.png" alt="HOGAR para ti"><div class="tr-quote" style="direction:ltr;text-align:left;"><p>"No se trata de perseguir un ideal. Se trata de construir una base firme desde la cual vivir."</p></div></div></div></div></section>
+<section class="sect" style="background:var(--crema-claro);" id="sec-testimonios"><div class="sect-in" style="text-align:center;"><p class="sect-lab rv">— Testimonios</p><h2 class="sect-t rv rd1">Lo que dicen quienes <em>ya son parte.</em></h2><div class="tst-grid">
+      <div class="tst-card rv "><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Lo uso muchísimo más de lo que esperaba.</p><p class="tst-txt">He comprado cursos que termino dejando a medias, pero con HOGAR ha sido diferente. Puedo entrar desde el celular, elegir el tiempo que tengo y empezar. Esa facilidad hizo toda la diferencia para mí.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">F</div><div class="tst-nombre">Fernanda</div></div></div>
+      <div class="tst-card rv rd1"><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Me quitó la excusa de &#8216;hoy no tengo tiempo&#8217;.</p><p class="tst-txt">Antes pensaba que si no tenía una hora libre no valía la pena practicar. Ahora hay días en los que hago una práctica corta y me encanta poder mantener ese espacio para mí sin complicarme.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">A</div><div class="tst-nombre">Alejandra</div></div></div>
+      <div class="tst-card rv rd2"><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Me ayuda a volver a mí cuando todo me sobrepasa.</p><p class="tst-txt">Hay días en los que llego con la cabeza llena y muy acelerada. Hacer una práctica, aunque sea corta, me ayuda a bajar el ritmo, respirar y sentirme mucho más tranquila. Se ha convertido en uno de mis espacios favoritos del día.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">V</div><div class="tst-nombre">Valeria</div></div></div>
+      <div class="tst-card rv rd3"><div class="tst-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="tst-frase">Ahora tengo cómo acompañarme cuando estoy ansiosa.</p><p class="tst-txt">Antes, cuando me sentía inquieta o emocionalmente saturada, no sabía qué hacer con eso. Ahora entro a HOGAR, elijo cómo me siento y hago mi práctica. Termino sintiéndome más presente y conectada conmigo.</p><div class="tst-pie"><div class="tst-ini" aria-hidden="true">C</div><div class="tst-nombre">Camila</div></div></div>
+    </div></div></section>
 <section class="sect price-sect" id="sec-price"><div class="sect-in"><p class="sect-lab rv">Tu espacio</p><h2 class="sect-t rv rd1" style="text-align:center;">Empieza a construir tu HOGAR</h2><div class="price-card rv rd2"><div class="pc-badge">Acceso completo</div><div class="pc-price">$499 <span>MXN</span></div><p class="pc-per">pago único · acceso inmediato</p><ul class="pc-feats"><li><span class="ck">✓</span>5 caminos de práctica según tu estado</li><li><span class="ck">✓</span>Sesiones en video de 15, 30 o 45 minutos</li><li><span class="ck">✓</span>Check-in antes de cada práctica</li><li><span class="ck">✓</span>Cuestionario que se adapta a lo que respondes</li><li><span class="ck">✓</span>Lectura de integración post-práctica</li><li><span class="ck">✓</span>Registro privado y sin juicio</li><li><span class="ck">✓</span>Dashboard con tu progreso</li></ul><button class="btn btn-r btn-full" onclick="go('signup')">Unirme a HOGAR</button><p class="pc-note">Pago único · Acceso de por vida</p><div class="pc-guar"><span>🔒</span> Pago seguro</div></div></div></section>
 <section class="cierre">
   <div class="cierre-in">
@@ -8541,7 +8573,7 @@ function _admLandingHTML(c){
   // Fallback al código en el editor: si la BD aún no tiene valor, Andrea ve el
   // texto que hoy está en la landing, no un campo vacío.
   const HERO_TIT_COD='El ejercicio está dejando de ser sólo una herramienta para cambiar el cuerpo.';
-  const HERO_SUB_COD='Prácticas guiadas que se adaptan a cómo te sientes hoy.';
+  const HERO_SUB_COD='Prácticas guiadas de 15, 30 o 45 minutos, según cómo te sientes hoy.';
   const HERO_IMG_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-andrea.jpg';
   const tit=(c.landing_hero_titulo!=null && String(c.landing_hero_titulo).trim()!=='')?c.landing_hero_titulo:HERO_TIT_COD;
   const sub=(c.landing_hero_subtitulo!=null && String(c.landing_hero_subtitulo).trim()!=='')?c.landing_hero_subtitulo:HERO_SUB_COD;
