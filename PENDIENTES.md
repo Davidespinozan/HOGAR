@@ -11,6 +11,7 @@ esto está roto, son decisiones aplazadas.
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
 | 5 | [Policies de `hogar_sesiones` en el rol `public`](#5--policies-de-hogar_sesiones-en-el-rol-public) | Nada: decidido, es un `ALTER` por policy | Solo Supabase |
+| 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | Nada: falta hacerlo | Una columna, `crear-checkout` y la RPC de borrado |
 
 Al final hay un apartado de **[cerrados](#cerrados)**: cosas que se investigaron y
 no requieren acción, anotadas por si reaparecen.
@@ -368,6 +369,64 @@ nadie lo decidiera.
 comportamiento en ningún caso actual; solo hace que un error futuro falle cerrado.
 Conviene revisar de paso las de `hogar_usuarias`, que tienen el mismo patrón
 (`andrea_ve_todo` está en `public`).
+
+---
+
+## 6 · Cobro huérfano: pagar y borrar la cuenta antes del webhook
+
+**Estado: mitigado, no cerrado.** Detectado en agosto de 2026 al llevar el botón
+de borrar cuenta al muro.
+
+### La secuencia
+
+1. La clienta paga. Stripe cobra.
+2. El webhook tarda. `hogar_usuarias.pagado` sigue en `false`, así que el muro la
+   retiene y le enseña el estado ESPERAR.
+3. Se impacienta y borra su cuenta desde ahí.
+4. `hogar_borrar_datos_usuaria` **no crea fila en `hogar_bajas`**: solo la crea
+   `IF v_u.pagado IS TRUE`, y todavía no lo era.
+5. El webhook llega, `acreditarPago` no encuentra la fila, avisa por consola y se
+   va sin hacer nada.
+
+**Resultado: dinero cobrado, sin cuenta a la que acreditarlo y sin ningún registro
+en la base.** El cargo solo existe en Stripe. Si esa persona reclama —o el banco
+lo hace por ella— no hay forma de resolverlo desde HOGAR.
+
+### Lo que ya lo mitiga
+
+El diálogo de borrado detecta el pago en vuelo (por la marca
+`hogar_pago_en_vuelo` de `localStorage`) y enseña un aviso propio: *"Tu pago
+todavía se está confirmando… espera unos minutos, o escríbenos antes de borrar"*.
+
+**Reduce la probabilidad, no la elimina.** Si insiste, borra igual. Y la marca es
+**por dispositivo**: si pagó en el móvil y borra desde el portátil, no hay aviso
+ninguno.
+
+### El arreglo de verdad
+
+El problema de fondo es que **la única prueba de que hay un pago en vuelo vive en
+el navegador**, y la base de datos no puede consultarla. Hay que dejar rastro del
+lado del servidor:
+
+| Dónde | Qué |
+|---|---|
+| Supabase | Una columna en `hogar_usuarias` — por ejemplo `checkout_iniciado_en timestamptz` |
+| `crear-checkout` | Escribirla justo antes de devolver la URL de la sesión de Stripe |
+| `hogar_borrar_datos_usuaria` | Crear la baja también si `checkout_iniciado_en` es reciente (una hora basta: una sesión de Checkout caduca sola), aunque `pagado` siga en `false` |
+| `stripe-webhook` | Al acreditar, limpiarla |
+
+Con eso, quien pagó y borró deja su fila mínima igual, el webhook tiene dónde
+mirar, y el aviso del diálogo deja de depender del `localStorage` del dispositivo.
+
+**De paso resuelve otra cosa**: esa misma columna es la que haría el estado
+ESPERAR del muro a prueba de dispositivos, que hoy también depende del
+`localStorage` (ver el comentario de `PAGO_EN_VUELO_KEY` en `index.html`).
+
+### Por qué no se hizo ya
+
+Andrea no tiene clientas todavía, y la secuencia exige que coincidan un webhook
+lento y una clienta impaciente en el mismo minuto. Pero **es anterior a tener
+volumen**: cuanto más se venda, antes ocurre.
 
 ---
 

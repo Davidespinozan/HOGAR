@@ -3668,6 +3668,9 @@ body.app-active { overflow: hidden; }
   font-family:'Montserrat',sans-serif; font-size:.76rem; color:#9a7d6c; text-decoration:underline;
   text-underline-offset:3px; }
 .acc-salir:hover{ color:#c66b41; }
+/* Borrar cuenta desde el muro: aún más discreto que "Cerrar sesión". */
+.acc-borrar{ display:block; margin:.55rem auto 0; font-size:.72rem; color:#b09b8c; }
+.acc-borrar:hover{ color:var(--terracota-oscuro); }
 
 /* ===== SISTEMA VISUAL DEL PANEL (paso 8) =====================================
    El rediseño fue sección a sección, así que cada paso reescribió lo suyo
@@ -4765,6 +4768,11 @@ body.app-active { overflow: hidden; }
            quien no podía entrar se quedaba sin a dónde acudir. -->
       <p class="acc-ayuda" id="acc-ayuda"></p>
       <button type="button" class="acc-salir" onclick="doOut()">Cerrar sesión</button>
+      <!-- Borrar la cuenta también DESDE AQUÍ, y no solo desde el perfil.
+           Quien no ha pagado no llega al perfil —el muro solo ofrecía pagar o
+           salir—, así que quien se registra y se arrepiente se quedaba sin forma
+           de borrar sus datos. Justo quien más probable es que quiera hacerlo. -->
+      <button type="button" class="acc-salir acc-borrar" onclick="abrirBorrarCuenta()">Borrar mi cuenta</button>
     </div>
   </div>
 </div>
@@ -8467,9 +8475,35 @@ function abrirBorrarCuenta(){
   const ov=document.getElementById('bc-modal'); if(!ov||!U) return;
   const $=x=>document.getElementById(x);
   $('bc-email').textContent=U.email||'—';
-  // El bloque de pago solo a quien lo compró: a quien no, ese párrafo la
-  // confundiría con un dinero que nunca pagó.
-  $('bc-aviso-pago').style.display=(U.acceso===true)?'':'none';
+
+  // TRES situaciones de dinero, no dos. El aviso cambia con cada una porque el
+  // mismo texto en las tres sería falso en dos de ellas.
+  //
+  //   pagó y consta      → pierde el acceso que compró
+  //   pagó y NO consta   → el caso feo: acaba de pagar, el webhook no ha llegado
+  //                        y está en el muro. Si borra ahora, su fila desaparece
+  //                        antes de que el webhook la encuentre y el cobro queda
+  //                        huérfano: sin cuenta, y sin fila en hogar_bajas —que
+  //                        solo se crea si `pagado` ya es true—.
+  //   no pagó            → sin bloque: hablarle de un dinero que no puso solo
+  //                        confunde.
+  const pagoConsta=(U.acceso===true);
+  const pagoEnVuelo=(!pagoConsta && typeof _hayPagoEnVuelo==='function' && _hayPagoEnVuelo());
+  const av=$('bc-aviso-pago');
+  if(pagoConsta){
+    av.style.display='';
+    av.innerHTML='<strong>Compraste el acceso de por vida.</strong> Al borrar tu cuenta lo '
+      +'pierdes y <strong>no se te devuelve el dinero</strong>. Si más adelante quieres volver, '
+      +'tendrías que comprarlo otra vez. Si crees que tu caso merece una devolución, escríbenos '
+      +'antes de borrar.';
+  }else if(pagoEnVuelo){
+    av.style.display='';
+    av.innerHTML='<strong>Tu pago todavía se está confirmando.</strong> Si borras la cuenta '
+      +'ahora, el cobro se queda sin cuenta a la que acreditarse y recuperarlo sería mucho más '
+      +'difícil. Espera unos minutos, o escríbenos a '+HOGAR_CONTACTO+' antes de borrar.';
+  }else{
+    av.style.display='none';
+  }
   $('bc-confirmacion').value='';
   _bcError('');
   _bcComprobarTexto();
