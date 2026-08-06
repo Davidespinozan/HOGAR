@@ -18,22 +18,23 @@ tabla que Andrea lee, ningún cambio futuro puede filtrarla.
 
 ---
 
-> ## ⚠️ TRES FASES, EN ESTE ORDEN
+> ## ✅ EJECUTADO Y VERIFICADO — 6 de agosto de 2026
 >
-> | | qué | quién |
+> | | qué | estado |
 > |---|---|---|
-> | **A** | SQL: tabla nueva, policies, migración y RPC | Magaly, ahora |
-> | **B** | Desplegar el código | después de verificar A |
-> | **C** | SQL: resincronizar y borrar la columna | **solo con B funcionando** |
+> | **A** | SQL: tabla nueva, policies, migración y RPC | hecho · 6/6 migradas |
+> | **B** | Desplegar el código | hecho · guardado y lectura comprobados |
+> | **C** | SQL: resincronizar y borrar la columna | hecho · 7 y 7, contenido 0, columna borrada |
 >
-> **La fase C no puede adelantarse.** Si `answers` desaparece antes de desplegar
-> el código, el `insert` que todavía la menciona falla y ninguna práctica se
-> guarda. Entre A y B el código viejo sigue escribiendo en la columna vieja: por
-> eso C empieza resincronizando.
+> `hogar_sesiones` quedó en: `id, user_id, emo, emo_name, practica, ritmo, path,
+> created_at`. Sin `answers`. Comprobado con la sesión de Andrea que solo lee sus
+> propias reflexiones y ninguna de las clientas: **"Andrea no puede leerlas" ya es
+> literal.**
 >
-> **Hay datos reales en `hogar_sesiones`.** La fase A no borra nada — solo copia.
-> Lo único destructivo es el `DROP COLUMN` de la fase C, y va después de una
-> verificación que debe cuadrar exactamente.
+> Lo que sigue es el registro de lo que se hizo, con el porqué de cada decisión.
+> **No hay que volver a correrlo.** Se conserva porque el orden de las tres fases
+> —y la razón de que la C fuera la última— es lo que hay que repetir si alguna vez
+> se separa otra columna sensible.
 
 ---
 

@@ -10,6 +10,7 @@ esto está roto, son decisiones aplazadas.
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
+| 5 | [Policies de `hogar_sesiones` en el rol `public`](#5--policies-de-hogar_sesiones-en-el-rol-public) | Nada: decidido, es un `ALTER` por policy | Solo Supabase |
 
 Al final hay un apartado de **[cerrados](#cerrados)**: cosas que se investigaron y
 no requieren acción, anotadas por si reaparecen.
@@ -334,6 +335,39 @@ Si lo que se quiere es solo desatascar casos sueltos, un control en el panel de
 Andrea para editar el correo de una clienta es bastante menos trabajo que el
 flujo de autoservicio — pero **tiene exactamente el mismo requisito**: cambiar los
 dos sitios a la vez, `auth.users` y `hogar_usuarias`.
+
+---
+
+## 5 · Policies de `hogar_sesiones` en el rol `public`
+
+**Estado: decidido hacerlo, sin ejecutar.** Detectado en agosto de 2026.
+
+Tres de las cuatro policies de `hogar_sesiones` están aplicadas al rol `public` en
+vez de a `authenticated`:
+
+| policy | cmd | rol |
+|---|---|---|
+| `andrea_ve_sesiones` | SELECT | `public` |
+| `usuaria_ve_sus_sesiones` | SELECT | `public` |
+| `usuaria_inserta_sus_sesiones` | INSERT | `public` |
+| `usuaria_borra_sus_sesiones` | DELETE | **`authenticated`** ✓ |
+
+**No es un agujero hoy.** En Postgres, `public` significa "todos los roles", así
+que `anon` entra en el alcance — pero las expresiones lo cierran igual:
+`auth.uid()` es `NULL` sin sesión y `NULL = x` se evalúa como falso.
+
+**Es una red de seguridad que falta.** Lo único que impide que un visitante
+anónimo lea o escriba es esa expresión. Con `TO authenticated`, `anon` queda fuera
+del alcance y deja de depender de que la expresión esté bien escrita. Donde más
+pesa es en `usuaria_inserta_sus_sesiones`, que es de escritura.
+
+Que la cuarta ya esté bien delata que las otras tres se quedaron atrás sin que
+nadie lo decidiera.
+
+**Qué hacer**: un `ALTER POLICY … TO authenticated` por cabeza. No cambia el
+comportamiento en ningún caso actual; solo hace que un error futuro falle cerrado.
+Conviene revisar de paso las de `hogar_usuarias`, que tienen el mismo patrón
+(`andrea_ve_todo` está en `public`).
 
 ---
 

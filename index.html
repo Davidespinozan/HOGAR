@@ -144,6 +144,42 @@
   .acm-pie{flex-direction:column-reverse;}
   .acm-pie .btn{width:100%;text-align:center;justify-content:center;}
 }
+
+/* ===== BORRAR CUENTA ===== */
+.bc-modal{max-width:520px;}
+.bc-cuenta{padding:14px 16px;margin-bottom:20px;background:var(--crema-claro);
+  border:1px solid rgba(240,228,214,.9);border-radius:16px;}
+.bc-cuenta-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;
+  letter-spacing:2.4px;text-transform:uppercase;color:var(--adm-eyebrow-color);margin-bottom:6px;}
+.bc-cuenta-email{font-family:'Montserrat',sans-serif;font-size:1rem;font-weight:600;
+  color:var(--adm-texto);word-break:break-all;}
+.bc-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.4px;
+  text-transform:uppercase;color:var(--adm-eyebrow-color);margin:0 0 10px;}
+.bc-lista{list-style:none;margin:0 0 20px;padding:0;}
+.bc-lista li{position:relative;padding-left:18px;margin-bottom:8px;
+  font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:300;line-height:1.6;color:#5a4636;}
+.bc-lista li::before{content:'—';position:absolute;left:0;color:var(--terracota);}
+.bc-lista strong{font-weight:600;color:var(--adm-texto);}
+/* El aviso de pago va en el rojo-terracota de la paleta, no en un rojo de alerta
+   genérico: es una advertencia seria, no un error del sistema. */
+.bc-aviso-pago{font-family:'Montserrat',sans-serif;font-size:.84rem;font-weight:300;line-height:1.65;
+  color:#8a3a20;background:#fbe6de;border:1px solid rgba(184,95,61,.22);
+  border-radius:14px;padding:13px 15px;margin-bottom:18px;}
+.bc-aviso-pago strong{font-weight:700;color:#7a3018;}
+.bc-nota{font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:300;line-height:1.6;
+  color:var(--adm-texto-2);margin:0 0 22px;}
+.bc-input{width:100%;font-family:'Montserrat',sans-serif;font-size:1rem;font-weight:600;
+  letter-spacing:.12em;text-align:center;color:var(--adm-texto);background:#fff;
+  border:var(--adm-campo-borde);border-radius:var(--adm-campo-radio);padding:12px 14px;
+  outline:none;box-shadow:var(--adm-campo-sombra);transition:border-color .2s,box-shadow .2s;}
+.bc-input:focus{border-color:var(--terracota);box-shadow:var(--adm-foco);}
+#bc-confirmar:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none;}
+/* El enlace del perfil: discreto, no un botón que invite a pulsarlo. */
+.perfil-borrar{display:block;width:100%;background:none;border:none;cursor:pointer;
+  margin-top:14px;padding:6px;font-family:'Montserrat',sans-serif;font-size:.76rem;
+  font-weight:300;color:#a08373;text-decoration:underline;text-underline-offset:3px;
+  transition:color .2s;}
+.perfil-borrar:hover{color:var(--terracota-oscuro);}
 .legal-intro{font-family:'Montserrat',sans-serif;font-size:.92rem;font-weight:400;line-height:1.7;
   color:#3a2820;margin:0 0 4px;}
 .legal-body h4{font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.04em;
@@ -4102,6 +4138,12 @@ body.app-active { overflow: hidden; }
       <p>El pago es único: pagas una vez y no hay cargos recurrentes ni renovaciones.</p>
       <p><strong>No hay devoluciones.</strong> Al tratarse de contenido digital al que accedes de inmediato tras la compra, la venta es final. Si tienes dudas sobre si HOGAR es para ti, escríbenos antes de comprar y con gusto te ayudamos a decidir.</p>
 
+      <h4>Borrar tu cuenta</h4>
+      <p>Puedes borrar tu cuenta cuando quieras desde tu perfil. Se elimina de inmediato y no se puede deshacer: tu cuenta, tu historial de prácticas y todo lo que escribiste en tus cuestionarios.</p>
+      <p>Si compraste el acceso, borrar tu cuenta <strong>no te devuelve el dinero</strong> y pierdes el acceso de por vida que pagaste. Si vuelves más adelante, tendrías que comprarlo otra vez.</p>
+      <p>Guardamos una sola excepción: un registro mínimo de tu compra —el importe, la fecha y los identificadores del pago, <strong>sin tu nombre ni tu correo</strong>— durante 180 días. Es el plazo en que un banco puede reclamar un cargo, y lo necesitamos para poder responder. Pasado ese plazo, se borra también.</p>
+      <p>El registro del pago queda además en Stripe, que es quien lo procesa, durante el tiempo que su ley le obliga. Eso no depende de nosotros.</p>
+
       <h4>Esto no es terapia ni consejo médico</h4>
       <p>HOGAR es una práctica de movimiento y autocuidado. <strong>No sustituye atención médica, psicológica ni terapéutica de ningún tipo.</strong></p>
       <p>Escucha tu cuerpo. Si tienes alguna condición médica, lesión o estás embarazada, consulta con un profesional de la salud antes de empezar. Practicas a tu propio ritmo y bajo tu responsabilidad.</p>
@@ -4143,8 +4185,8 @@ body.app-active { overflow: hidden; }
       <p>Andrea ve qué práctica hiciste, qué emoción elegiste y cuándo, para poder acompañarte. Lo que ve es tu recorrido, no lo que escribiste.</p>
 
       <h4>Tus derechos</h4>
-      <p>Puedes pedirnos en cualquier momento que te enviemos tus datos o que los borremos por completo. Escribe a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a> y lo hacemos.</p>
-      <p>Si borras tu cuenta, se elimina también tu historial.</p>
+      <p>Puedes borrar tu cuenta y todos tus datos tú misma, desde tu perfil, en cualquier momento. Es inmediato y no hace falta pedírnoslo.</p>
+      <p>Si prefieres que te enviemos una copia de tus datos, escribe a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a> y te la mandamos.</p>
 
       <h4>Contacto</h4>
       <p><a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a></p>
@@ -4222,6 +4264,60 @@ body.app-active { overflow: hidden; }
     <div class="acm-pie">
       <button type="button" class="btn btn-o" onclick="cerrarAccesoManual()">Cancelar</button>
       <button type="button" class="btn btn-r" id="acm-confirmar" onclick="confirmarAccesoManual(this)">Conceder acceso</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BORRAR CUENTA =====
+     Mismo patrón .legal-ov que los modales legales y el de acceso manual.
+     Sin ventana de arrepentimiento —es inmediato e irreversible—, así que toda
+     la fricción está aquí: el correo a la vista, lo que desaparece, el aviso
+     aparte para quien pagó, y escribir BORRAR para habilitar el botón. -->
+<div class="legal-ov" id="bc-modal" role="dialog" aria-modal="true" aria-labelledby="bc-tit" onclick="cerrarBorrarCuentaSiFuera(event)">
+  <div class="legal-modal bc-modal">
+    <div class="legal-head">
+      <div class="legal-head-txt">
+        <h3 class="legal-tit" id="bc-tit">Borrar mi cuenta</h3>
+        <div class="legal-fecha">Es inmediato y no se puede deshacer</div>
+      </div>
+      <button type="button" class="legal-x" onclick="cerrarBorrarCuenta()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="legal-body">
+      <div class="bc-cuenta">
+        <div class="bc-cuenta-label">Vas a borrar la cuenta de</div>
+        <div class="bc-cuenta-email" id="bc-email">—</div>
+      </div>
+
+      <div class="bc-label">Qué desaparece</div>
+      <ul class="bc-lista">
+        <li>Tu cuenta y tu forma de entrar</li>
+        <li>Tu historial de prácticas y tu progreso</li>
+        <li><strong>Todo lo que escribiste en tus cuestionarios</strong></li>
+      </ul>
+
+      <!-- Solo si pagó. Lo pinta abrirBorrarCuenta() desde U.acceso. -->
+      <div class="bc-aviso-pago" id="bc-aviso-pago" style="display:none;">
+        <strong>Compraste el acceso de por vida.</strong> Al borrar tu cuenta lo
+        pierdes y <strong>no se te devuelve el dinero</strong>. Si más adelante
+        quieres volver, tendrías que comprarlo otra vez. Si crees que tu caso
+        merece una devolución, escríbenos antes de borrar.
+      </div>
+
+      <p class="bc-nota">Guardamos un registro mínimo de tu compra —el importe, la
+      fecha y los identificadores del pago, sin tu nombre ni tu correo— durante 180
+      días, que es el plazo en que un banco puede reclamar un cargo. Pasado ese
+      plazo se borra también.</p>
+
+      <div class="bc-label">Para confirmar, escribe <strong>BORRAR</strong></div>
+      <input type="text" class="bc-input" id="bc-confirmacion" placeholder="BORRAR"
+             autocomplete="off" autocapitalize="characters" spellcheck="false"
+             oninput="_bcComprobarTexto()">
+
+      <div class="adm-alert" id="bc-error"></div>
+    </div>
+    <div class="acm-pie">
+      <button type="button" class="btn btn-o" onclick="cerrarBorrarCuenta()">Cancelar</button>
+      <button type="button" class="btn btn-r" id="bc-confirmar" onclick="confirmarBorrarCuenta(this)" disabled>Borrar mi cuenta</button>
     </div>
   </div>
 </div>
@@ -4603,6 +4699,9 @@ body.app-active { overflow: hidden; }
       </div>
     </div>
     <button class="perfil-logout" onclick="doOut()">Cerrar sesión</button>
+    <!-- Borrar la cuenta. Discreto y al final: no es una acción que haya que
+         invitar a hacer, pero los términos la prometen y tiene que estar. -->
+    <button type="button" class="perfil-borrar" onclick="abrirBorrarCuenta()">Borrar mi cuenta</button>
   </div>
 </div>
 
@@ -5649,7 +5748,7 @@ function cerrarMenuAdmin(){
 }
 // Escape cierra el menú, como cualquier panel modal.
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ cerrarMenuAdmin(); cerrarLegal(); cerrarAccesoManual(); }
+  if(e.key==='Escape'){ cerrarMenuAdmin(); cerrarLegal(); cerrarAccesoManual(); cerrarBorrarCuenta(); }
 });
 
 // ── Modales legales (Términos y Privacidad, desde el pie de la landing) ──────
@@ -8354,6 +8453,100 @@ async function _aplicarAccesoManual(payload){
     // vía, Andrea sigue viendo que algo falló.
     _admAccesoMsg('No pudimos cambiar el acceso. Inténtalo de nuevo en un momento.','error');
     return false;
+  }
+}
+
+// ===== BORRAR CUENTA (la clienta, sobre sí misma) =====
+// Todo el trabajo lo hace /borrar-cuenta con la service role. Desde aquí no se
+// borra nada directamente: hogar_usuarias y hogar_sesiones no tienen policy de
+// DELETE para su dueña, y la RPC de borrado solo la puede ejecutar service_role.
+const BORRAR_CUENTA_FN='/.netlify/functions/borrar-cuenta';
+const BC_PALABRA='BORRAR';
+
+function abrirBorrarCuenta(){
+  const ov=document.getElementById('bc-modal'); if(!ov||!U) return;
+  const $=x=>document.getElementById(x);
+  $('bc-email').textContent=U.email||'—';
+  // El bloque de pago solo a quien lo compró: a quien no, ese párrafo la
+  // confundiría con un dinero que nunca pagó.
+  $('bc-aviso-pago').style.display=(U.acceso===true)?'':'none';
+  $('bc-confirmacion').value='';
+  _bcError('');
+  _bcComprobarTexto();
+  ov.classList.add('open');
+  document.body.style.overflow='hidden';
+  setTimeout(()=>{ try{ $('bc-confirmacion').focus(); }catch(_){} },80);
+}
+
+/** El botón no se habilita hasta que escribe la palabra exacta. */
+function _bcComprobarTexto(){
+  const inp=document.getElementById('bc-confirmacion');
+  const btn=document.getElementById('bc-confirmar');
+  if(!inp||!btn) return;
+  btn.disabled = (inp.value||'').trim().toUpperCase()!==BC_PALABRA;
+}
+
+function _bcError(texto){
+  const el=document.getElementById('bc-error');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show error';
+}
+
+function cerrarBorrarCuenta(){
+  const ov=document.getElementById('bc-modal');
+  if(ov) ov.classList.remove('open');
+  document.body.style.overflow='';
+}
+function cerrarBorrarCuentaSiFuera(ev){
+  if(ev && ev.target===ev.currentTarget) cerrarBorrarCuenta();
+}
+
+async function confirmarBorrarCuenta(btn){
+  const inp=document.getElementById('bc-confirmacion');
+  if(!inp || (inp.value||'').trim().toUpperCase()!==BC_PALABRA) return;
+  const txt=btn?btn.textContent:'';
+  _bcError('');
+  if(btn){ btn.disabled=true; btn.textContent='Borrando…'; }
+  try{
+    if(!window.sb) throw new Error('sin cliente');
+    const { data:{ session } } = await window.sb.auth.getSession();
+    if(!session){ go('login'); return; }
+    const res=await fetch(BORRAR_CUENTA_FN,{
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+session.access_token, 'Content-Type':'application/json' }
+    });
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok || !json.borrada) throw new Error(json.error||('HTTP '+res.status));
+
+    // SALIR DE INMEDIATO, sin esperar a nada más.
+    //
+    // Entre que se borra su fila y ella deja de estar dentro hay un resquicio: el
+    // muro trata "sin fila" como acceso DESCONOCIDO y deja pasar (ver
+    // cargarAccesoHogar), así que durante ese hueco tendría el contenido abierto.
+    // Cerrar sesión aquí lo reduce a nada en esta pestaña.
+    //
+    // RESQUICIO QUE NO SE CIERRA, y conviene saberlo: si tuviera OTRA pestaña
+    // abierta, su token de acceso sigue siendo válido hasta que caduque —los JWT
+    // de Supabase no se pueden revocar, PostgREST solo comprueba firma y
+    // caducidad—, así que ahí seguiría entrando hasta una hora. No hay forma de
+    // cerrarlo desde el servidor; haría falta que el muro dejase de fallar
+    // abierto, y eso bloquearía a gente legítima ante un fallo de lectura.
+    _olvidarAcceso();
+    _olvidarPagoEnVuelo();
+    try{ await window.sb.auth.signOut(); }catch(_){}
+    U=null; hi=[];
+    cerrarBorrarCuenta();
+    go('landing');
+    setTimeout(()=>alert('Tu cuenta se borró. Gracias por haber estado. 🌿'),200);
+  }catch(e){
+    console.warn('[HOGAR] borrar cuenta:',e.message||e);
+    // Puede que los datos sí se borraran y fallara la cuenta de Auth. Sigue con
+    // sesión, así que reintentar termina el trabajo: por eso el mensaje invita a
+    // ello en vez de dar el borrado por perdido.
+    _bcError('No pudimos terminar de borrar tu cuenta. Vuelve a intentarlo; si sigue igual, escríbenos a '+HOGAR_CONTACTO+'.');
+    if(btn){ btn.disabled=false; btn.textContent=txt||'Borrar mi cuenta'; }
   }
 }
 
