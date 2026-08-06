@@ -2707,6 +2707,38 @@ body.app-active { overflow: hidden; }
 .vp-fs svg{ width:20px; height:20px; }
 
 /* Overlay "Pendiente · 45 min llega pronto" — cubre el reproductor */
+/* Retomar una práctica a medias. NO es un overlay a pantalla completa como
+   .vp-pendiente: se apoya abajo y deja ver el primer fotograma, porque la
+   decisión de continuar o empezar de cero se toma mirando dónde se quedó. */
+.vp-retomar{
+  position:absolute; left:12px; right:12px; bottom:12px; z-index:7;
+  background:rgba(37,24,17,.82);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-radius:16px; padding:14px 16px;
+  animation:vpRetomarIn .35s ease;
+}
+@keyframes vpRetomarIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.vp-retomar-txt{
+  font-family:'Montserrat',sans-serif; font-size:.86rem; font-weight:300;
+  color:var(--crema-claro); margin:0 0 11px; line-height:1.45;
+}
+.vp-retomar-acts{display:flex; gap:9px; flex-wrap:wrap;}
+.vp-retomar-si,.vp-retomar-no{
+  font-family:'Montserrat',sans-serif; font-size:.76rem; font-weight:600;
+  border-radius:100px; padding:.58rem 1.1rem; cursor:pointer; border:none;
+  transition:transform .2s, background .2s, color .2s;
+}
+.vp-retomar-si{background:var(--salmon); color:var(--texto-oscuro);}
+.vp-retomar-si:hover{background:var(--salmon-claro); transform:translateY(-1px);}
+/* "Empezar de nuevo" es secundaria pero NO escondida: es una decisión legítima,
+   no un descarte. De ahí el borde en vez de solo texto. */
+.vp-retomar-no{background:transparent; color:var(--crema-claro); border:1px solid rgba(250,243,229,.38);}
+.vp-retomar-no:hover{background:rgba(250,243,229,.12);}
+@media(max-width:480px){
+  .vp-retomar{left:8px; right:8px; bottom:8px; padding:12px 13px;}
+  .vp-retomar-txt{font-size:.8rem;}
+  .vp-retomar-si,.vp-retomar-no{flex:1 1 auto; text-align:center;}
+}
 .vp-pendiente{
   position:absolute; inset:0; z-index:6;
   display:flex; flex-direction:column;
@@ -4549,6 +4581,15 @@ body.app-active { overflow: hidden; }
           <div class="vp-loader-txt vp-loader-txt-load">Preparando tu práctica…</div>
           <div class="vp-loader-txt vp-loader-txt-err">No pudimos cargar tu práctica.<br>Revisa tu conexión.</div>
           <button type="button" class="btn btn-r vp-loader-retry" onclick="vpRetry()">Reintentar</button>
+        </div>
+        <!-- Retomar. Lo enseña onloadedmetadata solo si hay una posición útil.
+             Va sobre el reproductor y ANTES de tocar play: no interrumpe nada. -->
+        <div class="vp-retomar" id="vp-retomar" style="display:none;">
+          <p class="vp-retomar-txt" id="vp-retomar-txt"></p>
+          <div class="vp-retomar-acts">
+            <button type="button" class="vp-retomar-si" onclick="retomarPractica()">Continuar ahí</button>
+            <button type="button" class="vp-retomar-no" onclick="reiniciarPractica()">Empezar de nuevo</button>
+          </div>
         </div>
         <div class="vp-pendiente" id="vp-pendiente" style="display:none;">
           <div class="vp-pendiente-eyebrow">✦ EN PREPARACIÓN</div>
@@ -7183,6 +7224,11 @@ function resetDashChat(){
 function startQuest(){
   if(tm)clearInterval(tm);
   tm=null;
+  // Terminó: la marca se borra. Es la señal explícita, y sin esto al volver le
+  // ofreceríamos retomar el minuto 44 de algo que ya completó.
+  // Va ANTES de stopPracVideo(), que guarda la posición.
+  _posOlvidar();
+  _posClave=null;
   stopPracVideo();
   curQ=1;
   answers={};
@@ -7485,6 +7531,10 @@ function stopPracVideo(){
   const c=document.getElementById('video-container');
   const a=document.getElementById('prac-audio');
   _vpDragging=false; // si se salió a mitad de arrastre, no envenenar la próxima sesión
+  // GUARDAR ANTES DEL RESETEO. Dos líneas más abajo se hace currentTime=0, así
+  // que hacerlo después perdería la posición justo en el caso que más importa:
+  // salir de la pantalla a mitad de práctica.
+  _posGuardar(v);
   if(v){ v.pause(); try{v.currentTime=0;}catch(e){} }
   if(a){ a.pause(); try{a.currentTime=0;}catch(e){} a.removeAttribute('src'); }
   if(c) c.classList.remove('playing','started','buffering','vp-error');
@@ -7497,6 +7547,118 @@ function stopPracVideo(){
 // sigue en vuelo; sin ese await, la primera práctica tras iniciar sesión se
 // colaría siempre, que es justo el momento más probable.
 // Nadie usa su valor de retorno: se llama desde onclick y desde dos wrappers.
+// ===== RETOMAR UNA PRÁCTICA A MEDIAS =====
+//
+// Antes, cerrar en el minuto 40 de una sesión de 45 significaba volver a empezar
+// de cero — y con archivos de cientos de MB, volver a descargarlo entero.
+//
+// VA EN localStorage Y NO EN SUPABASE, al revés que casi todo lo demás, por dos
+// razones. La primera: el archivo tampoco cruza de dispositivo, así que recuperar
+// la posición en otro navegador ahorra unos segundos de scroll, no la descarga.
+// La segunda pesa más: dónde se quedó una mujer en una práctica de Contención es
+// del mismo tipo de dato que acabamos de sacar de hogar_sesiones para que Andrea
+// no pudiera leerlo. No vuelve a una tabla que ella ve.
+//
+// Una marca por práctica × duración, con las mismas piezas que arman la URL.
+const POS_PREFIJO='hogar_pos_';
+const POS_GUARDAR_CADA_S=5;    // sin esto, ontimeupdate escribiría 4 veces/segundo
+const POS_MIN_S=60;            // por debajo, retomar no ahorra nada
+const POS_COLA_S=60;           // a menos de esto del final, es terminarla
+// La marca CADUCA. No por higiene de localStorage —son 15 claves como mucho—
+// sino por el producto: HOGAR elige la práctica desde el check-in de HOY, así
+// que una marca de hace tres días pertenece a un estado emocional que ya no
+// existe, y ofrecer retomarla es ofrecer terminar algo que hoy quizá no le
+// toca. 12 h cubre una interrupción dentro del mismo estado —salir a comer,
+// dormir— sin cruzar al siguiente.
+const POS_VENCE_MS=12*60*60*1000;
+
+let _posClave=null;            // la de la práctica abierta ahora
+let _posUltimo=0;              // segundo en que se guardó por última vez
+
+function _posClaveDe(practica,time){
+  try{
+    const slug=VIDEO_SLUG[practica];
+    return slug ? POS_PREFIJO+slug+_durMin(time) : null;
+  }catch(_){ return null; }
+}
+function _posGuardar(v){
+  try{
+    if(!_posClave || !v) return;
+    const t=v.currentTime||0, d=v.duration||0;
+    // Ni el arranque ni la cola: en los dos casos el aviso sobraría al volver.
+    if(!isFinite(t) || t<POS_MIN_S) return;
+    if(isFinite(d) && d>0 && t > d-POS_COLA_S){ _posOlvidar(); return; }
+    // El sello se REFRESCA en cada guardado: la ventana cuenta desde la última
+    // vez que estuvo viendo, no desde que empezó. Si contara desde el principio,
+    // una práctica de 45 min empezada a las 23:50 caducaría a mitad.
+    localStorage.setItem(_posClave, JSON.stringify({ s:Math.floor(t), t:Date.now() }));
+    _posUltimo=t;
+  }catch(_){}
+}
+function _posLeer(){
+  try{
+    if(!_posClave) return 0;
+    const crudo=localStorage.getItem(_posClave);
+    if(!crudo) return 0;
+    const m=JSON.parse(crudo);
+    // Sin sello no se puede saber si venció: se descarta. Cubre un formato viejo
+    // o un valor manipulado a mano, sin tener que confiar en ninguno de los dos.
+    if(!m || typeof m.s!=='number' || typeof m.t!=='number'){ _posOlvidar(); return 0; }
+    if(Date.now()-m.t > POS_VENCE_MS){ _posOlvidar(); return 0; }
+    return (isFinite(m.s) && m.s>0) ? m.s : 0;
+  }catch(_){ _posOlvidar(); return 0; }   // JSON ilegible: fuera
+}
+function _posOlvidar(){
+  try{ if(_posClave) localStorage.removeItem(_posClave); }catch(_){}
+  _posUltimo=0;
+}
+
+/** Guarda al ocultarse la pestaña: en móvil es así como se pierde una sesión,
+ *  no cerrando la ventana. Se registra una sola vez, no por práctica. */
+try{
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='hidden'){
+      _posGuardar(document.getElementById('prac-video'));
+    }
+  });
+}catch(_){}
+
+/** El aviso de retomar. Sale ANTES de tocar play, no interrumpe nada. */
+function _posMostrarAviso(seg){
+  const box=document.getElementById('vp-retomar');
+  const txt=document.getElementById('vp-retomar-txt');
+  if(!box||!txt) return;
+  const m=Math.floor(seg/60), s=Math.floor(seg%60);
+  txt.textContent='La dejaste en el minuto '+m+(s?' con '+s+' segundos':'')+'.';
+  box.style.display='';
+}
+function _posOcultarAviso(){
+  const box=document.getElementById('vp-retomar');
+  if(box) box.style.display='none';
+}
+/** "Continuar ahí" */
+function retomarPractica(){
+  const v=document.getElementById('prac-video');
+  const seg=_posLeer();
+  _posOcultarAviso();
+  if(!v || !seg) return;
+  try{
+    // Se vuelve a validar contra la duración REAL: si el archivo se recomprimió
+    // y ahora es más corto, la marca vieja apuntaría más allá del final.
+    const d=v.duration||0;
+    if(isFinite(d) && d>0 && seg>=d-1){ _posOlvidar(); return; }
+    v.currentTime=seg;
+    _posUltimo=seg;
+  }catch(_){}
+}
+/** "Empezar de nuevo" */
+function reiniciarPractica(){
+  _posOcultarAviso();
+  _posOlvidar();
+  const v=document.getElementById('prac-video');
+  try{ if(v) v.currentTime=0; }catch(_){}
+}
+
 async function pT(time,rhy){
   // Bloqueo SOLO ante un "no pagó" confirmado. Si la lectura falló o no llegó,
   // se deja pasar: preferimos un colado ocasional a dejar fuera a quien pagó.
@@ -7515,6 +7677,11 @@ async function pT(time,rhy){
   // terminar visible. Si el archivo resulta no existir, _vpClasificarFallo() los
   // vuelve a poner. Ya no se decide aquí por una lista blanca de duraciones.
   const minOut=_durMin(time);
+  // La marca de posición es de ESTA práctica × duración. Se fija antes de
+  // tocar el <video> para que ningún handler escriba en la clave anterior.
+  _posClave=_posClaveDe(sP,time);
+  _posUltimo=0;
+  _posOcultarAviso();
   const pend=$('vp-pendiente'), tBtn=$('terminar-btn');
   _pracGen++;
   if(pend) pend.style.display='none';
@@ -7546,8 +7713,10 @@ async function pT(time,rhy){
       // El video se quedó sin buffer a mitad de reproducción. 'waiting' NO dispara 'pause',
       // así que sin esto la voz seguiría hablando sola mientras el video carga.
       vid.onwaiting=()=>{ cont.classList.remove('playing'); cont.classList.add('buffering'); _reconcileAudio(); _vpSetPlayIcon(true); };
-      vid.onpause=()=>{ cont.classList.remove('playing','buffering'); _reconcileAudio(); _vpSetPlayIcon(false); vpShow(); };
-      vid.onended=()=>{ cont.classList.remove('playing','buffering'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); };
+      vid.onpause=()=>{ cont.classList.remove('playing','buffering'); _reconcileAudio(); _vpSetPlayIcon(false); vpShow(); _posGuardar(vid); };
+      // Llegó al final sola: la marca sobra. Si no se borrara, al volver le
+      // ofreceríamos retomar el minuto 44 de una práctica ya terminada.
+      vid.onended=()=>{ cont.classList.remove('playing','buffering'); if(aud){ aud.pause(); try{aud.currentTime=0;}catch(e){} } _vpSetPlayIcon(false); vpShow(); _posOlvidar(); };
       // Un seek en un .mp4 grande cae casi siempre en zona sin buffer: la voz se calla
       // mientras dura el salto ('seeking') y se vuelve a pegar al aterrizar ('seeked').
       vid.onseeking=()=>{ _reconcileAudio(); };
@@ -7555,8 +7724,27 @@ async function pT(time,rhy){
       vid.onratechange=()=>{ _reconcileAudio(true); };
       vid.onemptied=()=>{ cont.classList.remove('playing','buffering','started'); if(aud) aud.pause(); };
       // Tick de autorreparación: dispara ~4 veces/s SOLO cuando el video reproduce de verdad.
-      vid.ontimeupdate=()=>{ _vpUpdateProgress(); _reconcileAudio(); };
-      vid.onloadedmetadata=()=>{ _vpUpdateProgress(); console.log('[HOGAR diag] loadedmetadata OK · dur='+vid.duration+'s · src='+vid.currentSrc); };
+      // Se guarda cada POS_GUARDAR_CADA_S de reproducción, con un contador y no
+      // con un temporizador: ontimeupdate dispara ~4 veces por segundo y escribir
+      // en cada uno sería castigar el reproductor por nada.
+      vid.ontimeupdate=()=>{
+        _vpUpdateProgress(); _reconcileAudio();
+        const t=vid.currentTime||0;
+        if(Math.abs(t-_posUltimo) >= POS_GUARDAR_CADA_S) _posGuardar(vid);
+      };
+      // La posición SOLO se puede aplicar aquí: antes de conocer la duración, el
+      // navegador ignora currentTime en silencio. Y aquí solo se OFRECE — decidir
+      // por ella le quitaría el poder empezar de cero una práctica que hoy quiere
+      // entera, aunque ayer la dejara a medias.
+      vid.onloadedmetadata=()=>{
+        _vpUpdateProgress();
+        try{
+          const seg=_posLeer(), d=vid.duration||0;
+          const util = seg>=POS_MIN_S && (!isFinite(d) || d<=0 || seg <= d-POS_COLA_S);
+          if(util) _posMostrarAviso(seg); else if(seg) _posOlvidar();
+        }catch(_){}
+        console.log('[HOGAR diag] loadedmetadata OK · dur='+vid.duration+'s · src='+vid.currentSrc);
+      };
       // Si el video falla (red caída, 404), NINGÚN evento de los de arriba llega: sin esto
       // el spinner se quedaba girando para siempre. Retiramos 'buffering' y ofrecemos reintentar.
       vid.onerror=(ev)=>{
