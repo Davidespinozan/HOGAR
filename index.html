@@ -4127,8 +4127,11 @@ body.app-active { overflow: hidden; }
       <h4>Tus datos de pago</h4>
       <p>El pago lo procesa Stripe. HOGAR no ve, no recibe ni guarda los datos de tu tarjeta en ningún momento.</p>
 
-      <h4>Tu registro es privado</h4>
-      <p>Lo que escribes en tus cuestionarios y tu historial de prácticas es tuyo. Nadie más que tú lo ve.</p>
+      <h4>Lo que escribes es solo tuyo</h4>
+      <p>Las reflexiones que dejas en tus cuestionarios son tu espacio privado. Andrea no puede leerlas: nadie más que tú tiene acceso a ellas.</p>
+
+      <h4>Tu actividad sí la ve Andrea</h4>
+      <p>Andrea ve qué práctica hiciste, qué emoción elegiste y cuándo, para poder acompañarte. Lo que ve es tu recorrido, no lo que escribiste.</p>
 
       <h4>Tus derechos</h4>
       <p>Puedes pedirnos en cualquier momento que te enviemos tus datos o que los borremos por completo. Escribe a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a> y lo hacemos.</p>
@@ -7647,7 +7650,7 @@ async function renderHistory(filter){
   try{
     if(window.sb){
       const { data, error } = await window.sb.from('hogar_sesiones')
-        .select('*').order('created_at',{ascending:false});
+        .select(SES_SELECT).order('created_at',{ascending:false});
       if(!error && Array.isArray(data)){
         fuente=data.map(mapSesionFromCloud);
         hi=fuente;                 // sincroniza el cache local con la nube
@@ -7688,6 +7691,27 @@ function fechaLegible(iso){
   return f.getDate()+' '+meses[f.getMonth()];
 }
 
+// Qué pide el historial de la clienta.
+//
+// La reflexión ya NO es una columna de hogar_sesiones: vive en
+// hogar_sesiones_respuestas, cuya única policy es la de su dueña. Se trae
+// anidada por la clave foránea, y eso es justo lo que la protege — PostgREST
+// aplica RLS también sobre la tabla anidada, así que cada clienta recibe la suya
+// y nadie más. El panel de Andrea no pide esta relación, y aunque la pidiera no
+// tiene policy que se lo permita.
+const SES_SELECT='*, hogar_sesiones_respuestas(answers)';
+
+/** La reflexión anidada, venga como objeto o como array de uno. */
+function _answersDeFila(row){
+  const r=row && row.hogar_sesiones_respuestas;
+  if(!r) return null;
+  // PostgREST devuelve objeto cuando deduce una relación uno-a-uno (session_id
+  // es a la vez PK y FK) y array cuando la trata como uno-a-muchos. Se aceptan
+  // las dos para no depender de esa deducción.
+  const fila=Array.isArray(r) ? (r[0]||null) : r;
+  return (fila && fila.answers) ? fila.answers : null;
+}
+
 // Fila de hogar_sesiones (nube) → formato que usa el render local
 function mapSesionFromCloud(row){
   return {
@@ -7696,7 +7720,7 @@ function mapSesionFromCloud(row){
     practica: row.practica,
     ritmo: row.ritmo,
     path: row.path,
-    answers: row.answers || null,
+    answers: _answersDeFila(row),
     fecha: fechaLegible(row.created_at),
     p: row.practica,                    // compat con histCard() y renderPaisaje()
     r: row.ritmo,
@@ -7770,14 +7794,21 @@ async function guardarSesionNube(ses){
       console.warn('[HOGAR] Sin sesión activa: la práctica NO se guardó.');
       return;
     }
-    const fila={
-      user_id: session.user.id,
-      emo: ses.emo,
-      emo_name: ses.emoName,
-      practica: ses.practica,
-      ritmo: ses.ritmo,
-      path: ses.path,
-      answers: ses.answers
+    // La práctica y su reflexión viven ya en DOS tablas: hogar_sesiones y
+    // hogar_sesiones_respuestas, esta última sin ninguna policy para Andrea. Por
+    // eso el guardado pasa por una RPC en vez de dos inserciones: la función hace
+    // las dos EN UNA TRANSACCIÓN, y así nadie escribe su reflexión para que se
+    // pierda a medias porque falló la segunda.
+    //
+    // Ya no se manda user_id: la función lo toma de auth.uid(). Es lo que impide
+    // usarla para escribir en nombre de otra persona.
+    const params={
+      p_emo: ses.emo,
+      p_emo_name: ses.emoName,
+      p_practica: ses.practica,
+      p_ritmo: ses.ritmo,
+      p_path: ses.path,
+      p_answers: ses.answers || null
     };
 
     // Reintentos con espera creciente. La mayoría de los fallos de guardado son
@@ -7786,7 +7817,7 @@ async function guardarSesionNube(ses){
     // policy mal, un dato que la tabla rechaza) agota los tres intentos rápido y
     // cae a la marca de abajo.
     for(let intento=1; intento<=SES_REINTENTOS; intento++){
-      const { error } = await window.sb.from('hogar_sesiones').insert(fila);
+      const { error } = await window.sb.rpc('hogar_guardar_sesion', params);
       if(!error){
         console.log('[HOGAR] Sesión guardada en la nube ✓'+(intento>1?' (intento '+intento+')':''));
         return true;
@@ -7809,7 +7840,7 @@ async function refrescarHistorialYStats(){
   try{
     if(!window.sb || !U) return;
     const { data, error } = await window.sb.from('hogar_sesiones')
-      .select('*').order('created_at',{ascending:false});
+      .select(SES_SELECT).order('created_at',{ascending:false});
     if(error || !Array.isArray(data)) return;
     hi = data.map(mapSesionFromCloud);
     U.sessions = data.length;
