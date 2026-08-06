@@ -10,8 +10,10 @@ esto está roto, son decisiones aplazadas.
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
-| 5 | [Policies de `hogar_sesiones` en el rol `public`](#5--policies-de-hogar_sesiones-en-el-rol-public) | Nada: decidido, es un `ALTER` por policy | Solo Supabase |
 | 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | Nada: falta hacerlo | Una columna, `crear-checkout` y la RPC de borrado |
+
+Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
+y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
 
 Al final hay un apartado de **[cerrados](#cerrados)**: cosas que se investigaron y
 no requieren acción, anotadas por si reaparecen.
@@ -339,39 +341,6 @@ dos sitios a la vez, `auth.users` y `hogar_usuarias`.
 
 ---
 
-## 5 · Policies de `hogar_sesiones` en el rol `public`
-
-**Estado: decidido hacerlo, sin ejecutar.** Detectado en agosto de 2026.
-
-Tres de las cuatro policies de `hogar_sesiones` están aplicadas al rol `public` en
-vez de a `authenticated`:
-
-| policy | cmd | rol |
-|---|---|---|
-| `andrea_ve_sesiones` | SELECT | `public` |
-| `usuaria_ve_sus_sesiones` | SELECT | `public` |
-| `usuaria_inserta_sus_sesiones` | INSERT | `public` |
-| `usuaria_borra_sus_sesiones` | DELETE | **`authenticated`** ✓ |
-
-**No es un agujero hoy.** En Postgres, `public` significa "todos los roles", así
-que `anon` entra en el alcance — pero las expresiones lo cierran igual:
-`auth.uid()` es `NULL` sin sesión y `NULL = x` se evalúa como falso.
-
-**Es una red de seguridad que falta.** Lo único que impide que un visitante
-anónimo lea o escriba es esa expresión. Con `TO authenticated`, `anon` queda fuera
-del alcance y deja de depender de que la expresión esté bien escrita. Donde más
-pesa es en `usuaria_inserta_sus_sesiones`, que es de escritura.
-
-Que la cuarta ya esté bien delata que las otras tres se quedaron atrás sin que
-nadie lo decidiera.
-
-**Qué hacer**: un `ALTER POLICY … TO authenticated` por cabeza. No cambia el
-comportamiento en ningún caso actual; solo hace que un error futuro falle cerrado.
-Conviene revisar de paso las de `hogar_usuarias`, que tienen el mismo patrón
-(`andrea_ve_todo` está en `public`).
-
----
-
 ## 6 · Cobro huérfano: pagar y borrar la cuenta antes del webhook
 
 **Estado: mitigado, no cerrado.** Detectado en agosto de 2026 al llevar el botón
@@ -465,3 +434,30 @@ reporte resultaron ser estados ya corregidos o efectos de commits recientes.
 **Si reaparece:** mirar primero qué sección queda bajo el header en ese punto del
 scroll y cuál es su fondo efectivo en `@media(max-width:480px)`. El header es
 `.hero-scapes-header`, `position:sticky` con `z-index:999`.
+
+## Policies en el rol `public` — cerrado el 6 de agosto de 2026
+
+**Hecho.** Trece `ALTER POLICY … TO authenticated` corridos y verificados:
+**17 de 17** las policies de `hogar_*` quedaron en `{authenticated}`, ninguna en
+`{public}`, y las expresiones sin tocar.
+
+**Qué se cambió**: las tres de `hogar_sesiones` que faltaban, `andrea_ve_todo` de
+`hogar_usuarias`, las dos de `hogar_config`, las cuatro de `hogar_notas` y las
+tres de `hogar_practica_textos`.
+
+**Por qué no era urgente pero sí correcto**: en Postgres, `public` significa
+«todos los roles», así que `anon` entraba en el alcance. Las expresiones ya lo
+cerraban —`auth.uid()` es `NULL` sin sesión y `auth.role()` devuelve `'anon'`—,
+pero eso hacía que la seguridad dependiera de que cada expresión estuviera bien
+escrita. Con `TO authenticated`, un error futuro en un `USING` falla cerrado para
+los visitantes anónimos.
+
+**La convención que queda, y esto es lo que importa conservar:** cualquier policy
+nueva sobre una tabla `hogar_*` se escribe **`TO authenticated`**, no `TO public`.
+
+**La excepción a tener presente:** `hogar_landing` no aparece en esa lista porque
+es una **vista**, y se lee **sin sesión** al cargar la página
+(`precargarLandingHogar()`, antes de `_authInit()`). Si algún día se le pone RLS o
+se sustituye por una tabla, **debe seguir siendo legible por `anon`** o la landing
+deja de mostrar precio y textos a todo visitante que no haya entrado. Ese fue el
+motivo de comprobar tabla por tabla en vez de aplicar el cambio a ciegas.

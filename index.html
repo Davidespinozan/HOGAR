@@ -7581,13 +7581,26 @@ function _posClaveDe(practica,time){
     return slug ? POS_PREFIJO+slug+_durMin(time) : null;
   }catch(_){ return null; }
 }
+/** ¿La posición de este momento se va a conservar? Fuente ÚNICA de la regla:
+ *  la usan el guardado y el aviso de salida, para que no puedan discrepar y
+ *  prometerle algo que no va a ocurrir. */
+function _posUtil(v){
+  try{
+    if(!v) return false;
+    const t=v.currentTime||0, d=v.duration||0;
+    if(!isFinite(t) || t<POS_MIN_S) return false;              // muy al principio
+    if(isFinite(d) && d>0 && t > d-POS_COLA_S) return false;    // ya en la cola
+    return true;
+  }catch(_){ return false; }
+}
 function _posGuardar(v){
   try{
     if(!_posClave || !v) return;
     const t=v.currentTime||0, d=v.duration||0;
-    // Ni el arranque ni la cola: en los dos casos el aviso sobraría al volver.
-    if(!isFinite(t) || t<POS_MIN_S) return;
+    // En la cola se BORRA lo que hubiera: si volvió y casi la termina, ofrecerle
+    // retomar el minuto 44 no sirve de nada.
     if(isFinite(d) && d>0 && t > d-POS_COLA_S){ _posOlvidar(); return; }
+    if(!_posUtil(v)) return;
     // El sello se REFRESCA en cada guardado: la ventana cuenta desde la última
     // vez que estuvo viendo, no desde que empezó. Si contara desde el principio,
     // una práctica de 45 min empezada a las 23:50 caducaría a mitad.
@@ -10218,8 +10231,26 @@ async function guardarPerfil(campo){
 }
 
 // PRÁCTICA: confirmar salida
+// PRÁCTICA: confirmar salida.
+//
+// El texto varía porque la verdad varía. Decía "tu progreso de hoy se perderá",
+// y desde que se guarda la posición eso es falso casi siempre — pero NO siempre:
+// antes del minuto 1 y en los últimos 60 s la marca no se conserva. Prometer que
+// se guarda en esos dos casos sería el mismo tipo de mentira que quitamos, solo
+// que del otro signo.
+//
+// Las dos versiones dicen además que la práctica no cuenta en su historial hasta
+// terminarla: la fila de hogar_sesiones la escribe qFinish(), al cerrar el
+// cuestionario, así que salir a mitad no deja rastro ni suma a la racha. Eso sí
+// era cierto en el texto viejo y se conserva.
 function confirmExit(){
-  if(confirm('¿Salir de la práctica? Tu progreso de hoy se perderá.')){
+  const guardaremos=_posUtil(document.getElementById('prac-video'));
+  const msg = guardaremos
+    ? '¿Salir de la práctica?\n\nGuardamos dónde te quedaste por si quieres continuar. '
+      +'No contará en tu historial hasta que la termines.'
+    : '¿Salir de la práctica?\n\nAl volver empezarás desde el principio, y no contará '
+      +'en tu historial.';
+  if(confirm(msg)){
     if(tm){clearInterval(tm);tm=null;}
     stopPracVideo();
     sc=0;
