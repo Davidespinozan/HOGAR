@@ -1402,6 +1402,15 @@ body.app-active { overflow: hidden; }
   font-size: 18px;
   color: var(--texto-oscuro);
 }
+/* Nota bajo un dato que no se edita desde la app (hoy: el email). */
+.perfil-field-nota {
+  font-family: 'Montserrat', sans-serif;
+  font-size: .76rem;
+  font-weight: 300;
+  color: var(--texto-medio);
+  margin-top: 5px;
+  line-height: 1.5;
+}
 .perfil-field-edit {
   background: transparent;
   border: none;
@@ -4530,18 +4539,18 @@ body.app-active { overflow: hidden; }
           <button class="perfil-field-edit" style="background:var(--terracota);color:var(--crema);" onclick="guardarPerfil('nombre')">Guardar</button>
         </div>
       </div>
+      <!-- EMAIL — solo lectura, a propósito.
+           Cambiarlo de verdad exige reverificación por correo en Supabase Auth
+           (dos correos: al viejo y al nuevo, ambos por confirmar) y, sobre todo,
+           sincronizar hogar_usuarias.email, que es una COPIA que escribe el
+           trigger de alta y de la que vive el panel de Andrea. Sin esa
+           sincronización, ella vería correos obsoletos justo donde decide sobre
+           accesos y cobros. El plan completo está en PENDIENTES.md. -->
       <div class="perfil-field" id="field-email-view">
         <div>
           <div class="perfil-field-label">Email</div>
           <div class="perfil-field-value" id="perfil-email-display">tu@email.com</div>
-        </div>
-      </div>
-      <div class="perfil-field" id="field-email-edit" style="display:none;flex-direction:column;align-items:stretch;">
-        <div class="perfil-field-label">Email</div>
-        <input type="email" class="perfil-input" id="input-email" placeholder="tu@email.com">
-        <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
-          <button class="perfil-field-edit" onclick="cancelarEdicion('email')">Cancelar</button>
-          <button class="perfil-field-edit" style="background:var(--terracota);color:var(--crema);" onclick="guardarPerfil('email')">Guardar</button>
+          <div class="perfil-field-nota" id="perfil-email-nota"></div>
         </div>
       </div>
     </div>
@@ -6770,6 +6779,14 @@ function uP(){
   if($('perfil-avatar'))$('perfil-avatar').textContent=i;
   if($('perfil-nombre-display'))$('perfil-nombre-display').textContent=U.name;
   if($('perfil-email-display'))$('perfil-email-display').textContent=U.email;
+  // El email no se edita desde aquí. La nota se arma en JS y no en el HTML
+  // porque el cuerpo del correo lleva el suyo, que solo se conoce con la sesión.
+  const en=$('perfil-email-nota');
+  if(en) en.innerHTML='Para cambiarlo, '+enlaceAyudaHogar(
+    'Cambiar mi correo de HOGAR',
+    'Hola Andrea:\n\nQuiero cambiar el correo de mi cuenta de HOGAR.\n\n'
+      +'Mi correo actual: '+_emailUsuaria()+'\nMi correo nuevo: \n\nGracias.',
+    'escríbenos');
   if($('pd'))$('pd').textContent=U.days;
   if($('ps'))$('ps').textContent=U.sessions;
   if($('pk'))$('pk').textContent=U.streak;
@@ -9715,8 +9732,9 @@ function editarPerfil(campo){
   const view=document.getElementById('field-'+campo+'-view');
   const edit=document.getElementById('field-'+campo+'-edit');
   if(!view||!edit)return;
+  // Solo queda 'nombre': el email es de solo lectura y no tiene formulario.
   const input=document.getElementById('input-'+campo);
-  if(input && U){input.value=campo==='nombre'?U.name:(U.email||'');}
+  if(input && U) input.value=U.name;
   view.style.display='none';edit.style.display='flex';
 }
 function cancelarEdicion(campo){
@@ -9745,11 +9763,8 @@ async function guardarPerfil(campo){
     }
     return;
   }
-  if(campo==='email'){
-    // Email es read-only por ahora — requiere reverificación por correo.
-    U.email=v;
-    uP();uA();cancelarEdicion(campo);
-  }
+  // No hay rama para 'email': ese campo es solo lectura y ya no tiene formulario.
+  // La que había asignaba U.email en memoria y descartaba el cambio.
 }
 
 // PRÁCTICA: confirmar salida

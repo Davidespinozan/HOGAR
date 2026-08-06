@@ -9,6 +9,7 @@ esto está roto, son decisiones aplazadas.
 | 1 | [Reembolsos y disputas](#1--reembolsos-y-disputas) | Decisión de negocio de Andrea | `stripe-webhook`, quizá Supabase |
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
+| 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
 
 Al final hay un apartado de **[cerrados](#cerrados)**: cosas que se investigaron y
 no requieren acción, anotadas por si reaparecen.
@@ -277,6 +278,62 @@ sirviéndose igual de pesados.
 
 **Evaluar Bunny primero. Después decidir qué queda vivo de ese plan** — la parte
 de los audios y las imágenes puede seguir teniendo sentido en Supabase.
+
+---
+
+## 4 · Cambiar el correo desde el perfil
+
+**Estado: decidido NO hacerlo por ahora, agosto de 2026.**
+
+Hoy el correo se muestra en el perfil como texto y no se puede editar. Para
+cambiarlo, la clienta escribe a Andrea desde el enlace que hay debajo del campo.
+
+Antes había un formulario de edición, pero **no era alcanzable**: el campo de
+email nunca tuvo botón "Editar" —solo el de nombre lo tiene— así que
+`editarPerfil('email')` no se llamaba desde ningún sitio. Era marcado muerto,
+y su función `guardarPerfil('email')` asignaba `U.email` en memoria y descartaba
+el cambio. Todo eso se retiró.
+
+### Por qué no se hizo de verdad
+
+No es difícil, es que arrastra cuatro cosas más y ninguna clienta lo ha pedido
+todavía. En un producto de pago único, donde el correo es la llave de acceso,
+cambiarlo es raro; el caso frecuente es "me equivoqué al registrarme", y ese se
+resuelve mejor escribiéndole a Andrea, que de paso comprueba que el pago siga
+atado a la persona correcta.
+
+### ⚠️ Verificar ESTO antes de empezar
+
+**¿El trigger de `auth.users` que rellena `hogar_usuarias` es solo
+`AFTER INSERT`?** En Supabase → **Database → Triggers**, sobre `auth.users`: si en
+su lista de eventos solo aparece `INSERT`, entonces `hogar_usuarias.email` **no se
+actualiza** cuando cambia el correo en `auth.users`.
+
+Eso importa más que todo lo demás, porque `hogar_usuarias.email` es de donde vive
+el panel de Andrea: el listado, la ficha y **el diálogo de acceso manual**, que es
+donde ella comprueba a quién le está concediendo o revocando el acceso. Un correo
+obsoleto ahí no es cosmético: es Andrea decidiendo sobre dinero mirando un dato
+falso. También dejaría de funcionar el filtro de `ADMIN_TEST_EMAILS`.
+
+**Implementar el cambio de correo sin resolver esto deja el sistema peor que
+ahora.**
+
+### Lo que haría falta
+
+| Dónde | Qué |
+|---|---|
+| `index.html` | Devolver el formulario y llamar a `supabase.auth.updateUser({ email })` |
+| `index.html` | Rama `type=email_change` en el manejador de retorno de enlaces (hoy solo reconoce `type=recovery`, así que la clienta aterrizaría en la landing sin saber si funcionó) |
+| Supabase Auth | La URL de retorno en la lista blanca de redirecciones |
+| Copy | *Secure email change* está activo por defecto: se mandan **dos** correos, al viejo y al nuevo, y hay que confirmar **los dos**. La interfaz tiene que explicar ese estado y aguantar el limbo sin mentir sobre cuál es su correo |
+| Supabase | Migración para sincronizar `hogar_usuarias.email` — un trigger de `UPDATE` sobre `auth.users`, o hacerlo desde una función |
+
+### Alternativa más barata
+
+Si lo que se quiere es solo desatascar casos sueltos, un control en el panel de
+Andrea para editar el correo de una clienta es bastante menos trabajo que el
+flujo de autoservicio — pero **tiene exactamente el mismo requisito**: cambiar los
+dos sitios a la vez, `auth.users` y `hogar_usuarias`.
 
 ---
 
