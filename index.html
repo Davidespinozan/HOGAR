@@ -3440,6 +3440,10 @@ body.app-active { overflow: hidden; }
   text-transform:capitalize; padding:4px 11px; border-radius:100px;
   background:#f2e8dd; color:#9a7d6c; }
 .adm-u-badge.activa{ background:#e4f0e2; color:#4a8a5a; }
+/* "Revisar" — llegó a la pasarela y su acceso no consta. Ámbar y con borde para
+   que salte entre las pendientes: es el único estado que puede significar que
+   alguien pagó y se quedó fuera. */
+.adm-u-badge.revisar{ background:#fbeecf; color:#8a6410; box-shadow:inset 0 0 0 1px rgba(138,100,16,.28); }
 .adm-u-badge.cancelada,
 .adm-u-badge.baja{ background:#f7e0d6; color:#b0654a; }
 
@@ -4706,6 +4710,7 @@ body.app-active { overflow: hidden; }
             <select id="adm-pago" onchange="renderAdminUsuarias()">
               <option value="">Todas</option>
               <option value="activa">Activa</option>
+              <option value="revisar">Revisar</option>
               <option value="pendiente">Pendiente</option>
             </select>
           </div>
@@ -7792,7 +7797,11 @@ async function loadAdmin(){
     try{
       // id + datos de compra: la ficha de detalle los necesita y así no se re-consulta.
       let q=window.sb.from('hogar_usuarias')
-        .select('id,nombre,email,created_at,plan,estatus,pagado,fecha_compra,monto_centavos')
+        // stripe_customer_id NO se enseña nunca: se usa para detectar el estado
+        // "Revisar" (tiene customer en Stripe pero pagado=false → pagó y algo
+        // falló). Las columnas acceso_manual_* piden SQL-ACCESO-MANUAL.md corrido.
+        .select('id,nombre,email,created_at,plan,estatus,pagado,fecha_compra,monto_centavos,'
+               +'stripe_customer_id,acceso_manual,acceso_manual_en,acceso_manual_por,acceso_manual_nota')
         .order('created_at',{ascending:false});
       if(ADMIN_TEST_EMAILS.length) q=q.not('email','in','('+ADMIN_TEST_EMAILS.map(e=>'"'+e+'"').join(',')+')');
       const { data, error } = await q;
@@ -7834,6 +7843,13 @@ async function loadAdmin(){
   (async()=>{
     const $=id=>document.getElementById(id);
     try{
+      // Las CORTESÍAS quedan fuera. Un acceso regalado tiene pagado=true pero no
+      // es una venta: sin este filtro sumaría 0 al importe y +1 al contador de
+      // compras, y Andrea vería "3 ventas · $998" con dos regalos dentro.
+      // Las concedidas a mano de tipo VENTA sí entran: ahí hubo un cobro real que
+      // solo se perdió de camino a la base, y ocultarlo mentiría al revés.
+      // Ambas llevan acceso_manual=true; las distingue tener fecha_compra, que la
+      // función solo escribe en las de tipo venta.
       let q=window.sb.from('hogar_usuarias')
         .select('monto_centavos,fecha_compra')
         .eq('pagado',true)
@@ -7888,6 +7904,32 @@ function _admRenderBars(elId, items){
   }).join('');
 }
 
+// ===== ESTADO DE PAGO — fuente única para badge, filtro y ficha =====
+//
+// Tres estados, no dos. El binario de antes escondía el caso que más urge ver:
+//
+//   activa   → pagado=true. Tiene acceso. Si además acceso_manual=true, se lo
+//              concedió Andrea a mano y la ficha lo dice.
+//   revisar  → pagado=false PERO tiene stripe_customer_id. Ese customer solo se
+//              crea dentro de crear-checkout, así que llegó a la pasarela: o pagó
+//              y el webhook se perdió, o abandonó a mitad. Merece una mirada.
+//   pendiente→ ni pagó ni empezó.
+//
+// El estado "revisar" es exactamente el caso del 6 de agosto de 2026, que hubo
+// que descubrir a mano en Supabase porque el panel enseñaba "Pendiente", igual
+// que a quien nunca intentó pagar.
+function _admEstadoPago(r){
+  if(r && r.pagado===true){
+    return (r.acceso_manual===true)
+      ? {clave:'activa', clase:'activa', etiqueta:'Activa · manual'}
+      : {clave:'activa', clase:'activa', etiqueta:'Activa'};
+  }
+  if(r && r.stripe_customer_id){
+    return {clave:'revisar', clase:'revisar', etiqueta:'Revisar'};
+  }
+  return {clave:'pendiente', clase:'', etiqueta:'Pendiente'};
+}
+
 // Filtra la tabla de usuarias en cliente (search por nombre/email + estatus) sobre el cache.
 function renderAdminUsuarias(){
   const body=document.getElementById('adm-usuarias-body'); if(!body) return;
@@ -7899,8 +7941,11 @@ function renderAdminUsuarias(){
   // filtro miraba `estatus` y el badge también, pero ambos mentían igual; si solo
   // se hubiera cambiado el badge, elegir "Activa" habría devuelto también a las
   // pendientes y Andrea habría filtrado por una cosa obteniendo otra.
-  if(pago==='activa') rows=rows.filter(r=> r.pagado===true);
-  else if(pago==='pendiente') rows=rows.filter(r=> r.pagado!==true);
+  // Ahora sobre _admEstadoPago(), que es la misma función que pinta el badge:
+  // así "Revisar" se puede filtrar y no hay forma de que filtro y etiqueta
+  // discrepen. 'pendiente' ya NO arrastra a las de "Revisar", que es justo lo
+  // que las mantenía escondidas entre quienes nunca intentaron pagar.
+  if(pago) rows=rows.filter(r=> _admEstadoPago(r).clave===pago);
   if(!rows.length){
     const filtrando = !!(term || pago);
     body.innerHTML=_admUsuariasVacio(
@@ -7910,13 +7955,8 @@ function renderAdminUsuarias(){
     return;
   }
   body.innerHTML=rows.map(r=>{
-    // El badge deriva de `pagado`, el dato que marca el webhook de Stripe, y no
-    // de `estatus`: esa columna vale 'activa' para todas desde el registro, así
-    // que el panel enseñaba seis badges verdes habiendo pagado una.
-    // "Pendiente" y no "Sin pagar": es algo que todavía puede ocurrir.
-    const pagada = (r.pagado===true);
-    const badge = '<span class="adm-u-badge'+(pagada?' activa':'')+'">'
-      +(pagada?'Activa':'Pendiente')+'</span>';
+    const e=_admEstadoPago(r);
+    const badge = '<span class="adm-u-badge '+e.clase+'">'+e.etiqueta+'</span>';
     const id=_admEsc(r.id);
     // La tarjeta entera abre la ficha, igual que antes lo hacía la fila entera.
     // Se muestran siempre desplegadas: colapsarlas exigiría que el toque
@@ -7974,6 +8014,88 @@ function _admDiasDesde(iso){
   const d=new Date(iso);
   if(isNaN(d.getTime())) return null;
   return Math.max(0, Math.floor((Date.now()-d.getTime())/86400000));
+}
+
+// ===== ACCESO MANUAL =====
+// Diálogo + llamada a la función de Netlify. La escritura NUNCA sale del
+// navegador: hogar_usuarias no tiene ninguna policy de UPDATE, así que un
+// intento directo desde aquí devolvería 0 filas en silencio.
+
+/** Pide confirmación y, si Andrea acepta, aplica el cambio. */
+async function abrirAccesoManual(id, accion){
+  const u=(_admUsuarias||[]).find(x=>x.id===id);
+  if(!u){ _admAccesoMsg('No encontramos a esa usuaria. Vuelve a entrar a la sección.','error'); return; }
+
+  // Nombre y correo en la confirmación, no el id: si Andrea abrió la ficha
+  // equivocada, es aquí donde tiene que notarlo.
+  const quien=(u.nombre||'sin nombre')+' · '+(u.email||'sin correo');
+  let tipo=null, montoCentavos=null, nota='';
+
+  if(accion==='conceder'){
+    const esVenta=confirm(
+      'CONCEDER ACCESO A:\n'+quien+'\n\n'
+      +'¿Te pagó de verdad y el cobro no llegó a registrarse?\n\n'
+      +'Aceptar = SÍ, me pagó (cuenta como venta)\n'
+      +'Cancelar = NO, es un acceso de cortesía (no cuenta como venta)');
+    tipo=esVenta?'venta':'cortesia';
+
+    if(tipo==='venta'){
+      const txt=prompt('¿Cuánto te pagó, en pesos?\n\nMíralo en Stripe: este importe entra en tus ingresos del mes.','499');
+      if(txt===null) return;                       // se arrepintió
+      const pesos=Number(String(txt).replace(',','.').trim());
+      if(!isFinite(pesos) || pesos<0){ _admAccesoMsg('Ese importe no es válido. No se hizo ningún cambio.','error'); return; }
+      montoCentavos=Math.round(pesos*100);
+    }
+    nota=prompt('¿Alguna nota? (opcional)\n\nSi lo verificaste en Stripe, pega aquí el id del pago.','')||'';
+  }else{
+    if(!confirm('REVOCAR EL ACCESO A:\n'+quien+'\n\n'
+      +'Dejará de poder entrar a las prácticas.\n\n'
+      +'Si pagó de verdad, esto NO le devuelve el dinero: el reembolso se hace en Stripe.')) return;
+    nota=prompt('¿Por qué lo revocas? (opcional)','')||'';
+  }
+
+  await _aplicarAccesoManual({ user_id:id, accion, tipo, monto_centavos:montoCentavos, nota });
+}
+
+function _admAccesoMsg(texto, tipo){
+  const el=document.getElementById('adm-acceso-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+
+async function _aplicarAccesoManual(payload){
+  _admAccesoMsg('');
+  try{
+    const token=await _admToken();
+    if(!token){ _admAccesoMsg('Tu sesión expiró. Vuelve a entrar.','error'); return; }
+    const res=await fetch(ADM_FN+'/acceso-manual',{
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
+      body:JSON.stringify(payload)
+    });
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok || !json.usuaria) throw new Error(json.error||('HTTP '+res.status));
+
+    // El cache local se actualiza con lo que devolvió el servidor —no con lo que
+    // creíamos haber mandado— y se repinta la ficha. Así el badge, el filtro y la
+    // ficha quedan de acuerdo sin recargar la sección entera.
+    const i=(_admUsuarias||[]).findIndex(x=>x.id===payload.user_id);
+    if(i>=0) _admUsuarias[i]=Object.assign({}, _admUsuarias[i], json.usuaria);
+    renderAdminUsuarias();
+    await verUsuariaHogar(payload.user_id);
+
+    _admAccesoMsg(payload.accion==='conceder'
+      ? 'Listo: ya tiene acceso a las prácticas.'
+      : 'Listo: se le retiró el acceso.', 'ok');
+    if(json.registrado===false){
+      console.warn('[HOGAR admin] el acceso se aplicó pero no quedó registrado en la bitácora');
+    }
+  }catch(e){
+    console.warn('[HOGAR admin] acceso manual:',e.message||e);
+    _admAccesoMsg('No pudimos cambiar el acceso. Inténtalo de nuevo en un momento.','error');
+  }
 }
 
 function volverAUsuariasHogar(){
@@ -8038,8 +8160,15 @@ function _admFichaHTML(u, ses){
     +'<div class="adm-ficha-email">'+_admEsc(_admDash(u.email))+'</div>'
     +'</div>';
 
+  const est=_admEstadoPago(u);
+
   // ── Señales accionables (solo cuando aplican) ──
-  if(!fallo && u.pagado===true && total===0){
+  // La de "Revisar" va primero: es la única que puede significar que alguien
+  // pagó y se quedó fuera, y por tanto la única que cuesta dinero ignorar.
+  if(est.clave==='revisar'){
+    html+='<div class="adm-alert warn show">Llegó a la pasarela de pago pero su acceso no consta. '
+      +'Puede que pagara y el aviso de Stripe se perdiera. Búscala en Stripe antes de decidir.</div>';
+  }else if(!fallo && u.pagado===true && total===0){
     html+='<div class="adm-alert warn show">Compró y aún no ha practicado.</div>';
   }else if(!fallo && dias!==null && dias>30){
     html+='<div class="adm-alert warn show">Sin actividad hace '+dias+' días.</div>';
@@ -8047,17 +8176,43 @@ function _admFichaHTML(u, ses){
 
   // ── Cuenta ──
   const pagoValor = (u.pagado===true)
-    ? 'Pagada'+(u.fecha_compra?' · '+_admFmtDate(u.fecha_compra):'')
+    ? (u.acceso_manual===true ? 'Concedida a mano' : 'Pagada')
+      +(u.fecha_compra?' · '+_admFmtDate(u.fecha_compra):'')
       +(u.monto_centavos?' · '+_admEsc(_admDinero(u.monto_centavos,'MXN')):'')
-    : 'Sin compra';
+    : (est.clave==='revisar' ? 'Sin registrar · llegó a la pasarela' : 'Sin compra');
   html+='<div class="adm-card hogar-rise-in">'
     +'<div class="adm-card-eyebrow">— CUENTA</div>'
     +_admFila('Fecha de alta', _admFmtDate(u.created_at))
     +_admFila('Pago', _admEsc(pagoValor), u.pagado===true?'ok':'')
+    +(u.acceso_manual===true
+        ? _admFila('Concedido por', _admEsc((u.acceso_manual_por||'—')
+            +(u.acceso_manual_en?' · '+_admFmtDate(u.acceso_manual_en):'')))
+          +(u.acceso_manual_nota?_admFila('Motivo', _admEsc(u.acceso_manual_nota)):'')
+        : '')
     +_admFila('Plan', _admEsc(_admDash(u.plan)))
     // Sin fila "Estatus": la de Pago de arriba ya dice la verdad y con más
     // detalle. Mostrar las dos juntas era contradictorio — a cinco de las seis
     // usuarias les salía "Pago: Sin compra" y justo debajo "Estatus: activa".
+    +'</div>';
+
+  // ── Acceso manual ──
+  // La red de seguridad: hasta ahora, si el webhook fallaba, solo alguien con
+  // acceso a Supabase podía desbloquear a una clienta que ya había pagado.
+  const idJs=_admEsc(u.id);
+  html+='<div class="adm-alert" id="adm-acceso-msg"></div>'
+    +'<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow">— ACCESO</div>'
+    +(u.pagado===true
+      ? '<p class="adm-card-text">Tiene acceso completo a las prácticas.'
+        +(u.acceso_manual===true ? ' Se lo concediste tú, no un cobro de Stripe.' : '')
+        +'</p>'
+        +'<div class="adm-actions"><button type="button" class="btn btn-o" '
+        +'onclick="abrirAccesoManual(\''+idJs+'\',\'revocar\')">Revocar acceso</button></div>'
+      : '<p class="adm-card-text">No tiene acceso a las prácticas. '
+        +'<strong>Comprueba primero en Stripe si te pagó</strong>; desde aquí puedes '
+        +'darle acceso sin esperar al cobro.</p>'
+        +'<div class="adm-actions"><button type="button" class="btn btn-r" '
+        +'onclick="abrirAccesoManual(\''+idJs+'\',\'conceder\')">Conceder acceso</button></div>')
     +'</div>';
 
   // ── Métricas ──

@@ -40,7 +40,7 @@ async function acreditarPago(session: Stripe.Checkout.Session): Promise<void> {
   // vez. Si ya está pagada, no la volvemos a tocar.
   const { data: actual, error: leerErr } = await admin
     .from('hogar_usuarias')
-    .select('id, pagado')
+    .select('id, pagado, acceso_manual')
     .eq('id', userId)
     .maybeSingle();
   if (leerErr) throw new Error(`leer hogar_usuarias: ${leerErr.message}`);
@@ -48,9 +48,23 @@ async function acreditarPago(session: Stripe.Checkout.Session): Promise<void> {
     console.warn('[stripe-webhook] no existe hogar_usuarias con id', userId);
     return;
   }
-  if (actual.pagado === true) {
+  // EL COBRO REAL GANA SOBRE EL DATO MANUAL.
+  //
+  // Si Andrea concedió el acceso a mano y el webhook llega después —Stripe
+  // reintenta durante días—, salir aquí dejaría para siempre el importe que ella
+  // tecleó de memoria en lugar del que Stripe cobró de verdad. Así que cuando la
+  // fila está marcada como manual SÍ se escribe: se corrige el dinero y se apaga
+  // `acceso_manual`, porque a partir de ese momento el acceso ya no es una
+  // concesión, es una compra.
+  //
+  // Con `pagado=true` por un cobro normal (acceso_manual=false) se sale como
+  // siempre: eso es el reintento de Stripe y no hay nada que corregir.
+  if (actual.pagado === true && actual.acceso_manual !== true) {
     console.log('[stripe-webhook] clienta ya pagada, sin cambios:', userId);
     return;
+  }
+  if (actual.acceso_manual === true) {
+    console.log('[stripe-webhook] llegó el cobro real de una concedida a mano; se corrige:', userId);
   }
 
   const { error } = await admin
@@ -60,7 +74,10 @@ async function acreditarPago(session: Stripe.Checkout.Session): Promise<void> {
       fecha_compra: new Date().toISOString(),
       monto_centavos: session.amount_total ?? null,
       plan: 'completo',
-      estatus: 'activa'
+      estatus: 'activa',
+      // Deja de ser una concesión: el cobro llegó. Si venía de un acceso manual,
+      // esto lo apaga y las métricas dejan de tratarlo como cortesía.
+      acceso_manual: false
     })
     .eq('id', userId);
   if (error) throw new Error(`activar clienta: ${error.message}`);
