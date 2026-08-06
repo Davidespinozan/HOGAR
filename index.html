@@ -88,6 +88,62 @@
 .legal-x:hover{background:#f0e0d0;color:#b0654a;transform:rotate(90deg);}
 /* El cuerpo es lo único que scrollea */
 .legal-body{flex:1 1 auto;overflow-y:auto;padding:22px 26px 28px;-webkit-overflow-scrolling:touch;}
+
+/* ===== ACCESO MANUAL — modal del panel de Andrea =====
+   Hereda .legal-ov/.legal-modal y solo añade lo suyo. Usa los tokens --adm-*
+   para que no se despegue del resto del panel si algún día cambian. */
+.acm-modal{max-width:520px;}
+/* A quién: lo primero y lo más grande del modal. */
+.acm-quien{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:18px;
+  background:var(--crema-claro);border:1px solid rgba(240,228,214,.9);border-radius:16px;}
+.acm-quien-avatar{flex-shrink:0;width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--terracota),var(--terracota-oscuro));
+  color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.05rem;}
+.acm-quien-txt{min-width:0;}
+.acm-quien-nombre{font-family:'Montserrat',sans-serif;font-weight:700;font-size:1.02rem;
+  color:var(--adm-texto);line-height:1.3;word-break:break-word;}
+.acm-quien-email{font-family:'Montserrat',sans-serif;font-weight:300;font-size:.8rem;
+  color:var(--adm-texto-2);margin-top:2px;word-break:break-all;}
+.acm-aviso{font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:300;line-height:1.6;
+  color:#8a6410;background:#fbeecf;border:1px solid rgba(138,100,16,.2);
+  border-radius:14px;padding:12px 14px;margin-bottom:20px;}
+.acm-aviso strong{font-weight:700;color:#6f5210;}
+.acm-label{font-family:'Montserrat',sans-serif;font-size:10px;font-weight:700;letter-spacing:2.4px;
+  text-transform:uppercase;color:var(--adm-eyebrow-color);margin:0 0 10px;}
+.acm-opcional{font-weight:400;letter-spacing:1.2px;color:var(--adm-texto-2);}
+/* Opciones de tipo: tarjeta clicable entera, no solo el radio. */
+.acm-op{display:flex;align-items:flex-start;gap:12px;cursor:pointer;
+  padding:13px 15px;margin-bottom:9px;background:#fff;
+  border:1.5px solid rgba(240,228,214,.9);border-radius:14px;transition:border-color .2s,background .2s;}
+.acm-op:hover{border-color:var(--salmon);}
+.acm-op:has(input:checked){border-color:var(--terracota);background:var(--crema-claro);}
+.acm-op input{flex-shrink:0;margin-top:3px;accent-color:var(--terracota);width:17px;height:17px;cursor:pointer;}
+.acm-op-txt{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.acm-op-tit{font-family:'Montserrat',sans-serif;font-size:.88rem;font-weight:600;color:var(--adm-texto);line-height:1.35;}
+.acm-op-sub{font-family:'Montserrat',sans-serif;font-size:.76rem;font-weight:300;color:var(--adm-texto-2);line-height:1.5;}
+#acm-bloque-monto{margin-top:18px;}
+.acm-monto-wrap{display:flex;align-items:center;gap:8px;}
+.acm-monto-signo{font-family:'Montserrat',sans-serif;font-size:1.15rem;font-weight:600;color:var(--adm-texto-2);}
+.acm-monto-moneda{font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:600;
+  letter-spacing:1px;color:var(--adm-texto-2);}
+.acm-input{width:100%;font-family:'Montserrat',sans-serif;font-size:.9rem;color:var(--adm-texto);
+  background:#fff;border:var(--adm-campo-borde);border-radius:var(--adm-campo-radio);
+  padding:11px 14px;outline:none;box-shadow:var(--adm-campo-sombra);transition:border-color .2s,box-shadow .2s;
+  resize:vertical;}
+.acm-input:focus{border-color:var(--terracota);box-shadow:var(--adm-foco);}
+.acm-input-monto{flex:1 1 auto;width:auto;font-size:1.05rem;font-weight:600;}
+.acm-hint{font-family:'Montserrat',sans-serif;font-size:.75rem;font-weight:300;
+  color:var(--adm-texto-2);margin-top:7px;}
+#acm-label-nota{margin-top:20px;}
+/* Pie fijo: los botones no se van con el scroll. */
+.acm-pie{flex-shrink:0;display:flex;gap:10px;justify-content:flex-end;
+  padding:16px 26px 20px;border-top:1px solid #f2e8dd;background:#fff;}
+.acm-pie .btn{padding:.7rem 1.5rem;font-size:.78rem;}
+@media(max-width:480px){
+  .acm-pie{flex-direction:column-reverse;}
+  .acm-pie .btn{width:100%;text-align:center;justify-content:center;}
+}
 .legal-intro{font-family:'Montserrat',sans-serif;font-size:.92rem;font-weight:400;line-height:1.7;
   color:#3a2820;margin:0 0 4px;}
 .legal-body h4{font-family:'Montserrat',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:.04em;
@@ -4086,6 +4142,78 @@ body.app-active { overflow: hidden; }
 
 </div>
 
+<!-- ===== ACCESO MANUAL (solo Andrea) =====
+     Reusa el patrón .legal-ov/.legal-modal, que es el bueno del panel: overlay
+     con desenfoque, tarjeta centrada, cabecera fija y cuerpo con scroll propio.
+     Sustituye a tres prompt() encadenados que funcionaban pero no enseñaban a
+     quién se le estaba tocando el acceso mientras Andrea decidía. -->
+<div class="legal-ov" id="acm-modal" role="dialog" aria-modal="true" aria-labelledby="acm-tit" onclick="cerrarAccesoManualSiFuera(event)">
+  <div class="legal-modal acm-modal">
+    <div class="legal-head">
+      <div class="legal-head-txt">
+        <h3 class="legal-tit" id="acm-tit">Conceder acceso</h3>
+        <div class="legal-fecha" id="acm-sub">Sin esperar al cobro de Stripe</div>
+      </div>
+      <button type="button" class="legal-x" onclick="cerrarAccesoManual()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="legal-body">
+      <!-- A QUIÉN. Arriba y destacado: si Andrea abrió la ficha equivocada, es
+           aquí donde tiene que notarlo, antes de tocar nada. -->
+      <div class="acm-quien">
+        <div class="acm-quien-avatar" id="acm-inicial" aria-hidden="true">—</div>
+        <div class="acm-quien-txt">
+          <div class="acm-quien-nombre" id="acm-nombre">—</div>
+          <div class="acm-quien-email" id="acm-email">—</div>
+        </div>
+      </div>
+
+      <div class="acm-aviso" id="acm-aviso">
+        <strong>Comprueba primero en Stripe si te pagó.</strong> Desde aquí solo se
+        abre el acceso: no se cobra ni se verifica nada.
+      </div>
+
+      <!-- TIPO. Solo al conceder. -->
+      <div id="acm-bloque-tipo">
+        <div class="acm-label">¿Por qué le das acceso?</div>
+        <label class="acm-op" id="acm-op-venta">
+          <input type="radio" name="acm-tipo" value="venta" checked onchange="_acmTipoCambio()">
+          <span class="acm-op-txt">
+            <span class="acm-op-tit">Ya me pagó, lo verifiqué en Stripe</span>
+            <span class="acm-op-sub">Cuenta como venta y suma a tus ingresos del mes.</span>
+          </span>
+        </label>
+        <label class="acm-op" id="acm-op-cortesia">
+          <input type="radio" name="acm-tipo" value="cortesia" onchange="_acmTipoCambio()">
+          <span class="acm-op-txt">
+            <span class="acm-op-tit">Se lo regalo</span>
+            <span class="acm-op-sub">No cuenta como venta. No aparece en tus ingresos.</span>
+          </span>
+        </label>
+
+        <!-- IMPORTE. Solo si es venta. -->
+        <div id="acm-bloque-monto">
+          <div class="acm-label">¿Cuánto te pagó?</div>
+          <div class="acm-monto-wrap">
+            <span class="acm-monto-signo">$</span>
+            <input type="number" class="acm-input acm-input-monto" id="acm-monto" min="0" step="1" placeholder="499" inputmode="decimal">
+            <span class="acm-monto-moneda">MXN</span>
+          </div>
+          <div class="acm-hint">El importe exacto que ves en Stripe.</div>
+        </div>
+      </div>
+
+      <div class="acm-label" id="acm-label-nota">Nota <span class="acm-opcional">(opcional)</span></div>
+      <textarea class="acm-input" id="acm-nota" rows="2" placeholder="Ej.: verificado en Stripe, pago pi_3ABC…"></textarea>
+
+      <div class="adm-alert" id="acm-error"></div>
+    </div>
+    <div class="acm-pie">
+      <button type="button" class="btn btn-o" onclick="cerrarAccesoManual()">Cancelar</button>
+      <button type="button" class="btn btn-r" id="acm-confirmar" onclick="confirmarAccesoManual(this)">Conceder acceso</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- SIGNUP -->
 <div id="s-signup" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:440px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">¡Bienvenida a HOGAR!</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Crea tu cuenta para empezar.</p><div style="text-align:left;"><div class="fg"><label>Tu nombre</label><input type="text" id="sN" placeholder="¿Cómo te llamas?"></div><div class="fg"><label>Email</label><input type="email" id="sE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="sP" placeholder="Mínimo 8 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="sP2" placeholder="Repite tu contraseña"></div></div><div id="signup-msg" class="auth-msg"></div><div id="signup-dup" class="signup-dup"><p>Ya tienes una cuenta con este correo. ¿Quieres iniciar sesión o recuperar tu contraseña?</p><div class="signup-dup-acts"><button type="button" class="btn btn-r" onclick="goToLoginFromSignup()">Iniciar sesión</button><button type="button" class="btn btn-o" onclick="goToRecoverFromSignup()">Recuperar contraseña</button></div></div><button class="btn btn-r btn-full" id="signupBtn" onclick="doSign()">Crear mi cuenta</button></div></div></div>
@@ -5509,7 +5637,7 @@ function cerrarMenuAdmin(){
 }
 // Escape cierra el menú, como cualquier panel modal.
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ cerrarMenuAdmin(); cerrarLegal(); }
+  if(e.key==='Escape'){ cerrarMenuAdmin(); cerrarLegal(); cerrarAccesoManual(); }
 });
 
 // ── Modales legales (Términos y Privacidad, desde el pie de la landing) ──────
@@ -8021,40 +8149,118 @@ function _admDiasDesde(iso){
 // navegador: hogar_usuarias no tiene ninguna policy de UPDATE, así que un
 // intento directo desde aquí devolvería 0 filas en silencio.
 
-/** Pide confirmación y, si Andrea acepta, aplica el cambio. */
-async function abrirAccesoManual(id, accion){
+// Qué usuaria y qué acción tiene abierto el modal ahora mismo.
+let _acmCtx=null;
+
+/** Abre el modal con los datos de la clienta ya puestos. */
+function abrirAccesoManual(id, accion){
   const u=(_admUsuarias||[]).find(x=>x.id===id);
   if(!u){ _admAccesoMsg('No encontramos a esa usuaria. Vuelve a entrar a la sección.','error'); return; }
+  const ov=document.getElementById('acm-modal'); if(!ov) return;
+  const $=x=>document.getElementById(x);
+  const conceder=(accion==='conceder');
+  _acmCtx={ id, accion };
 
-  // Nombre y correo en la confirmación, no el id: si Andrea abrió la ficha
-  // equivocada, es aquí donde tiene que notarlo.
-  const quien=(u.nombre||'sin nombre')+' · '+(u.email||'sin correo');
-  let tipo=null, montoCentavos=null, nota='';
+  // A quién. El avatar usa la misma inicial que la tarjeta del listado.
+  const nombre=(u.nombre||'').trim();
+  $('acm-inicial').textContent=(nombre||u.email||'?').charAt(0).toUpperCase();
+  $('acm-nombre').textContent=nombre||'Sin nombre';
+  $('acm-email').textContent=u.email||'Sin correo';
 
-  if(accion==='conceder'){
-    const esVenta=confirm(
-      'CONCEDER ACCESO A:\n'+quien+'\n\n'
-      +'¿Te pagó de verdad y el cobro no llegó a registrarse?\n\n'
-      +'Aceptar = SÍ, me pagó (cuenta como venta)\n'
-      +'Cancelar = NO, es un acceso de cortesía (no cuenta como venta)');
-    tipo=esVenta?'venta':'cortesia';
+  $('acm-tit').textContent=conceder?'Conceder acceso':'Revocar acceso';
+  $('acm-sub').textContent=conceder?'Sin esperar al cobro de Stripe':'Dejará de entrar a las prácticas';
 
+  // El aviso cambia de sentido según la acción: al conceder avisa de verificar
+  // el cobro; al revocar, de que esto NO devuelve el dinero.
+  $('acm-aviso').innerHTML=conceder
+    ? '<strong>Comprueba primero en Stripe si te pagó.</strong> Desde aquí solo se '
+      +'abre el acceso: no se cobra ni se verifica nada.'
+    : '<strong>Esto no le devuelve el dinero.</strong> Si pagó y quieres reembolsarla, '
+      +'el reembolso se hace en Stripe.';
+
+  // Tipo e importe solo tienen sentido al conceder.
+  $('acm-bloque-tipo').style.display=conceder?'':'none';
+  $('acm-label-nota').innerHTML=conceder
+    ? 'Nota <span class="acm-opcional">(opcional)</span>'
+    : '¿Por qué lo revocas? <span class="acm-opcional">(opcional)</span>';
+  $('acm-nota').placeholder=conceder
+    ? 'Ej.: verificado en Stripe, pago pi_3ABC…'
+    : 'Ej.: lo concedí por error';
+  $('acm-nota').value='';
+  $('acm-monto').value='';
+  const venta=document.querySelector('#acm-op-venta input');
+  if(venta) venta.checked=true;
+  _acmTipoCambio();
+
+  const btn=$('acm-confirmar');
+  btn.textContent=conceder?'Conceder acceso':'Revocar acceso';
+  btn.className='btn '+(conceder?'btn-r':'btn-o');
+  btn.disabled=false;
+  _acmError('');
+
+  ov.classList.add('open');
+  document.body.style.overflow='hidden';
+  // Foco al primer control útil, no al botón de cerrar: aquí se viene a decidir.
+  setTimeout(()=>{ try{ (conceder?venta:$('acm-nota')).focus(); }catch(_){} },80);
+}
+
+/** El importe solo aparece cuando el tipo es "ya me pagó". */
+function _acmTipoCambio(){
+  const sel=document.querySelector('input[name="acm-tipo"]:checked');
+  const bloque=document.getElementById('acm-bloque-monto');
+  if(bloque) bloque.style.display=(sel && sel.value==='venta')?'':'none';
+}
+
+function _acmError(texto){
+  const el=document.getElementById('acm-error');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show error';
+}
+
+function cerrarAccesoManual(){
+  const ov=document.getElementById('acm-modal');
+  if(ov) ov.classList.remove('open');
+  document.body.style.overflow='';
+  _acmCtx=null;
+}
+function cerrarAccesoManualSiFuera(ev){
+  if(ev && ev.target===ev.currentTarget) cerrarAccesoManual();
+}
+
+/** Lee el modal, valida y aplica. Misma llamada que antes por detrás. */
+async function confirmarAccesoManual(btn){
+  if(!_acmCtx) return;
+  const { id, accion }=_acmCtx;
+  const conceder=(accion==='conceder');
+  let tipo=null, montoCentavos=null;
+
+  if(conceder){
+    const sel=document.querySelector('input[name="acm-tipo"]:checked');
+    tipo=(sel && sel.value==='cortesia')?'cortesia':'venta';
     if(tipo==='venta'){
-      const txt=prompt('¿Cuánto te pagó, en pesos?\n\nMíralo en Stripe: este importe entra en tus ingresos del mes.','499');
-      if(txt===null) return;                       // se arrepintió
-      const pesos=Number(String(txt).replace(',','.').trim());
-      if(!isFinite(pesos) || pesos<0){ _admAccesoMsg('Ese importe no es válido. No se hizo ningún cambio.','error'); return; }
+      // Se acepta coma decimal: en México se teclea igual de a menudo que el punto.
+      const crudo=String(document.getElementById('acm-monto').value||'').replace(',','.').trim();
+      const pesos=Number(crudo);
+      if(!crudo || !isFinite(pesos) || pesos<0){
+        _acmError('Escribe el importe que te pagó, en pesos.');
+        try{ document.getElementById('acm-monto').focus(); }catch(_){}
+        return;
+      }
       montoCentavos=Math.round(pesos*100);
     }
-    nota=prompt('¿Alguna nota? (opcional)\n\nSi lo verificaste en Stripe, pega aquí el id del pago.','')||'';
-  }else{
-    if(!confirm('REVOCAR EL ACCESO A:\n'+quien+'\n\n'
-      +'Dejará de poder entrar a las prácticas.\n\n'
-      +'Si pagó de verdad, esto NO le devuelve el dinero: el reembolso se hace en Stripe.')) return;
-    nota=prompt('¿Por qué lo revocas? (opcional)','')||'';
   }
+  const nota=String(document.getElementById('acm-nota').value||'').trim();
 
-  await _aplicarAccesoManual({ user_id:id, accion, tipo, monto_centavos:montoCentavos, nota });
+  const txt=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+  const ok=await _aplicarAccesoManual({ user_id:id, accion, tipo, monto_centavos:montoCentavos, nota });
+  if(btn){ btn.disabled=false; btn.textContent=txt; }
+  // El modal solo se cierra si salió bien: si falló, el error se lee dentro y
+  // Andrea no pierde lo que había escrito.
+  if(ok) cerrarAccesoManual();
+  else _acmError('No pudimos cambiar el acceso. Inténtalo de nuevo en un momento.');
 }
 
 function _admAccesoMsg(texto, tipo){
@@ -8065,11 +8271,12 @@ function _admAccesoMsg(texto, tipo){
   el.className='adm-alert show '+(tipo||'error');
 }
 
+/** Devuelve true si el cambio se aplicó. El modal lo usa para decidir si cierra. */
 async function _aplicarAccesoManual(payload){
   _admAccesoMsg('');
   try{
     const token=await _admToken();
-    if(!token){ _admAccesoMsg('Tu sesión expiró. Vuelve a entrar.','error'); return; }
+    if(!token){ _admAccesoMsg('Tu sesión expiró. Vuelve a entrar.','error'); return false; }
     const res=await fetch(ADM_FN+'/acceso-manual',{
       method:'POST',
       headers:{ 'Authorization':'Bearer '+token, 'Content-Type':'application/json' },
@@ -8092,9 +8299,13 @@ async function _aplicarAccesoManual(payload){
     if(json.registrado===false){
       console.warn('[HOGAR admin] el acceso se aplicó pero no quedó registrado en la bitácora');
     }
+    return true;
   }catch(e){
     console.warn('[HOGAR admin] acceso manual:',e.message||e);
+    // El aviso de la ficha se deja igualmente: si el modal ya se cerró por otra
+    // vía, Andrea sigue viendo que algo falló.
     _admAccesoMsg('No pudimos cambiar el acceso. Inténtalo de nuevo en un momento.','error');
+    return false;
   }
 }
 
