@@ -57,8 +57,16 @@
 .hero-menu-btn span{display:block;width:24px;height:2px;background:var(--tierra-oscuro);transition:all 0.3s;}
 .hero-wordmark{justify-self:center;display:flex;align-items:center;}
 .hero-wordmark img{height:44px;width:auto;display:block;}
-.hero-header-cta{background:var(--texto-oscuro);color:var(--salmon);padding:9px 20px;border-radius:100px;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;font-weight:600;text-decoration:none;text-transform:uppercase;transition:transform 0.2s,background 0.2s;justify-self:end;}
+.hero-header-cta{background:var(--texto-oscuro);color:var(--salmon);padding:9px 20px;border-radius:100px;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;font-weight:600;text-decoration:none;text-transform:uppercase;transition:transform 0.2s,background 0.2s;}
 .hero-header-cta:hover{transform:translateY(-1px);background:#2a1810;}
+/* Entrar + Unirme, juntos a la derecha. El enlace de entrar es texto pelado en
+   el café de la marca: tiene que leerse sin competir con el botón, que sigue
+   siendo la acción principal. */
+.hero-header-acts{justify-self:end;display:flex;align-items:center;gap:18px;}
+.hero-header-login{font-family:'Montserrat',sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:1.2px;color:var(--texto-oscuro);text-decoration:none;white-space:nowrap;
+  cursor:pointer;opacity:.78;transition:opacity .2s;}
+.hero-header-login:hover{opacity:1;}
 /* ===== MODALES LEGALES (Términos y Privacidad del pie) =======================
    Centrados y con scroll INTERNO: un texto legal largo se lee fatal en un panel
    lateral estrecho. Siguen el patrón del drawer del panel admin —role=dialog,
@@ -525,6 +533,8 @@
   /* NAV v2 responsive */
   .hero-scapes-header{padding:18px 22px;gap:12px;}
   .hero-header-cta{font-size:9px;padding:8px 14px;letter-spacing:2px;}
+  .hero-header-acts{gap:12px;}
+  .hero-header-login{font-size:10px;letter-spacing:1px;}
   .hero-menu-btn span{width:20px;}
 
   /* HERO */
@@ -588,6 +598,10 @@
   .hero-scapes-header{padding:20px 16px;position:sticky;top:0;z-index:999;background:var(--salmon-claro);}
   .hero-wordmark img{height:42px;}
   .hero-header-cta{font-size:10px;padding:10px 18px;}
+  /* En móvil no cabe: hamburguesa + logo + botón ya llenan el ancho, y meter
+     el enlace obliga a encoger el logo o a que algo se parta. Se queda SOLO en
+     el menú, que en móvil es donde de verdad se busca. */
+  .hero-header-login{display:none;}
   /* CINTA / MARQUEE más alta y con texto más grande en móvil */
   .marquee-bar{padding:12px 0;font-size:13px;}
   /* Fondo limpio solido (sin foto) seccion ¿Qué es HOGAR? solo en móvil */
@@ -4079,7 +4093,13 @@ body.app-active { overflow: hidden; }
 <header class="hero-scapes-header">
   <button class="hero-menu-btn" aria-label="Menú" onclick="openHeroMenu()"><span></span><span></span><span></span></button>
   <div class="hero-wordmark"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR"></div>
-  <a href="#sec-price" class="hero-header-cta">Unirme</a>
+  <!-- Entrar y Unirme comparten la tercera columna de la rejilla. Antes "Iniciar
+       sesión" solo vivía en el menú hamburguesa, y quien ya tiene cuenta no lo
+       busca ahí: ve UNIRME y lo pulsa. Sigue estando también en el menú. -->
+  <div class="hero-header-acts">
+    <a href="javascript:void(0)" class="hero-header-login" onclick="go('login')">Iniciar sesión</a>
+    <a href="#sec-price" class="hero-header-cta">Unirme</a>
+  </div>
 </header>
 <div class="hero-menu-overlay" onclick="closeHeroMenu()"></div>
 <aside class="hero-menu-drawer" id="hero-menu-drawer">
