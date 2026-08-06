@@ -4306,7 +4306,10 @@ body.app-active { overflow: hidden; }
         merece una devolución, escríbenos antes de borrar.
       </div>
 
-      <p class="bc-nota">Guardamos un registro mínimo de tu compra —el importe, la
+      <!-- Solo a quien tiene una compra ACREDITADA: es exactamente cuando la RPC
+           crea la fila en hogar_bajas. Anunciarle una retención a quien no va a
+           tener ninguna es lo contrario de lo que busca este diálogo. -->
+      <p class="bc-nota" id="bc-nota-retencion" style="display:none;">Guardamos un registro mínimo de tu compra —el importe, la
       fecha y los identificadores del pago, sin tu nombre ni tu correo— durante 180
       días, que es el plazo en que un banco puede reclamar un cargo. Pasado ese
       plazo se borra también.</p>
@@ -8504,6 +8507,18 @@ function abrirBorrarCuenta(){
   }else{
     av.style.display='none';
   }
+
+  // La retención de 180 días se anuncia SOLO si va a ocurrir de verdad, y ocurre
+  // exactamente cuando `pagado` ya es true: es la condición con la que
+  // hogar_borrar_datos_usuaria crea la fila en hogar_bajas.
+  //
+  // Queda fuera a propósito el pago en vuelo, aunque ahí sí hubo compra: con
+  // `pagado` todavía en false, la RPC NO crea esa fila, así que prometerla sería
+  // igual de falso que a quien nunca pagó. Es el mismo agujero del pendiente 6
+  // —el cobro huérfano— visto desde el otro lado; cuando ese se cierre, esta
+  // condición tendrá que incluirlo.
+  const nota=$('bc-nota-retencion');
+  if(nota) nota.style.display = pagoConsta ? '' : 'none';
   $('bc-confirmacion').value='';
   _bcError('');
   _bcComprobarTexto();
