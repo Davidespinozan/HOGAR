@@ -6046,8 +6046,11 @@ function _pintarMuroAcceso(){
     });
 
     if(esperando){
-      if(txt) txt.textContent='Recibimos tu pago y lo estamos confirmando. Suele tardar '
-        +'unos segundos. No hace falta que vuelvas a pagar.';
+      // Sin "no hace falta que vuelvas a pagar": esa frase le mete en la cabeza
+      // la idea de pagar otra vez a quien no la tenía, y suena a que a otras ya
+      // les pasó. Quien no puede pagar dos veces no necesita que se lo digan: el
+      // botón de pagar ni siquiera está en pantalla.
+      if(txt) txt.textContent='Recibimos tu pago y lo estamos confirmando. Suele tardar unos segundos.';
       if(btn){
         btn.textContent='Comprobar de nuevo';
         btn.setAttribute('onclick','reintentarConfirmacionPago(this)');
@@ -6172,8 +6175,11 @@ async function _confirmarPagoHogar(){
   // La marca se QUEDA puesta: es lo que hace que el muro enseñe el estado de
   // espera con un botón de comprobar, en vez del de pagar.
   if(typeof _pintarMuroAcceso==='function') _pintarMuroAcceso();
-  alert('Tu pago está registrado y se está confirmando. No hace falta que vuelvas a pagar: '
-    +'en unos minutos tendrás acceso. Si no se abre, escríbenos a '+HOGAR_CONTACTO+'.');
+  // Mismo criterio que el texto del muro: no se nombra volver a pagar. Este aviso
+  // sale justo antes de que el muro se repinte en ESPERAR, así que mencionarlo
+  // aquí se lo decía dos veces seguidas a alguien que no lo había pensado.
+  alert('Tu pago está registrado y se está confirmando. En unos minutos tendrás acceso. '
+    +'Si no se abre, escríbenos a '+HOGAR_CONTACTO+'.');
 }
 
 // LOGOUT REAL
@@ -6544,13 +6550,29 @@ function enlaceAyudaHogar(asunto, cuerpo, texto){
 // El correo va en el texto y no como enlace porque estos mensajes se enseñan con
 // alert(), que no pinta HTML. Donde SÍ hay pantalla —el muro y el perfil— el
 // contacto es un mailto de verdad, con asunto y cuerpo ya escritos.
+// NINGUNO PROMETE UN AVISO. Antes decían "te avisamos en cuanto puedas activar
+// tu acceso" y "ya estamos avisados", y las dos eran mentira: no hay ningún canal
+// de notificación —ni Sentry ni correo ni nada— y nadie lleva una lista de quién
+// escribió. La segunda era la peor: le decía a la clienta que el problema ya
+// estaba en marcha, quitándole la razón para escribir, que es el ÚNICO mecanismo
+// real que existe. Si no escribe, nadie se entera nunca.
+//
+// Sí se mantiene "escríbenos y te decimos": responder a un correo que llega a la
+// bandeja es un compromiso que Andrea puede cumplir hoy. Avisar por iniciativa
+// propia exigiría una lista que nadie mantiene. La distinción es la regla.
 const _PAGO_CAUSAS={
-  cobros_no_activos:  'Los pagos todavía no están habilitados. Estamos terminando de configurarlos. '
-                     +'Escríbenos a '+HOGAR_CONTACTO+' y te avisamos en cuanto puedas activar tu acceso.',
-  precio_no_configurado: 'El precio todavía no está publicado. Escríbenos a '+HOGAR_CONTACTO
-                     +' y lo resolvemos enseguida.',
-  precio_invalido:    'Hay un problema con el precio configurado y no podemos cobrarte de momento. '
-                     +'Ya estamos avisados; escríbenos a '+HOGAR_CONTACTO+' y lo resolvemos enseguida.'
+  cobros_no_activos:  'Los pagos todavía no están habilitados: falta terminar de configurarlos. '
+                     +'Tu cuenta ya está creada y podrás activar tu acceso en cuanto estén listos. '
+                     +'Si quieres preguntar cuándo, escríbenos a '+HOGAR_CONTACTO+'.',
+  precio_no_configurado: 'El precio todavía no está publicado, así que no podemos cobrarte ahora mismo. '
+                     +'Tu cuenta está guardada. Escríbenos a '+HOGAR_CONTACTO
+                     +' y te decimos cuándo estará listo.',
+  // La única de las tres donde la clienta podría quedarse dando clics: las otras
+  // dos se explican solas. El comentario de arriba ya decía que ninguna se
+  // resuelve reintentando, pero el texto no se lo decía a ella.
+  precio_invalido:    'Hay un problema con el precio y no podemos cobrarte de momento. '
+                     +'No es culpa tuya, y volver a intentarlo no lo va a arreglar. '
+                     +'Escríbenos a '+HOGAR_CONTACTO+' para que lo revisemos.'
 };
 
 // Llama a crear-checkout con el JWT de la clienta y la manda a Stripe.
