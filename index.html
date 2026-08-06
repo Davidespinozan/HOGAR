@@ -3553,6 +3553,12 @@ body.app-active { overflow: hidden; }
   color:#5a4636; line-height:1.5; padding:.42rem 0 .42rem 1.6rem; position:relative; }
 .acc-lista li::before{ content:'✓'; position:absolute; left:0; color:#4a8a5a; font-weight:700; }
 .acc-nota{ font-family:'Montserrat',sans-serif; font-size:.74rem; color:#9a7d6c; margin-top:1.1rem; line-height:1.55; }
+/* Línea de contacto del muro y enlace de ayuda (también en el perfil). */
+.acc-ayuda{ font-family:'Montserrat',sans-serif; font-size:.78rem; font-weight:300;
+  color:#9a7d6c; margin:1rem 0 0; line-height:1.6; }
+.acc-ayuda-link{ color:var(--terracota-oscuro); font-weight:500; text-decoration:underline;
+  text-underline-offset:3px; }
+.acc-ayuda-link:hover{ color:var(--terracota); }
 .acc-salir{ background:none; border:none; cursor:pointer; margin-top:1rem;
   font-family:'Montserrat',sans-serif; font-size:.76rem; color:#9a7d6c; text-decoration:underline;
   text-underline-offset:3px; }
@@ -4419,6 +4425,18 @@ body.app-active { overflow: hidden; }
       <!-- Pago real (Stripe Checkout). Oculto a quien ya tiene acceso confirmado. -->
       <button id="perfil-activar-btn" class="btn btn-r" style="display:none;width:100%;margin-top:14px;" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
     </div>
+    <!-- AYUDA — el único contacto que ve una clienta ya registrada. Los modales
+         legales llevan el mismo correo, pero solo se abren desde el pie de la
+         landing, que ella no vuelve a pisar. Lo rellena uP(). -->
+    <div class="perfil-section">
+      <div class="perfil-section-title">Ayuda</div>
+      <div class="perfil-field">
+        <div>
+          <div class="perfil-field-label">¿Necesitas algo?</div>
+          <div class="perfil-field-value" id="perfil-ayuda">—</div>
+        </div>
+      </div>
+    </div>
     <div class="perfil-section" style="display:none;">
       <div class="perfil-section-title">Tu práctica</div>
       <div class="perfil-field">
@@ -4499,6 +4517,10 @@ body.app-active { overflow: hidden; }
         <li>Tu registro privado, sin juicio</li>
       </ul>
       <button class="btn btn-r btn-full" id="acc-btn" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
+      <!-- Lo rellena _pintarMuroAcceso() con el mailto y el correo de registro
+           ya escritos. Antes esta pantalla no ofrecía NINGUNA vía de contacto:
+           quien no podía entrar se quedaba sin a dónde acudir. -->
+      <p class="acc-ayuda" id="acc-ayuda"></p>
       <button type="button" class="acc-salir" onclick="doOut()">Cerrar sesión</button>
     </div>
   </div>
@@ -5995,10 +6017,132 @@ function _accPintarAcceso(){
       +_admEsc(e.nombre)+' <span class="acc-dur">· '+dur+' min</span></li>'
     ).join('');
   }catch(_){ /* se queda la lista del código */ }
+
+  _pintarMuroAcceso();
+}
+
+// El muro tiene DOS estados, y confundirlos costaba dinero de verdad.
+//
+//   VENDER  → nunca ha pagado. Precio, los 5 caminos y "Activar mi acceso".
+//   ESPERAR → acaba de pagar y el webhook no ha llegado. Ni precio ni botón de
+//             pagar: eso es exactamente el clic que cobraba dos veces. En su
+//             lugar, el estado real y un botón para volver a comprobar.
+//
+// Enseñarle el precio a quien acaba de pagar es cruel además de peligroso, así
+// que en ESPERAR se ocultan el importe y la lista de candados.
+function _pintarMuroAcceso(){
+  try{
+    const esperando=_hayPagoEnVuelo();
+    const txt=document.getElementById('acc-txt');
+    const btn=document.getElementById('acc-btn');
+    const precio=document.getElementById('acc-precio');
+    const precioSub=document.querySelector('#s-acceso .acc-precio-sub');
+    const caminosTit=document.querySelector('#s-acceso .acc-caminos-tit');
+    const caminos=document.getElementById('acc-caminos');
+    const ayuda=document.getElementById('acc-ayuda');
+
+    [precio,precioSub,caminosTit,caminos].forEach(el=>{
+      if(el) el.style.display = esperando ? 'none' : '';
+    });
+
+    if(esperando){
+      if(txt) txt.textContent='Recibimos tu pago y lo estamos confirmando. Suele tardar '
+        +'unos segundos. No hace falta que vuelvas a pagar.';
+      if(btn){
+        btn.textContent='Comprobar de nuevo';
+        btn.setAttribute('onclick','reintentarConfirmacionPago(this)');
+      }
+      if(ayuda){
+        ayuda.style.display='';
+        ayuda.innerHTML='¿Lleva mucho rato? '+enlaceAyudaHogar(
+          'No puedo entrar a HOGAR tras pagar',
+          'Hola Andrea:\n\nPagué mi acceso a HOGAR y todavía no puedo entrar.\n\n'
+            +'Mi correo de registro: '+_emailUsuaria()+'\n\nGracias.',
+          'Escríbenos');
+      }
+    }else{
+      if(txt) txt.textContent='Tu cuenta está lista. Falta activar tu acceso para entrar a las prácticas.';
+      if(btn){
+        btn.textContent='Activar mi acceso';
+        btn.setAttribute('onclick','iniciarPagoHogar(this)');
+      }
+      if(ayuda){
+        ayuda.style.display='';
+        ayuda.innerHTML='¿Algún problema? '+enlaceAyudaHogar(
+          'Ayuda con mi acceso a HOGAR',
+          'Hola Andrea:\n\nTengo un problema con mi acceso a HOGAR.\n\n'
+            +'Mi correo de registro: '+_emailUsuaria()+'\n\nGracias.',
+          'Escríbenos');
+      }
+    }
+  }catch(e){ console.warn('[HOGAR acceso] no se pudo pintar el muro:', e); }
+}
+
+// "Comprobar de nuevo" del estado ESPERAR. Relee el acceso una vez; si ya consta,
+// entra. Si no, se queda donde está y lo dice — sin ofrecerle pagar otra vez.
+async function reintentarConfirmacionPago(btn){
+  const txt=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Comprobando…'; }
+  try{
+    _olvidarAcceso();
+    const acceso=await cargarAccesoHogar();
+    if(acceso===true){
+      _olvidarPagoEnVuelo();
+      if(typeof uP==='function') uP();
+      alert('¡Listo! Tu acceso ya está activo. 🌿');
+      go('dash'); return;
+    }
+    alert('Todavía no consta. Tu pago está registrado: dale un par de minutos y '
+      +'vuelve a comprobar. Si sigue igual, escríbenos a '+HOGAR_CONTACTO+'.');
+  }catch(e){
+    console.warn('[HOGAR acceso] reintento de confirmación falló:', e);
+    alert('No pudimos comprobarlo ahora mismo. Inténtalo en un momento.');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=txt||'Comprobar de nuevo'; }
+  }
 }
 
 // Manda a la pantalla de acceso. go() se encarga de pintarla.
 function irAAcceso(){ go('acceso'); }
+
+// ===== COMPRA EN VUELO =====
+// Marca local que dice "esta persona volvió de Stripe con un pago hecho, pero
+// todavía no consta". Sirve para que el muro NO le enseñe el botón de pagar
+// mientras tanto —que es justo el clic que provocaba el cobro doble—.
+//
+// Se pone SOLO al volver por ?pago=exito, nunca antes de ir a Stripe. La
+// diferencia importa: si se marcara antes del redirect, quien CANCELA el pago
+// volvería y vería "esperando confirmación" sin haber pagado nada.
+//
+// Es por dispositivo: si paga en el móvil y abre en el portátil, el portátil
+// enseña el botón normal. No es un agujero — el cortafuegos de crear-checkout
+// para el cobro igual; esto solo evita el susto. La versión a prueba de
+// dispositivos sería una columna checkout_iniciado_at en hogar_usuarias.
+const PAGO_EN_VUELO_KEY='hogar_pago_en_vuelo';
+const PAGO_EN_VUELO_MS=30*60*1000;   // 30 min: pasado ese rato, vuelve el botón
+
+function _marcarPagoEnVuelo(){
+  try{ localStorage.setItem(PAGO_EN_VUELO_KEY, String(Date.now())); }catch(_){}
+}
+function _olvidarPagoEnVuelo(){
+  try{ localStorage.removeItem(PAGO_EN_VUELO_KEY); }catch(_){}
+}
+/** ¿Hay un pago reciente sin confirmar? Caduca sola para no encerrar a nadie. */
+function _hayPagoEnVuelo(){
+  try{
+    const t=Number(localStorage.getItem(PAGO_EN_VUELO_KEY)||0);
+    if(!t) return false;
+    if(Date.now()-t > PAGO_EN_VUELO_MS){ _olvidarPagoEnVuelo(); return false; }
+    return true;
+  }catch(_){ return false; }
+}
+
+// Espera creciente en vez de 5 intentos fijos de 2 s. Los 10 s de antes se
+// quedaban cortos para un webhook de Stripe con la cola cargada, y al agotarse
+// dejaban a la clienta delante del botón de pagar. Ahora ~40 s repartidos de
+// menos a más: un webhook rápido sigue confirmando en 2 s como siempre, y solo
+// los lentos consumen la ventana entera.
+const PAGO_ESPERAS_MS=[2000,3000,5000,8000,10000,12000];   // 6 esperas ≈ 40 s
 
 // Vuelta de Stripe con ?pago=exito.
 //
@@ -6011,21 +6155,25 @@ function irAAcceso(){ go('acceso'); }
 // sigue sin constar, se lo decimos con honestidad ("se está confirmando") en vez
 // de afirmar que ya tiene acceso, que es lo que hacía antes sin comprobar nada.
 async function _confirmarPagoHogar(){
-  const INTENTOS=5, ESPERA_MS=2000;
+  const INTENTOS=PAGO_ESPERAS_MS.length+1;
   for(let i=0;i<INTENTOS;i++){
     _olvidarAcceso();
     const acceso=await cargarAccesoHogar();
     if(acceso===true){
+      _olvidarPagoEnVuelo();                    // ya consta: la marca sobra
       if(typeof uP==='function') uP();          // el botón de pagar ya sobra
       alert('¡Pago recibido! Tu acceso a HOGAR ya está activo. 🌿');
       return;
     }
     // null (no se pudo leer) también reintenta: puede ser un tropiezo de red.
-    if(i<INTENTOS-1) await new Promise(r=>setTimeout(r, ESPERA_MS));
+    if(i<INTENTOS-1) await new Promise(r=>setTimeout(r, PAGO_ESPERAS_MS[i]));
   }
   console.warn('[HOGAR acceso] pago=exito pero `pagado` sigue sin constar tras '+INTENTOS+' intentos.');
-  alert('Recibimos tu pago y se está confirmando. Puede tardar un momento: '
-    +'vuelve a entrar en unos minutos y tu acceso estará listo. Si no, escríbenos.');
+  // La marca se QUEDA puesta: es lo que hace que el muro enseñe el estado de
+  // espera con un botón de comprobar, en vez del de pagar.
+  if(typeof _pintarMuroAcceso==='function') _pintarMuroAcceso();
+  alert('Tu pago está registrado y se está confirmando. No hace falta que vuelvas a pagar: '
+    +'en unos minutos tendrás acceso. Si no se abre, escríbenos a '+HOGAR_CONTACTO+'.');
 }
 
 // LOGOUT REAL
@@ -6089,6 +6237,10 @@ async function _authInit(){
       // Limpiar el query param para que no reaparezca al recargar
       history.replaceState(null,'',window.location.pathname);
       if(pago==='exito'){
+        // Stripe la devolvió a success_url: hubo pago. Se marca ANTES de
+        // confirmar, porque si la confirmación se agota es precisamente la marca
+        // la que impide que el muro le vuelva a ofrecer pagar.
+        _marcarPagoEnVuelo();
         if(typeof refrescarHistorialYStats==='function') refrescarHistorialYStats();
         _confirmarPagoHogar();
       }else if(pago==='cancelado'){
@@ -6360,16 +6512,45 @@ const STRIPE_PAGO_ACTIVO = true;
 // así que no hace falta apikey: la función autentica con el Bearer de Supabase.
 const STRIPE_CHECKOUT_FN = '/.netlify/functions/crear-checkout';
 
+// ===== CONTACTO =====
+// Fuente única del correo de Andrea. Antes vivía SOLO dentro de los modales
+// legales, y esos únicamente se abren desde el pie de la LANDING: una clienta ya
+// registrada entra directa al dashboard y no los ve nunca. Resultado: cuatro
+// mensajes decían "escríbenos" sin decir a dónde. Si algún día cambia el correo,
+// se cambia aquí y en los dos modales legales (que son texto legal aparte).
+const HOGAR_CONTACTO='andrealaso1997@hotmail.com';
+
+/** mailto con asunto y cuerpo ya escritos. La clienta solo tiene que enviar. */
+function mailtoHogar(asunto, cuerpo){
+  return 'mailto:'+HOGAR_CONTACTO
+    +'?subject='+encodeURIComponent(asunto||'Ayuda con HOGAR')
+    +(cuerpo ? '&body='+encodeURIComponent(cuerpo) : '');
+}
+/** El correo con el que entró, para que Andrea sepa de quién es el problema. */
+function _emailUsuaria(){
+  try{ return (U && U.email) ? U.email : ''; }catch(_){ return ''; }
+}
+/** Enlace de ayuda listo para incrustar en una pantalla. */
+function enlaceAyudaHogar(asunto, cuerpo, texto){
+  return '<a href="'+mailtoHogar(asunto,cuerpo)+'" class="acc-ayuda-link">'
+    +(texto||HOGAR_CONTACTO)+'</a>';
+}
+
 // Las causas que crear-checkout sabe nombrar. Todas dependen de que Andrea
 // termine de configurar algo, así que ninguna se resuelve reintentando: el
 // mensaje lo dice y le pide a la clienta que avise, en vez de dejarla dando
 // clics contra un muro. La causa técnica queda en consola, no en el aviso.
+//
+// El correo va en el texto y no como enlace porque estos mensajes se enseñan con
+// alert(), que no pinta HTML. Donde SÍ hay pantalla —el muro y el perfil— el
+// contacto es un mailto de verdad, con asunto y cuerpo ya escritos.
 const _PAGO_CAUSAS={
-  cobros_no_activos:  'Los pagos todavía no están habilitados. Estamos terminando de configurarlos; '
-                     +'escríbenos y te avisamos en cuanto puedas activar tu acceso.',
-  precio_no_configurado: 'El precio todavía no está publicado. Escríbenos y lo resolvemos enseguida.',
+  cobros_no_activos:  'Los pagos todavía no están habilitados. Estamos terminando de configurarlos. '
+                     +'Escríbenos a '+HOGAR_CONTACTO+' y te avisamos en cuanto puedas activar tu acceso.',
+  precio_no_configurado: 'El precio todavía no está publicado. Escríbenos a '+HOGAR_CONTACTO
+                     +' y lo resolvemos enseguida.',
   precio_invalido:    'Hay un problema con el precio configurado y no podemos cobrarte de momento. '
-                     +'Ya estamos avisados; escríbenos y lo resolvemos enseguida.'
+                     +'Ya estamos avisados; escríbenos a '+HOGAR_CONTACTO+' y lo resolvemos enseguida.'
 };
 
 // Llama a crear-checkout con el JWT de la clienta y la manda a Stripe.
@@ -6390,6 +6571,22 @@ async function iniciarPagoHogar(btn){
     });
     const json = await res.json().catch(()=>({}));
     if(res.ok && json.url){ window.location.href = json.url; return; }
+    // El servidor dice que esta clienta YA pagó. Es el caso típico de un webhook
+    // que se acreditó tarde: el acceso existe, pero este navegador aún cree que
+    // no. No basta con avisar y dejarla en la misma pantalla bloqueada —sería
+    // decirle "ya tienes acceso" delante de un muro—: se relee el acceso y se le
+    // abre la puerta. El error se cura solo.
+    if(json.error==='ya_tienes_acceso'){
+      _olvidarPagoEnVuelo();
+      _olvidarAcceso();
+      const acceso=await cargarAccesoHogar();
+      if(btn){ btn.disabled=false; btn.textContent=txt||'Activar mi acceso'; }
+      if(acceso===true){ uP(); alert('Ya tienes acceso a HOGAR. ¡Entra cuando quieras! 🌿'); go('dash'); return; }
+      // Sigue sin poder confirmarlo desde aquí: al menos que no pague otra vez.
+      alert('Tu pago ya está registrado y tu acceso está activo. Vuelve a entrar en un '
+        +'momento. Si sigue sin abrirse, escríbenos a '+HOGAR_CONTACTO+'.');
+      return;
+    }
     // crear-checkout distingue sus causas; hasta ahora todas se aplanaban a
     // "intenta de nuevo en un momento". Ninguna de las tres se arregla sola:
     // pedirle a la clienta que reintente era mandarla a un bucle.
@@ -6433,6 +6630,13 @@ function uP(){
   // que un fallo de lectura nunca deje a alguien sin forma de pagar.
   const ab=$('perfil-activar-btn');
   if(ab) ab.style.display = (STRIPE_PAGO_ACTIVO && U.acceso!==true) ? '' : 'none';
+  // Contacto. Se arma aquí y no en el HTML porque el cuerpo del correo lleva su
+  // email de registro, que solo se conoce con la sesión ya cargada.
+  const ay=$('perfil-ayuda');
+  if(ay) ay.innerHTML=enlaceAyudaHogar(
+    'Ayuda con HOGAR',
+    'Hola Andrea:\n\n\n\nMi correo de registro: '+_emailUsuaria()+'\n',
+    HOGAR_CONTACTO);
 }
 
 // ============================================

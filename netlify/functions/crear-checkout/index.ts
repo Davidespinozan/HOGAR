@@ -92,6 +92,36 @@ function resolverOrigen(headers: Record<string, string | undefined>): string {
 }
 
 /**
+ * Ficha de cobro de la clienta: si ya pagó y su customer de Stripe.
+ *
+ * Va en UNA sola consulta a propósito. Antes se leía `stripe_customer_id` desde
+ * dentro de getOrCreateCustomer; ahora se lee todo aquí, arriba, y el customer
+ * se le pasa ya resuelto. Mismo número de viajes a Supabase que antes.
+ *
+ * Devuelve null si la lectura FALLA — que no es lo mismo que "no ha pagado".
+ * Ver el comentario del handler: un fallo de lectura no puede bloquear la venta.
+ */
+async function leerFichaCobro(
+  admin: SupabaseClient,
+  userId: string
+): Promise<{ pagado: boolean; stripeCustomerId: string | null } | null> {
+  const { data, error } = await admin
+    .from('hogar_usuarias')
+    .select('pagado, stripe_customer_id')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) {
+    console.error('[crear-checkout] no se pudo leer la ficha de cobro:', error.message);
+    return null;
+  }
+  if (!data) return null;
+  return {
+    pagado: data.pagado === true,
+    stripeCustomerId: (data.stripe_customer_id as string | null) ?? null
+  };
+}
+
+/**
  * Customer de la clienta EN la cuenta conectada (los customers son por cuenta,
  * no de la plataforma). Reusa el guardado en hogar_usuarias; si no hay, crea
  * uno con idempotencyKey para que un doble clic no genere dos.
@@ -100,14 +130,10 @@ async function getOrCreateCustomer(
   stripe: Stripe,
   admin: SupabaseClient,
   usuaria: { id: string; email: string | null },
-  stripeAccount: string
+  stripeAccount: string,
+  customerIdGuardado: string | null
 ): Promise<string> {
-  const { data } = await admin
-    .from('hogar_usuarias')
-    .select('stripe_customer_id')
-    .eq('id', usuaria.id)
-    .maybeSingle();
-  if (data?.stripe_customer_id) return data.stripe_customer_id as string;
+  if (customerIdGuardado) return customerIdGuardado;
 
   const customer = await stripe.customers.create(
     {
@@ -175,11 +201,35 @@ export const handler: Handler = async (event) => {
     const moneda = (config.moneda || 'mxn').toLowerCase();
     const stripe = getStripe();
 
+    // ── EL CORTAFUEGOS DEL DOBLE COBRO ──────────────────────────────────────
+    // Antes esta función no miraba `pagado` en ningún momento, y el camino al
+    // cobro doble era el que recorre cualquiera con un webhook lento: pagas, la
+    // confirmación tarda, la app dice "vuelve en unos minutos", recargas, el muro
+    // te enseña "Activar mi acceso" —porque `pagado` sigue en false— y lo pulsas.
+    // La ventana de idempotencia son 30 s, así que a esas alturas ya expiró: se
+    // crea una sesión NUEVA y Stripe cobra otra vez. El webhook no duplica el
+    // acceso, pero el cargo ya está hecho, y los Términos dicen que no hay
+    // devoluciones. Esta comprobación es la que de verdad lo impide; el aviso
+    // del cliente solo evita el susto.
+    //
+    // FALLO DE LECTURA → SE DEJA PASAR, a propósito. La consulta va con service
+    // role, así que RLS no la filtra y solo puede fallar la red. Tratar "no pude
+    // leer" como "ya pagó" convertiría un tropiezo de Supabase en una caída de
+    // TODAS las ventas. Mismo criterio que cargarAccesoHogar() en el cliente:
+    // ante la duda, no bloquear. Se prefiere un cobro doble improbable a una caja
+    // cerrada.
+    const ficha = await leerFichaCobro(admin, auth.user.id);
+    if (ficha?.pagado === true) {
+      console.log('[crear-checkout] ya tiene acceso, no se crea sesión:', auth.user.id);
+      return badRequest('ya_tienes_acceso');
+    }
+
     const customerId = await getOrCreateCustomer(
       stripe,
       admin,
       { id: auth.user.id, email: auth.user.email },
-      stripeAccount
+      stripeAccount,
+      ficha?.stripeCustomerId ?? null
     );
 
     const origin = resolverOrigen(event.headers);

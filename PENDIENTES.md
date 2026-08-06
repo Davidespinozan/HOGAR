@@ -10,6 +10,9 @@ esto está roto, son decisiones aplazadas.
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 
+Al final hay un apartado de **[cerrados](#cerrados)**: cosas que se investigaron y
+no requieren acción, anotadas por si reaparecen.
+
 ---
 
 ## 1 · Reembolsos y disputas
@@ -274,3 +277,41 @@ sirviéndose igual de pesados.
 
 **Evaluar Bunny primero. Después decidir qué queda vivo de ese plan** — la parte
 de los audios y las imágenes puede seguir teniendo sentido en Supabase.
+
+---
+
+# Cerrados
+
+No son pendientes. Se dejan escritos porque costaron trabajo diagnosticar y
+porque, si el síntoma vuelve, esto ahorra repetir la búsqueda.
+
+## Banda blanca bajo el header sticky en móvil — cerrado el 6 de agosto de 2026
+
+**Síntoma reportado:** al hacer scroll en iPhone aparecía una banda de blanco puro
+justo debajo del header fijo.
+
+**No es reproducible hoy, y la causa está identificada.** No fue un artefacto de
+scroll de Safari: hasta el commit `a20c360` (5 de agosto, 15:20:52) la regla móvil
+decía
+
+```css
+.prev-sect{background:var(--white) !important;}
+```
+
+`#sec-prev` es la sección que queda bajo el header al desplazarse, y `--white` es
+`#FFFFFF`. Un header sticky en `--salmon-claro` (`#F8DDD0`) sobre blanco puro
+produce exactamente esa banda. `a20c360` la pasó a `--crema-claro` como parte de
+la armonización de fondos, y el síntoma desapareció con ella.
+
+**Por qué se buscó en vano al principio:** las capturas eran de las 15:22, dos
+minutos después de `a20c360`, así que mostraban el estado **anterior** al commit
+—Netlify no había desplegado todavía— mientras que la búsqueda se hizo sobre el
+código ya corregido. Ahí no había nada blanco porque ya se había arreglado.
+
+**Lección:** al diagnosticar a partir de capturas, fijar primero la hora de la
+captura contra la hora del último despliegue. Tres de los cinco síntomas de aquel
+reporte resultaron ser estados ya corregidos o efectos de commits recientes.
+
+**Si reaparece:** mirar primero qué sección queda bajo el header en ese punto del
+scroll y cuál es su fondo efectivo en `@media(max-width:480px)`. El header es
+`.hero-scapes-header`, `position:sticky` con `z-index:999`.
