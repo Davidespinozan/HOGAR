@@ -94,7 +94,11 @@
 .hero-menu-btn{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:8px;justify-self:start;}
 .hero-menu-btn span{display:block;width:24px;height:2px;background:var(--tierra-oscuro);transition:all 0.3s;}
 .hero-wordmark{justify-self:center;display:flex;align-items:center;}
-.hero-wordmark img{height:44px;width:auto;display:block;}
+/* 54px y no 44: a 44 la marca flotaba en medio de la barra sin sostenerla, y
+   "UNIRME" pesaba más que el logo. Medido de 320 a 1280 px, el punto más justo es
+   481 px —el ancho donde reaparece "Iniciar sesión"— y ahí sobran 20 px entre el
+   logo y los botones. Nada se roza ni desborda a ningún ancho. */
+.hero-wordmark img{height:54px;width:auto;display:block;}
 .hero-header-cta{background:var(--texto-oscuro);color:var(--salmon);padding:9px 20px;border-radius:100px;font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:2px;font-weight:600;text-decoration:none;text-transform:uppercase;transition:transform 0.2s,background 0.2s;}
 .hero-header-cta:hover{transform:translateY(-1px);background:#2a1810;}
 /* Entrar + Unirme, juntos a la derecha. El enlace de entrar es texto pelado en
@@ -633,8 +637,12 @@
    ============================================ */
 @media(max-width:480px){
   /* NAV v2 — header más presente y fijo (sticky) en móvil */
-  .hero-scapes-header{padding:20px 16px;position:sticky;top:0;z-index:999;background:var(--salmon-claro);}
-  .hero-wordmark img{height:42px;}
+  /* El padding baja de 20 a 15 para compensar el logo más grande: aquí la barra
+     es STICKY, así que su altura se descuenta de la pantalla durante todo el
+     scroll. Con 52+30 se queda en ~82 px, prácticamente lo que medía antes
+     (84 px), pero con la marca ocupando su sitio en vez de flotando. */
+  .hero-scapes-header{padding:15px 16px;position:sticky;top:0;z-index:999;background:var(--salmon-claro);}
+  .hero-wordmark img{height:52px;}
   .hero-header-cta{font-size:10px;padding:10px 18px;}
   /* En móvil no cabe: hamburguesa + logo + botón ya llenan el ancho, y meter
      el enlace obliga a encoger el logo o a que algo se parta. Se queda SOLO en
