@@ -10458,6 +10458,83 @@ function _admExtImagen(file){
 const _rec={ abierto:false, img:null, fw:0, fh:0, base:1, escala:1, tx:0, ty:0,
              salida:null, resolver:null, punteros:new Map(), pinza:null };
 
+/** ¿El drawImage pintó algo de verdad?  'ok' | 'vacio' | 'contaminado'
+ *
+ *  Cuando Safari se queda sin memoria NO LANZA: devuelve un lienzo vacío, y sin
+ *  esta comprobación se subiría una foto en blanco sin que nadie se entere.
+ *  Se muestrea el ALFA, así que hay que llamarla ANTES de poner ningún fondo: con
+ *  el blanco ya puesto, un fallo sería indistinguible de una foto clara.
+ *
+ *  'contaminado' es getImageData lanzando SecurityError. Hoy no pasa —el bucket
+ *  manda CORS abierto— pero si cambiara, mejor decirlo que subir algo roto. */
+function _canvasPintó(ctx, w, h){
+  try{
+    const N=5;
+    for(let a=0;a<N;a++) for(let b=0;b<N;b++){
+      const px=ctx.getImageData(Math.floor(w*(a+0.5)/N), Math.floor(h*(b+0.5)/N), 1, 1).data;
+      if(px[3]!==0) return 'ok';
+    }
+  }catch(err){ return 'contaminado'; }
+  return 'vacio';
+}
+
+// ============================================================================
+// NORMALIZADOR — para las fotos SIN recorte (los cuatro fondos).
+//
+// Es lo último que seguía subiéndose en crudo: las dos con cara ya salen del
+// recortador como JPEG pequeños, pero un fondo elegido desde el teléfono viajaba
+// tal cual, hasta los 5 MB que permite el portero. Esto le pone un techo real.
+//
+// NO ES UN ARREGLO DEL HEIC y conviene no confundirlo: lo que falla con un HEIC
+// en Chrome es la DECODIFICACIÓN, antes de que haya nada que dibujar. Por eso los
+// fondos lo siguen rechazando de entrada.
+//
+// SI ALGO FALLA, DEVUELVE EL ARCHIVO ORIGINAL. Es una optimización, no un
+// requisito: que no se pueda encoger no puede impedir que Andrea cambie una foto.
+// Lo único que nunca devuelve es un lienzo en blanco.
+// ============================================================================
+const NORM_LADO_MAX=2400;      // ningún fondo necesita más para un hero a 1600
+const NORM_BYTES_MIN=600*1024; // por debajo no se toca: recomprimir sin ganancia solo degrada
+
+function _normalizarFoto(file, maxLado){
+  return new Promise(resolve=>{
+    const tope=maxLado||NORM_LADO_MAX;
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    const salir=r=>{ try{ URL.revokeObjectURL(url); }catch(_){} resolve(r||file); };
+    // Mismo criterio que el recortador: un <img> aplica la orientación EXIF sola,
+    // así que lo que se dibuja es lo que se vería.
+    img.onload=function(){
+      const iw=img.naturalWidth, ih=img.naturalHeight;
+      if(!iw||!ih) return salir(null);
+      // Si ya es pequeña y ligera, se deja intacta: reencodificar sin ganancia
+      // solo pierde calidad.
+      const largo=Math.max(iw,ih);
+      if(largo<=tope && file.size<=NORM_BYTES_MIN) return salir(null);
+      const k=Math.min(1, tope/largo);
+      const cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(iw*k));
+      cv.height=Math.max(1,Math.round(ih*k));
+      const ctx=cv.getContext('2d');
+      ctx.imageSmoothingQuality='high';
+      try{ ctx.drawImage(img,0,0,cv.width,cv.height); }catch(_){ return salir(null); }
+      if(_canvasPintó(ctx,cv.width,cv.height)!=='ok') return salir(null);
+      // Blanco debajo, que el JPEG no tiene transparencia.
+      ctx.globalCompositeOperation='destination-over';
+      ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,cv.width,cv.height);
+      ctx.globalCompositeOperation='source-over';
+      cv.toBlob(function(blob){
+        // Si el resultado no es más ligero, no hay nada que ganar: se sube el
+        // original y se deja en paz.
+        if(!blob || blob.size<1024 || blob.size>=file.size) return salir(null);
+        salir(new File([blob], 'foto.jpg', { type:'image/jpeg' }));
+      }, 'image/jpeg', 0.85);
+    };
+    img.onerror=function(){ salir(null); };
+    img.src=url;
+  });
+}
+
 const REC_ZOOM_MAX=4;   // 4x sobre la escala que ya cubre el marco
 
 /** Deshace _fotoOptimizada(): del /render/ vuelve al /object/ original. Recortar
@@ -10722,22 +10799,13 @@ function confirmarRecorte(){
   // muestrea el alfa ANTES de poner el fondo blanco: si todo sigue transparente,
   // el dibujo no ocurrió. Con el fondo ya puesto esto sería indistinguible de una
   // foto legítimamente clara.
-  let pintó=false;
-  try{
-    const N=5;
-    for(let a=0;a<N && !pintó;a++) for(let b=0;b<N && !pintó;b++){
-      const px=ctx.getImageData(Math.floor(cv.width*(a+0.5)/N), Math.floor(cv.height*(b+0.5)/N), 1, 1).data;
-      if(px[3]!==0) pintó=true;
-    }
-  }catch(err){
-    // getImageData lanza SecurityError si el lienzo quedó contaminado. Hoy no
-    // pasa —el bucket manda CORS abierto— pero si algún día cambiara, mejor
-    // decirlo que subir algo roto.
+  const estado=_canvasPintó(ctx, cv.width, cv.height);
+  if(estado==='contaminado'){
     if(btn) btn.disabled=false;
     _recError('No se pudo leer esta foto por seguridad del navegador. Súbela desde tu dispositivo.');
     return;
   }
-  if(!pintó){
+  if(estado==='vacio'){
     if(btn) btn.disabled=false;
     _recError('Tu navegador no pudo procesar una foto tan grande. Prueba con una más pequeña.');
     return;
@@ -10867,6 +10935,10 @@ async function subirFotoHogar(input, clave){
     const recortada=await abrirRecortador(file, Object.assign({}, cfg.recorte, { esHeic:esHeic }));
     if(!recortada) return;             // canceló: no se sube nada, sigue la de antes
     file=recortada;
+  } else {
+    // Las cuatro sin recorte: al menos se les pone techo. El recortador ya deja
+    // las otras dos en 800x800 y 900x1200, así que no vuelven a pasar por aquí.
+    file=await _normalizarFoto(file, NORM_LADO_MAX);
   }
   return _subirArchivoFoto(file, cfg);
 }
