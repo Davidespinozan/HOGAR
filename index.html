@@ -7788,6 +7788,59 @@ function qOpenWrite(){
   if(t)t.focus();
 }
 
+// ============================================================================
+// CONGELAR LAS PREGUNTAS EN EL MOMENTO DE RESPONDERLAS
+//
+// El historial pintaba las preguntas resolviéndolas contra QUEST_TREE cada vez
+// que se abría. Eso hacía que el árbol —que es contenido vivo, editable— mandara
+// sobre un registro que ya había ocurrido, con dos consecuencias feas:
+//
+//  · Cambiar el texto de una pregunta REESCRIBÍA el historial de todas hacia
+//    atrás. Alguien podía abrir su reflexión de hace tres meses y encontrarse
+//    respondiendo a una pregunta que nunca le hicieron.
+//  · p1 se guarda como id ("A", "B", "C", "D") y el título se buscaba en el
+//    árbol. Reordenar las opciones de p1 convertía la respuesta de alguien en
+//    OTRA distinta, en silencio. Esto es lo peor de los dos: no rompe nada, no
+//    avisa, y el historial queda mintiendo.
+//
+// Así que al cerrar se guardan las parejas ya resueltas. El árbol vuelve a ser lo
+// que debe: el guion de la conversación de HOY, no la memoria de lo que se dijo.
+//
+// Se guarda ADEMÁS de p1..p5write, no en su lugar: aquéllos son el dato en crudo
+// y siguen siendo la red de las filas viejas, que no tienen esto.
+// ============================================================================
+function congelarQA(idx, path, a){
+  const tree=QUEST_TREE[idx];
+  const qa=[];
+  // Una respuesta vacía no se congela: hoy el historial tampoco pinta el paso 4
+  // cuando se salta, y congelar un hueco lo haría aparecer.
+  const añadir=(q,r)=>{
+    const resp=(r===undefined||r===null)?'':String(r).trim();
+    if(resp) qa.push({ q:String(q||''), a:resp });
+  };
+  if(!tree) return qa;
+  if(a.p1 && tree.p1){
+    // El id se resuelve AQUÍ, mientras las opciones siguen siendo las que ella
+    // vio. Si no se encuentra, se guarda el id crudo antes que perder la fila.
+    const op=(tree.p1.opciones||[]).find(o=>o.id===a.p1);
+    añadir(tree.p1.pregunta, op?op.titulo:a.p1);
+  }
+  if(a.p2) añadir((tree.p2&&tree.p2[path]&&tree.p2[path].pregunta)||'', a.p2);
+  if(a.p3) añadir((tree.p3&&tree.p3[path]&&tree.p3[path].pregunta)||'', a.p3);
+  if(a.p4){
+    // El paso 4 es de dos tipos según el camino: en D es una opción del árbol y
+    // en A/B/C es texto libre. La pregunta cambia; la respuesta se congela igual.
+    let q='';
+    if(tree.p4) q=(path==='D'&&tree.p4.D)?tree.p4.D.pregunta:((tree.p4.ABC&&tree.p4.ABC.pregunta)||'');
+    añadir(q, a.p4);
+  }
+  // El cierre del camino D. Su enunciado no vive en el árbol sino en el propio
+  // historial, así que se congela con el mismo texto para que no dependa de esa
+  // constante suelta el día que alguien la reescriba.
+  if(a.p5write) añadir('Lo que quisiste dejar registrado antes de cerrar', a.p5write);
+  return qa;
+}
+
 // Cierre: registrar sesión en el historial y mostrar pantalla final
 function qFinish(){
   const wt=document.getElementById('qWriteText');
@@ -7801,7 +7854,11 @@ function qFinish(){
       ritmo: sR,
       fecha: 'Hoy',
       path: answers.path,
-      answers: { p1:answers.p1, p2:answers.p2, p3:answers.p3, p4:answers.p4||'', p5write:answers.p5write||'' },
+      // qa = las preguntas y respuestas ya resueltas, congeladas (ver congelarQA).
+      // Va DENTRO de answers, que es jsonb, así que no hay columna nueva ni
+      // migración: viaja sola por la RPC y por el reintento, como el resto.
+      answers: { p1:answers.p1, p2:answers.p2, p3:answers.p3, p4:answers.p4||'', p5write:answers.p5write||'',
+                 qa: congelarQA(curEmo, answers.path, answers) },
       // campos de compatibilidad con renderHistory() y renderPaisaje()
       p: sP, r: sR, d: 'Hoy'
     };
@@ -10580,34 +10637,48 @@ function histCard(h){
     +'</div>';
 }
 
-// Convierte las answers guardadas (p1..p5write) en Q&A legible usando QUEST_TREE.
+// Convierte las answers guardadas en Q&A legible.
+//
+// DOS CAMINOS, y el orden importa:
+//  1. Si la fila trae `qa`, se pinta TAL CUAL se guardó. Es la verdad de lo que
+//     pasó ese día y no se vuelve a consultar el árbol.
+//  2. Si no lo trae —las filas anteriores a este cambio— se reconstruye contra
+//     QUEST_TREE como se hacía antes. Es lo mejor disponible para ellas: no hay
+//     forma de recuperar el texto que vieron, pero se siguen viendo enteras.
+//
+// La caída NO se puede quitar aunque un día parezca que ya no hay filas viejas:
+// nadie las va a migrar, porque el dato para migrarlas no existe.
 // Tolera sesiones demo (sin answers) y campos faltantes sin romper.
 function histAnswersHTML(h){
   if(!h || !h.answers) return '';
   const a=h.answers;
-  const idx=(typeof h.emo==='number')?h.emo:0;
-  const tree=QUEST_TREE[idx];
-  const path=h.path||a.p1;
-  const rows=[];
-  if(a.p1 && tree && tree.p1){
-    const op=(tree.p1.opciones||[]).find(o=>o.id===a.p1);
-    rows.push([tree.p1.pregunta, op?op.titulo:a.p1]);
-  }
-  if(a.p2){
-    rows.push([(tree&&tree.p2&&tree.p2[path])?tree.p2[path].pregunta:'', a.p2]);
-  }
-  if(a.p3){
-    rows.push([(tree&&tree.p3&&tree.p3[path])?tree.p3[path].pregunta:'', a.p3]);
-  }
-  if(a.p4){
-    let q='';
-    if(tree&&tree.p4){
-      q=(path==='D'&&tree.p4.D)?tree.p4.D.pregunta:(tree.p4.ABC?tree.p4.ABC.pregunta:'');
+  let rows=[];
+  if(Array.isArray(a.qa) && a.qa.length){
+    rows=a.qa.filter(x=>x && x.a).map(x=>[x.q||'', x.a]);
+  } else {
+    const idx=(typeof h.emo==='number')?h.emo:0;
+    const tree=QUEST_TREE[idx];
+    const path=h.path||a.p1;
+    if(a.p1 && tree && tree.p1){
+      const op=(tree.p1.opciones||[]).find(o=>o.id===a.p1);
+      rows.push([tree.p1.pregunta, op?op.titulo:a.p1]);
     }
-    rows.push([q, a.p4]);
-  }
-  if(a.p5write){
-    rows.push(['Lo que quisiste dejar registrado antes de cerrar', a.p5write]);
+    if(a.p2){
+      rows.push([(tree&&tree.p2&&tree.p2[path])?tree.p2[path].pregunta:'', a.p2]);
+    }
+    if(a.p3){
+      rows.push([(tree&&tree.p3&&tree.p3[path])?tree.p3[path].pregunta:'', a.p3]);
+    }
+    if(a.p4){
+      let q='';
+      if(tree&&tree.p4){
+        q=(path==='D'&&tree.p4.D)?tree.p4.D.pregunta:(tree.p4.ABC?tree.p4.ABC.pregunta:'');
+      }
+      rows.push([q, a.p4]);
+    }
+    if(a.p5write){
+      rows.push(['Lo que quisiste dejar registrado antes de cerrar', a.p5write]);
+    }
   }
   if(!rows.length) return '';
   return rows.map(r=>
