@@ -12,6 +12,7 @@ esto está roto, son decisiones aplazadas.
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
 | 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | Nada: falta hacerlo | Una columna, `crear-checkout` y la RPC de borrado |
 | 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | No existe el editor todavía | Diseño de una pantalla del panel |
+| 8 | [El paso 5 del cuestionario existe en el árbol y no se usa](#8--el-paso-5-del-cuestionario-existe-en-el-árbol-y-no-se-usa) | Decisión de producto de Andrea | `QUEST_TREE`, el motor y el editor |
 
 Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
 y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
@@ -445,6 +446,48 @@ mano.
 
 La regla está escrita junto a `QUEST_TREE` en `index.html`, que es donde se edita
 hoy y donde la va a leer quien lo toque.
+
+---
+
+## 8 · El paso 5 del cuestionario existe en el árbol y no se usa
+
+**Estado: dato muerto, conservado a propósito.** Detectado en agosto de 2026 al
+preparar el editor del cuestionario.
+
+Cada emoción de `QUEST_TREE` trae una clave `p5` con **cuatro textos de cierre**, uno
+por rama (A, B, C, D). Ninguna usuaria los ha visto nunca:
+
+| Señal | Estado |
+|---|---|
+| `Q_TOTAL_STEPS` | vale **4** |
+| `renderQ()` | solo dibuja `curQ` de 1 a 4 |
+| Lecturas de `tree.p5` | **ninguna** en todo el archivo |
+| `qOpenWrite()`, que revelaría el paso 5 | existe y **no la llama nadie** |
+| `#qWriteSlot`, donde se montaría | **no está en el HTML** |
+
+De rebote, `answers.p5write` —el texto libre del cierre— tampoco se rellena jamás:
+`qFinish()` lo lee de `#qWriteText`, que solo existe si `qOpenWrite()` corre.
+
+### Qué se hizo y por qué
+
+`p5` **se conserva** en el árbol y la función `hogar_guardar_cuestionario` **exige las
+cinco claves**. El editor las devuelve intactas, así que no cuesta nada mantenerlas y
+el paso queda listo si algún día se revive.
+
+Lo que **no** se hizo es darle campos en el editor. Sería crear un control muerto:
+Andrea escribiría textos que nadie lee — exactamente el problema que se acababa de
+quitar con `andrea_foto_chat`, donde subía su foto y ninguna clienta la veía.
+
+### La decisión que falta
+
+**¿Debe el cuestionario tener un quinto paso?** No es una pregunta técnica. Hoy son
+cuatro y funcionan; el paso 5 sería un cierre escrito por Andrea, distinto según la
+rama, más un espacio opcional para que la usuaria escriba antes de terminar.
+
+Si la respuesta es sí, hay que subir `Q_TOTAL_STEPS` a 5, escribir el nodo en
+`renderQ()`, montar `#qWriteSlot` en el HTML y añadir la sección al editor. Si es no,
+lo honesto es borrar `p5`, `qOpenWrite()` y `qWriteTextareaHTML()` del código y quitar
+la clave del validador — pero eso ya no se puede deshacer, así que primero pregúntale.
 
 ---
 

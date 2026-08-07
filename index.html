@@ -4266,6 +4266,31 @@ body.app-active { overflow: hidden; }
 .adm-tx-label{ display:block; font-family:'Montserrat',sans-serif; font-size:var(--adm-eyebrow-size); font-weight:700;
   letter-spacing:1.5px; text-transform:uppercase; color:var(--adm-eyebrow-color); margin:14px 0 7px; }
 .adm-tx-card textarea{ min-height:70px; }
+
+/* ===== EDITOR DEL CUESTIONARIO ===== */
+#adm-view-cuestionario .adm-cuest-emos{ display:flex; flex-wrap:wrap; gap:8px; }
+#adm-view-cuestionario .adm-cuest-emo{ padding:9px 15px; border-radius:100px; cursor:pointer;
+  font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600;
+  background:transparent; border:1px solid rgba(200,175,160,.7); color:var(--texto-medio);
+  transition:background .2s,color .2s,border-color .2s; }
+#adm-view-cuestionario .adm-cuest-emo:hover{ border-color:#c66b41; color:#c66b41; }
+#adm-view-cuestionario .adm-cuest-emo.activa{ background:linear-gradient(135deg,#c66b41,#b05730);
+  border-color:transparent; color:#fff; }
+/* Cada opción de p1, con su rama debajo: es lo que hace visible a dónde lleva. */
+#adm-view-cuestionario .adm-cuest-op{ border-left:2px solid #f0ddd0; padding:2px 0 2px 14px; margin:14px 0; }
+#adm-view-cuestionario .adm-cuest-rama{ font-family:'Montserrat',sans-serif; font-size:.76rem;
+  color:var(--texto-medio); margin-top:-4px; line-height:1.45; }
+#adm-view-cuestionario .adm-cuest-rama em{ color:#a0522d; font-style:italic; }
+#adm-view-cuestionario .adm-cuest-rama-bloque{ border-top:1px solid #f2e8dd; padding-top:14px; margin-top:16px; }
+#adm-view-cuestionario .adm-cuest-rama-tit{ font-family:'Montserrat',sans-serif; font-size:11px;
+  font-weight:700; letter-spacing:.4px; color:#a0522d; margin-bottom:10px; }
+#adm-view-cuestionario textarea.adm-cuest-corto{ min-height:44px; }
+#adm-view-cuestionario .adm-field{ margin-bottom:10px; }
+#adm-view-cuestionario .adm-cuest-acciones{ display:flex; gap:10px; justify-content:flex-end;
+  margin:18px 0 6px; flex-wrap:wrap; }
+@media(max-width:480px){
+  #adm-view-cuestionario .adm-cuest-acciones .adm-btn-mini{ flex:1 1 auto; }
+}
 /* ===== LANDING — editor ===== */
 .adm-lp-precio{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600;
   color:var(--terracota); padding:2px 0; }
@@ -5104,6 +5129,7 @@ body.app-active { overflow: hidden; }
           <button type="button" class="adm-nav-item" data-adm="cobros" onclick="goAdmin('cobros')"><span class="adm-nav-label">Cobros</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
           <button type="button" class="adm-nav-item" data-adm="planes" onclick="goAdmin('planes')"><span class="adm-nav-label">Planes</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
           <button type="button" class="adm-nav-item" data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-label">Contenido</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="cuestionario" onclick="goAdmin('cuestionario')"><span class="adm-nav-label">Cuestionario</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
           <button type="button" class="adm-nav-item" data-adm="landing" onclick="goAdmin('landing')"><span class="adm-nav-label">Tu landing</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
     </nav>
         <div class="adm-panel-foot">
@@ -5129,6 +5155,7 @@ body.app-active { overflow: hidden; }
           <button type="button" class="adm-nav-item" data-adm="cobros" onclick="goAdmin('cobros')"><span class="adm-nav-label">Cobros</span></button>
           <button type="button" class="adm-nav-item" data-adm="planes" onclick="goAdmin('planes')"><span class="adm-nav-label">Planes</span></button>
           <button type="button" class="adm-nav-item" data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-label">Contenido</span></button>
+          <button type="button" class="adm-nav-item" data-adm="cuestionario" onclick="goAdmin('cuestionario')"><span class="adm-nav-label">Cuestionario</span></button>
           <button type="button" class="adm-nav-item" data-adm="landing" onclick="goAdmin('landing')"><span class="adm-nav-label">Tu landing</span></button>
       </nav>
         <div class="adm-panel-foot">
@@ -5415,6 +5442,20 @@ body.app-active { overflow: hidden; }
       </div>
     </section>
 
+    <section class="adm-view" id="adm-view-cuestionario">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">Tu</p>
+          <h1 class="dash-name">cuestionario.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+      <div id="adm-cuest-body">
+        <div class="adm-loading">Cargando el cuestionario…</div>
+      </div>
+    </section>
+
     <section class="adm-view" id="adm-view-landing">
       <div class="dash-header hogar-rise-in">
         <div class="dash-header-top">
@@ -5568,6 +5609,25 @@ const Q_TOTAL_STEPS = 4;
 //     haya usado nunca (E, F, G…) y añade su rama en p2/p3/p4. Nunca reutilices
 //     el id de una opción retirada para una opción distinta. Un id sobrante no
 //     rompe nada; un id reciclado reescribe el pasado.
+// ────────────────────────────────────────────────────────────────────────────
+// Lo que edita Andrea vive en hogar_cuestionario; esto es el RESPALDO.
+//
+// _CUEST_NUBE guarda lo que llegó de la base. arbolCuestionario() prefiere eso y
+// cae aquí cuando no hay fila, cuando la consulta falla o cuando Supabase no
+// responde. El cuestionario nunca depende de la red: si todo se cae, se hace con
+// el árbol de este archivo y la usuaria no se entera.
+//
+// Por eso este objeto NO se borra al mover el cuestionario a la base. Es lo que
+// permite que la tabla nazca vacía y que la primera edición de Andrea sea la que
+// cree su fila, sin una siembra que pueda desviarse de aquí.
+// ────────────────────────────────────────────────────────────────────────────
+const _CUEST_NUBE = {};
+
+function arbolCuestionario(idx){
+  const n=_CUEST_NUBE[idx];
+  return n || QUEST_TREE[idx];
+}
+
 const QUEST_TREE = {
   4: { // TENSA
     p1: {
@@ -6030,6 +6090,7 @@ function goAdmin(section){
   if(s==='planes') loadPlanes();
   if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); }
   if(s==='landing') loadLandingAdmin();
+  if(s==='cuestionario') loadCuestionarioAdmin();
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -7181,6 +7242,39 @@ function _landingSetTransImg(url){
   box.style.backgroundImage='url("'+_fotoOptimizada(url, FOTO_ANCHO.trans).replace(/["\\]/g,'\\$&')+'")';
 }
 
+/** Trae el cuestionario de hogar_cuestionario al arrancar.
+ *
+ *  Es OPCIONAL en el sentido fuerte: si la tabla no existe todavía, si está vacía
+ *  o si la red falla, no se toca nada y el cuestionario funciona con QUEST_TREE.
+ *  Por eso no hay `await` de nadie sobre esta función ni mensaje de error visible:
+ *  lo peor que puede pasar es que Andrea vea sus textos de siempre.
+ *
+ *  Cada fila se valida por encima antes de aceptarla. La función de Supabase ya
+ *  impide escribir un árbol roto, pero esto cubre el caso de una fila metida a
+ *  mano desde el editor SQL: mejor ignorarla y usar el respaldo que dejar el
+ *  cuestionario a medias. */
+async function precargarCuestionarioHogar(){
+  try{
+    if(!window.sb) return;
+    const { data, error } = await window.sb.from('hogar_cuestionario').select('emo,arbol');
+    if(error || !Array.isArray(data) || !data.length) return;
+    let ok=0;
+    data.forEach(f=>{
+      const idx=Number(f.emo);
+      const a=f.arbol;
+      if(!(idx>=0 && idx<=4) || !a || typeof a!=='object') return;
+      // Las mismas condiciones que hacen funcionar al motor: los cuatro pasos
+      // vivos y p1 con sus cuatro opciones.
+      if(!a.p1 || !Array.isArray(a.p1.opciones) || a.p1.opciones.length!==4) return;
+      if(!a.p2 || !a.p3 || !a.p4) return;
+      _CUEST_NUBE[idx]=a; ok++;
+    });
+    if(ok) console.log('[HOGAR cuestionario] '+ok+' emoción(es) desde Supabase ✓');
+  }catch(e){
+    console.warn('[HOGAR cuestionario] no se pudo cargar; se usa el del código:', (e&&e.message)||e);
+  }
+}
+
 async function precargarLandingHogar(){
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
@@ -7746,7 +7840,7 @@ function qOptsSimple(opciones){
 
 // MOTOR: renderea el nodo del árbol según curQ + answers.path
 function renderQ(){
-  const tree=QUEST_TREE[curEmo];
+  const tree=arbolCuestionario(curEmo);
   const cont=document.getElementById('qContent');
   if(!tree||!cont){return;}
   const path=answers.path; // 'A'|'B'|'C'|'D' (definido al responder p1)
@@ -7911,7 +8005,7 @@ function qOpenWrite(){
 // y siguen siendo la red de las filas viejas, que no tienen esto.
 // ============================================================================
 function congelarQA(idx, path, a){
-  const tree=QUEST_TREE[idx];
+  const tree=arbolCuestionario(idx);
   const qa=[];
   // Una respuesta vacía no se congela: hoy el historial tampoco pinta el paso 4
   // cuando se salta, y congelar un hueco lo haría aparecer.
@@ -10224,6 +10318,196 @@ function _admLandingMsg(texto, tipo){
 }
 const ADM_LANDING_SIN_PERMISO='No se pudo guardar: tu cuenta no tiene permiso de escritura en hogar_config.';
 
+// ============================================================================
+// EDITOR DEL CUESTIONARIO
+//
+// SOLO TEXTO. No hay "añadir pregunta", ni "borrar opción", ni reordenar: la
+// FORMA del árbol no se toca desde aquí. Y los `id` de p1 (A, B, C, D) no se
+// muestran ni se editan nunca — son la respuesta guardada de las filas anteriores
+// al congelado y la llave que elige la rama de p2/p3/p4. Ver el pendiente 7.
+//
+// La validación de verdad vive en hogar_guardar_cuestionario, en Supabase. Aquí
+// no se valida nada: el navegador solo recoge los textos y los manda. Lo que
+// impide guardar un árbol roto es que no exista ninguna policy de escritura sobre
+// la tabla, así que la función es el único camino y rechaza entero antes de
+// escribir. Un bug en esta pantalla no puede corromper el cuestionario.
+//
+// El paso 5 NO aparece: existe en el árbol y no lo lee nadie (pendiente 8). Se
+// manda de vuelta intacto para no perderlo.
+// ============================================================================
+let _admCuestEmo=0;        // emoción que se está editando
+let _admCuestArbol=null;   // copia de trabajo, se pinta desde aquí
+let _admCuestCargando=false;
+
+// Mismo patrón que _admLandingMsg: la clase `show` es la que lo hace visible.
+function _admCuestMsg(texto, tipo){
+  const el=document.getElementById('adm-cuest-msg');
+  if(!el) return;
+  if(!texto){ el.className='adm-alert'; el.textContent=''; return; }
+  el.textContent=texto;
+  el.className='adm-alert show '+(tipo||'error');
+}
+
+async function loadCuestionarioAdmin(){
+  const cont=document.getElementById('adm-cuest-body');
+  if(!cont || _admCuestCargando) return;
+  _admCuestCargando=true;
+  cont.innerHTML='<div class="adm-loading">Cargando el cuestionario…</div>';
+  try{
+    // Se relee de la base en vez de usar _CUEST_NUBE para que Andrea vea lo que
+    // hay guardado AHORA, no lo que se cargó al abrir la pestaña hace una hora.
+    if(window.sb){
+      const { data, error } = await window.sb.from('hogar_cuestionario').select('emo,arbol');
+      if(!error && Array.isArray(data)){
+        data.forEach(f=>{ const i=Number(f.emo); if(i>=0&&i<=4&&f.arbol) _CUEST_NUBE[i]=f.arbol; });
+      }
+    }
+  }catch(_){ /* sin nube se edita sobre el respaldo del código */ }
+  _admCuestCargando=false;
+  _admCuestAbrir(_admCuestEmo);
+}
+
+/** Copia profunda: se edita sobre una copia para que cancelar sea gratis y para
+ *  no ensuciar _CUEST_NUBE, que es lo que usa el cuestionario de verdad. */
+function _admCuestAbrir(idx){
+  _admCuestEmo=idx;
+  _admCuestArbol=JSON.parse(JSON.stringify(arbolCuestionario(idx)));
+  _admCuestPintar();
+}
+
+function _admCuestPintar(){
+  const cont=document.getElementById('adm-cuest-body');
+  if(!cont || !_admCuestArbol) return;
+  const a=_admCuestArbol;
+  const ids=['A','B','C','D'];
+  const esc=_admEsc;
+
+  let h='<div class="adm-alert" id="adm-cuest-msg"></div>';
+
+  // Selector de emoción arriba, como en Contenido.
+  h+='<div class="adm-card hogar-rise-in">'
+    +'<div class="adm-card-eyebrow" style="margin-bottom:12px;">— QUÉ PRÁCTICA</div>'
+    +'<div class="adm-cuest-emos">';
+  EMOCIONES.forEach(e=>{
+    h+='<button type="button" class="adm-cuest-emo'+(e.idx===_admCuestEmo?' activa':'')+'" '
+      +'onclick="_admCuestCambiarEmo('+e.idx+')">'+esc(e.nombre)+'</button>';
+  });
+  h+='</div>'
+    +'<div class="adm-field-hint" style="margin-top:10px;">Cada práctica tiene su propio cuestionario. Estás editando el de <strong>'+esc(EMO_NAMES[_admCuestEmo]||'')+'</strong>.</div>'
+    +'</div>';
+
+  // ── Paso 1
+  h+='<div class="adm-tx-card hogar-rise-in">'
+    +'<div class="adm-tx-titulo">Paso 1 · la primera pregunta</div>'
+    +_admCuestCampo('La pregunta', 'p1.pregunta', a.p1.pregunta, true);
+  h+='<div class="adm-field-hint" style="margin:14px 0 10px;">Las cuatro respuestas. Debajo de cada una se ve la pregunta que desencadena, para que sepas a dónde lleva.</div>';
+  a.p1.opciones.forEach((op,i)=>{
+    h+='<div class="adm-cuest-op">'
+      +_admCuestCampo('Respuesta '+(i+1), 'p1.opciones.'+i+'.titulo', op.titulo, true)
+      +_admCuestCampo('Su matiz (línea pequeña)', 'p1.opciones.'+i+'.desc', op.desc, true)
+      +'<div class="adm-cuest-rama">→ lleva a: <em>'
+        +esc(((a.p2||{})[ids[i]]||{}).pregunta||'(sin pregunta)')+'</em></div>'
+      +'</div>';
+  });
+  h+='</div>';
+
+  // ── Pasos 2 y 3, rama por rama
+  [['p2','Paso 2 · según lo que respondió'],['p3','Paso 3 · lo que su cuerpo pide']].forEach(([p,titulo])=>{
+    h+='<div class="adm-tx-card hogar-rise-in"><div class="adm-tx-titulo">'+titulo+'</div>';
+    ids.forEach((r,i)=>{
+      const nodo=(a[p]||{})[r]||{pregunta:'',opciones:[]};
+      h+='<div class="adm-cuest-rama-bloque">'
+        +'<div class="adm-cuest-rama-tit">Si respondió «'+esc(a.p1.opciones[i].titulo)+'»</div>'
+        +_admCuestCampo('La pregunta', p+'.'+r+'.pregunta', nodo.pregunta, true);
+      (nodo.opciones||[]).forEach((op,j)=>{
+        h+=_admCuestCampo('Respuesta '+(j+1), p+'.'+r+'.opciones.'+j+'.titulo', op.titulo, false);
+      });
+      h+='</div>';
+    });
+    h+='</div>';
+  });
+
+  // ── Paso 4: dos formas distintas
+  h+='<div class="adm-tx-card hogar-rise-in"><div class="adm-tx-titulo">Paso 4 · el cierre</div>'
+    +'<div class="adm-cuest-rama-bloque">'
+      +'<div class="adm-cuest-rama-tit">Para las tres primeras respuestas · escribe ella</div>'
+      +_admCuestCampo('La pregunta', 'p4.ABC.pregunta', a.p4.ABC.pregunta, true)
+      +_admCuestCampo('Texto de ejemplo en el recuadro', 'p4.ABC.placeholder', a.p4.ABC.placeholder||'', true)
+    +'</div>'
+    +'<div class="adm-cuest-rama-bloque">'
+      +'<div class="adm-cuest-rama-tit">Si respondió «'+esc(a.p1.opciones[3].titulo)+'» · elige entre cuatro</div>'
+      +_admCuestCampo('La pregunta', 'p4.D.pregunta', a.p4.D.pregunta, true);
+  (a.p4.D.opciones||[]).forEach((op,j)=>{
+    h+=_admCuestCampo('Respuesta '+(j+1), 'p4.D.opciones.'+j+'.titulo', op.titulo, false);
+  });
+  h+='</div></div>';
+
+  h+='<div class="adm-cuest-acciones">'
+    +'<button type="button" class="adm-btn-mini suave" onclick="_admCuestAbrir('+_admCuestEmo+')">Descartar cambios</button>'
+    +'<button type="button" class="adm-btn-mini primario" id="adm-cuest-guardar" onclick="guardarCuestionarioHogar(this)">Guardar</button>'
+    +'</div>';
+
+  cont.innerHTML=h;
+}
+
+/** Un campo. `ruta` es el camino dentro del árbol ('p2.A.opciones.0.titulo'), y es
+ *  lo que devuelve el valor a su sitio sin que el editor sepa de estructuras. */
+function _admCuestCampo(etiqueta, ruta, valor, grande){
+  return '<div class="adm-field">'
+    +'<label class="adm-tx-label">'+_admEsc(etiqueta)+'</label>'
+    +'<textarea data-ruta="'+_admEsc(ruta)+'"'+(grande?'':' rows="1" class="adm-cuest-corto"')
+      +' oninput="_admCuestEscribir(this)">'+escHtml(valor||'')+'</textarea>'
+    +'</div>';
+}
+
+/** Escribe el valor de un textarea en su sitio del árbol de trabajo. */
+function _admCuestEscribir(el){
+  const ruta=(el.getAttribute('data-ruta')||'').split('.');
+  let n=_admCuestArbol;
+  for(let i=0;i<ruta.length-1;i++){
+    if(n==null) return;
+    n=n[ruta[i]];
+  }
+  if(n!=null) n[ruta[ruta.length-1]]=el.value;
+}
+
+function _admCuestCambiarEmo(idx){
+  // Cambiar de práctica descarta lo no guardado: se avisa antes, que perder media
+  // hora de escritura por un clic sería feo.
+  const sucio=JSON.stringify(_admCuestArbol)!==JSON.stringify(arbolCuestionario(_admCuestEmo));
+  if(sucio && !confirm('Tienes cambios sin guardar en '+(EMO_NAMES[_admCuestEmo]||'esta práctica')+'.\n\n¿Cambiar de práctica y perderlos?')) return;
+  _admCuestAbrir(idx);
+}
+
+async function guardarCuestionarioHogar(btn){
+  _admCuestMsg('');
+  const previo=btn?btn.textContent:'';
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+    // Se manda el árbol ENTERO, con p5 incluido aunque no se edite: la función
+    // exige las cinco claves y así el paso 5 no se pierde por el camino.
+    const { error } = await window.sb.rpc('hogar_guardar_cuestionario', {
+      p_emo: _admCuestEmo,
+      p_arbol: _admCuestArbol
+    });
+    if(error) throw error;
+    _CUEST_NUBE[_admCuestEmo]=JSON.parse(JSON.stringify(_admCuestArbol));
+    _admCuestMsg('Guardado. Las próximas prácticas ya usan estos textos.','ok');
+  }catch(e){
+    const m=(e&&e.message)||'';
+    // Los mensajes de la función vienen en español y son los que hay que enseñar:
+    // dicen exactamente qué campo está mal.
+    if(/does not exist|42883|42P01/i.test(m)){
+      _admCuestMsg('Falta preparar la base para el cuestionario: corre el SQL de SQL-CUESTIONARIO.md en Supabase.','error');
+    }else{
+      _admCuestMsg(m || 'No se pudo guardar. Inténtalo de nuevo en un momento.','error');
+    }
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
+  }
+}
+
 async function loadLandingAdmin(){
   const cont=document.getElementById('adm-landing-body');
   if(!cont || _admLandingCargando) return;
@@ -11237,6 +11521,12 @@ function histAnswersHTML(h){
   if(Array.isArray(a.qa) && a.qa.length){
     rows=a.qa.filter(x=>x && x.a).map(x=>[x.q||'', x.a]);
   } else {
+    // QUEST_TREE Y NO arbolCuestionario(), a propósito. Esta rama solo la pisan
+    // las filas anteriores al congelado, y todas ellas se respondieron cuando el
+    // cuestionario vivía en el código y Andrea no podía editarlo. El árbol de
+    // este archivo ES el que vieron; el de la base es el de hoy. Resolverlas
+    // contra el del código se acerca más a la verdad, y además evita que una
+    // edición de Andrea les cambie el texto otra vez.
     const idx=(typeof h.emo==='number')?h.emo:0;
     const tree=QUEST_TREE[idx];
     const path=h.path||a.p1;
@@ -11385,6 +11675,9 @@ function confirmExit(){
     console.log('[HOGAR] Supabase conectado ✓');
     // Landing: pública, se lee al cargar la página, sin depender del login.
     if (typeof window.precargarLandingHogar === 'function') { window.precargarLandingHogar(); }
+    // El cuestionario, igual: se pide al cargar y si no llega manda el respaldo
+    // del código. No bloquea a nadie.
+    if (typeof window.precargarCuestionarioHogar === 'function') { window.precargarCuestionarioHogar(); }
     if (typeof window._authInit === 'function') { window._authInit(); }
   } catch (err) {
     console.error('[HOGAR] No se pudo inicializar Supabase:', err);
