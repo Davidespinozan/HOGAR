@@ -4,7 +4,7 @@
 // skipWaiting + clients.claim, y el index.html dispara un reload al detectar
 // el evento 'updatefound'.
 
-const CACHE_VERSION = 'hogar-v2026-06-02-1';
+const CACHE_VERSION = 'hogar-v2026-08-07-1';
 
 self.addEventListener('install', (event) => {
   // Activar la versión nueva de inmediato sin esperar a que se cierren las pestañas
