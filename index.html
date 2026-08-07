@@ -5467,6 +5467,27 @@ const RD={"Ritmo Suave":"La calma no es ausencia de movimiento. Es movimiento si
 // ============================================
 const Q_TOTAL_STEPS = 4;
 
+// ⚠ EDITAR ESTE ÁRBOL: QUÉ ES SEGURO Y QUÉ NO
+//
+// Desde que las preguntas se congelan al cerrar la sesión (ver congelarQA), el
+// historial de las prácticas NUEVAS ya no depende de lo que diga aquí. Pero las
+// filas anteriores a ese cambio sí lo siguen resolviendo contra este árbol, y no
+// se pueden migrar: el texto que aquellas usuarias vieron no se guardó en ningún
+// sitio. Así que estas dos reglas valen mientras queden filas viejas vivas.
+//
+//   SEGURO — cambiar el TEXTO de una `pregunta`, de un `titulo` o de una `desc`.
+//     Reescribe el historial viejo, sí, pero lo reescribe con la versión nueva de
+//     la MISMA pregunta. Nadie acaba respondiendo a otra cosa.
+//
+//   PELIGROSO — tocar los `id` de p1 ("A"|"B"|"C"|"D"). Esos ids son lo que se
+//     guardó como respuesta, y también la llave que elige la rama de p2/p3/p4.
+//     Reordenarlos o reciclarlos convierte la respuesta de alguien en OTRA
+//     distinta, en silencio: sin error, sin aviso, y el historial queda mintiendo.
+//
+//   SI HAY QUE AÑADIR O QUITAR OPCIONES en p1: dale a la nueva un id que no se
+//     haya usado nunca (E, F, G…) y añade su rama en p2/p3/p4. Nunca reutilices
+//     el id de una opción retirada para una opción distinta. Un id sobrante no
+//     rompe nada; un id reciclado reescribe el pasado.
 const QUEST_TREE = {
   4: { // TENSA
     p1: {

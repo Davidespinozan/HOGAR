@@ -11,6 +11,7 @@ esto está roto, son decisiones aplazadas.
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
 | 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | Nada: falta hacerlo | Una columna, `crear-checkout` y la RPC de borrado |
+| 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | No existe el editor todavía | Diseño de una pantalla del panel |
 
 Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
 y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
@@ -396,6 +397,54 @@ ESPERAR del muro a prueba de dispositivos, que hoy también depende del
 Andrea no tiene clientas todavía, y la secuencia exige que coincidan un webhook
 lento y una clienta impaciente en el mismo minuto. Pero **es anterior a tener
 volumen**: cuanto más se venda, antes ocurre.
+
+---
+
+## 7 · El editor del cuestionario no debe dejar reordenar los ids de p1
+
+**Estado: no aplica todavía.** El cuestionario (`QUEST_TREE`) es una constante del
+código y solo se toca en un despliegue; el editor de **Contenido** del panel edita
+los textos de las prácticas, no las preguntas. Esto es una restricción de diseño
+**para el día que ese editor exista**, anotada en agosto de 2026 al congelar las
+preguntas en el historial.
+
+### El riesgo
+
+Cada opción de `p1` tiene un `id` — `"A"`, `"B"`, `"C"`, `"D"` — que hace dos
+trabajos a la vez:
+
+1. **Es la respuesta que se guardó** en las filas anteriores a agosto de 2026.
+2. **Es la llave que elige la rama** de `p2`, `p3` y `p4`.
+
+Cambiar el texto de una pregunta es inofensivo: el historial viejo se repinta con
+la versión nueva de la misma pregunta. Pero **reordenar o reciclar un id convierte
+la respuesta de alguien en otra distinta**. Sin error, sin aviso: el historial
+simplemente pasa a decir que respondió algo que no respondió.
+
+Desde que las preguntas se congelan al cerrar (`congelarQA`), las prácticas nuevas
+son inmunes. Las viejas no, y **no se pueden migrar**: el texto que aquellas
+usuarias vieron no se guardó en ningún sitio. El riesgo se extingue solo, cuando
+esas filas dejen de importar — pero no hay fecha.
+
+### Cómo debe diseñarse el editor
+
+Que la restricción no dependa de que quien lo use se acuerde:
+
+| Regla | Por qué |
+|---|---|
+| El id **no se muestra ni se edita**. Se asigna solo al crear la opción | Si no está en la pantalla, no se puede tocar |
+| Añadir una opción toma **el siguiente id no usado nunca** (E, F, G…), no el primero libre | Un id reciclado reescribe el pasado; uno sobrante no rompe nada |
+| Quitar una opción la marca como retirada y **conserva su rama** | Las filas viejas que la respondieron siguen resolviéndose |
+| Reordenar mueve la **posición visual**, nunca el id | Es lo que Andrea querrá hacer, y debe ser seguro |
+
+Dicho de otro modo: **el orden en pantalla y la identidad de la opción tienen que
+ser dos cosas separadas.** Hoy son la misma, y por eso hay que tener cuidado a
+mano.
+
+### Mientras tanto
+
+La regla está escrita junto a `QUEST_TREE` en `index.html`, que es donde se edita
+hoy y donde la va a leer quien lo toque.
 
 ---
 
