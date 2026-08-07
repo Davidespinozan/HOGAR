@@ -3853,6 +3853,12 @@ body.app-active { overflow: hidden; }
   line-height:1; user-select:none; }
 .adm-avatar.sm{ width:40px; height:40px; font-size:.92rem; border-width:2px; }
 .adm-avatar.lg{ width:50px; height:50px; font-size:1.12rem; }
+/* Con foto — la misma que Andrea sube en Tu Landing → "Tu foto". La inicial NO se
+   borra del DOM, solo se esconde con font-size:0, para que quitar la clase la
+   devuelva intacta si algún día la imagen deja de cargar.
+   VA DESPUÉS de .sm y .lg a propósito: las tres reglas pesan igual (0,2,0) y
+   manda el orden, así que puesta antes no llegaría a apagar sus font-size. */
+.adm-avatar.con-foto{ background-size:cover; background-position:center; font-size:0; }
 
 /* — Tronco compartido por sidebar y drawer: ambos son el mismo panel café — */
 .adm-panel{ display:flex; flex-direction:column;
@@ -5877,9 +5883,43 @@ function goAdmin(section){
 
 // ── Marco del panel: perfil, drawer móvil y salidas ─────────────────────────
 
-// Avatar y nombre salen de la cuenta logueada, nunca del código: si mañana el
+// Los tres círculos del panel (topbar, sidebar y drawer) con la foto de la dueña.
+//
+// Es LA MISMA foto que ven sus usuarias en el chat, no una copia: sale de
+// _fotoAndreaURL, que es lo que hay en andrea_foto_chat. Por eso cambiarla en
+// Tu Landing → "Tu foto" la cambia aquí en el mismo gesto, sin un segundo sitio
+// donde subirla y sin poder quedar desincronizadas.
+//
+// SOLO TAPA LA INICIAL CUANDO LA IMAGEN CARGA DE VERDAD, y de ahí el new Image()
+// en vez de asignar el fondo y confiar: sin foto, con la columna todavía vacía o
+// con una URL rota (borrada del bucket, red caída) se queda el círculo con la
+// letra, que es lo que había antes. Un avatar vacío sería peor que una inicial.
+function _admPintarAvatar(){
+  const ids=['adm-avatar-top','adm-avatar-side','adm-avatar-drawer'];
+  const url=String(_fotoAndreaURL||'').trim();
+  const conCadaUno=fn=>ids.forEach(id=>{ const el=document.getElementById(id); if(el) fn(el); });
+  const volverALaInicial=()=>conCadaUno(el=>{
+    el.classList.remove('con-foto'); el.style.backgroundImage='';
+  });
+  // Se exige https igual que en precargarLandingHogar(): lo que no lo sea no es
+  // una URL del bucket y no merece un intento de carga.
+  if(!url || !/^https:\/\//i.test(url)){ volverALaInicial(); return; }
+  const prueba=new Image();
+  prueba.onload=function(){
+    const safe=url.replace(/["\\]/g,'\\$&');
+    conCadaUno(el=>{
+      el.style.backgroundImage='url("'+safe+'")';
+      el.classList.add('con-foto');
+    });
+  };
+  prueba.onerror=volverALaInicial;
+  prueba.src=url;
+}
+
+// Nombre e inicial salen de la cuenta logueada, nunca del código: si mañana el
 // sistema lo usa otra dueña, su panel dice SU nombre y SU inicial. Sin nombre
 // real caemos al correo, y sin nada a un punto neutro — jamás a "Andrea".
+// La inicial es el suelo del avatar: la tapa la foto cuando hay, y se ve cuando no.
 function _admPintarPerfil(){
   const nombre=((U && U.fullName) || '').trim();
   const correo=((U && U.email) || '').trim();
@@ -5891,6 +5931,8 @@ function _admPintarPerfil(){
   ['adm-perfil-nombre-side','adm-perfil-nombre-drawer'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.textContent=etiqueta;
   });
+  // Después de escribir la inicial, para que sea ella la que quede debajo.
+  _admPintarAvatar();
 }
 
 // Drawer de navegación (solo móvil; en escritorio el CSS lo esconde y manda el
@@ -6836,16 +6878,24 @@ function _landingSetHeroMovilImg(url){
 // aparece: si la de la base no carga, se vuelve a ésta en vez de dejar un hueco.
 const FOTO_ANDREA_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/hero-meditacion.jpg';
 
-// La foto de Andrea, en los dos lugares donde la ven sus usuarias: el avatar
-// redondo del chat de la práctica y la foto del aside de su dashboard. Es UNA
-// sola foto (andrea_foto_chat), así que se pintan juntas — si se actualizara solo
-// una, quedarían dos Andreas distintas conviviendo en la misma app.
+// La última URL que llegó de andrea_foto_chat. Vive en una variable y no solo en
+// el DOM porque hay dos pintores que la necesitan en momentos distintos: éste,
+// cuando la foto llega de hogar_landing o cuando Andrea la cambia, y
+// _admPintarAvatar(), cuando se abre el panel — que puede ser antes o después.
+let _fotoAndreaURL='';
+
+// La foto de Andrea, en los tres lugares donde sale: el avatar redondo del chat
+// de la práctica, la foto del aside de su dashboard y el avatar de su panel. Es
+// UNA sola foto (andrea_foto_chat), así que se pintan juntas — si se actualizara
+// solo una, quedarían dos o tres Andreas distintas conviviendo en la misma app.
 //
-// Son dos mecanismos porque son dos cosas distintas: .msg-avatar la trae como
-// fondo CSS (shorthand `background:`, basta pisar background-image) y la del
-// dashboard es un <img>, que se cambia por src.
+// Son tres mecanismos porque son tres cosas distintas: .msg-avatar la trae como
+// fondo CSS (shorthand `background:`, basta pisar background-image), la del
+// dashboard es un <img>, que se cambia por src, y la del panel es un círculo con
+// una inicial debajo, que solo se tapa si la imagen carga de verdad.
 function _landingSetFotoAndrea(url){
   if(!url) return;
+  _fotoAndreaURL=String(url);
   let tag=document.getElementById('landing-foto-chat-override');
   if(!tag){ tag=document.createElement('style'); tag.id='landing-foto-chat-override'; document.head.appendChild(tag); }
   const safe=String(url).replace(/["\\]/g,'\\$&');
@@ -6861,6 +6911,12 @@ function _landingSetFotoAndrea(url){
     };
     img.src=url;
   }
+
+  // El panel. Va aquí y no solo en _admPintarPerfil() porque la foto puede llegar
+  // (o cambiar) con el panel ya abierto: al subirla desde Tu Landing es
+  // justamente lo que pasa, y sin esta línea el avatar seguiría con la inicial
+  // hasta recargar.
+  _admPintarAvatar();
 }
 
 async function precargarLandingHogar(){
