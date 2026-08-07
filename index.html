@@ -5586,7 +5586,12 @@ const RD={"Ritmo Suave":"La calma no es ausencia de movimiento. Es movimiento si
 // Validado por Andrea Labrada (may 2026). Reemplaza Q_CIERRE/Q_CUERPO/
 // Q_EMOCION/Q_NECESIDAD/Q_INTEGRACION.
 // ============================================
-const Q_TOTAL_STEPS = 4;
+// 5 desde agosto de 2026. Estuvo en 4 mucho tiempo con el paso 5 escrito en el
+// árbol y sin dibujar: veinte textos de cierre, uno por rama y emoción, que nadie
+// llegó a leer nunca. El que más falta hacía era el de la rama D —la de quien
+// termina peor, «se intensificó», «quedé más vacía», «se abrió más»—, que es
+// justo quien se quedaba sin cierre.
+const Q_TOTAL_STEPS = 5;
 
 // ⚠ EDITAR ESTE ÁRBOL: QUÉ ES SEGURO Y QUÉ NO
 //
@@ -7930,10 +7935,34 @@ function renderQ(){
       html+='</div>';
       html+='</div>';
     }
+  } else if(curQ===5){
+    // EL CIERRE. No pregunta nada: es lo único de todo el cuestionario que le
+    // devuelve algo a ella. El texto sale de p5[rama], así que responde a lo que
+    // acaba de contar y no es un "bien hecho" genérico.
+    //
+    // Se cae al de la rama A si faltara el de la suya: quedarse sin cierre es
+    // peor que leer uno que no encaja del todo, y ninguna rama debe terminar en
+    // una pantalla vacía.
+    const cierre=(tree.p5 && (tree.p5[path]||tree.p5.A))||'';
+    html+=qHead('Para cerrar', 'Antes de irte.');
+    html+='<div style="max-width:560px;margin:0 auto;">';
+    html+='<div class="completado-mensaje">'+escHtml(cierre)+'</div>';
+    // El textarea nace oculto detrás de un botón, no desplegado: quien no quiera
+    // escribir no debe encontrarse una página en blanco pidiéndole algo.
+    html+='<div id="qWriteSlot">'+(answers.p5write?qWriteTextareaHTML():'')+'</div>';
+    html+='<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px;">';
+    if(!answers.p5write){
+      html+='<button class="btn-saltar" id="qWriteBtn" onclick="qOpenWrite()">Escribir algo antes de cerrar</button>';
+    }
+    html+='<button class="btn-guardar" onclick="qNext()">Terminar ✦</button>';
+    html+='</div>';
+    html+='</div>';
   }
 
-  // Botón Anterior — visible en pasos 2, 3, 4 (no en 1 ni 5)
-  if(curQ>1 && curQ<5){
+  // Botón Anterior — en los pasos 2 a 5. En el 5 también: es el único sitio donde
+  // se lee el cierre, y volver atrás para cambiar una respuesta no debería
+  // obligarla a rehacer el cuestionario entero.
+  if(curQ>1 && curQ<=Q_TOTAL_STEPS){
     html+='<div style="display:flex;justify-content:center;margin-top:1.6rem;">';
     html+='<button class="btn-saltar" onclick="prevQ()">← Anterior</button>';
     html+='</div>';
@@ -7993,6 +8022,13 @@ function qNext(){
 // Retroceso
 function prevQ(){
   if(curQ>1){
+    // Si venía del cierre con algo escrito, se guarda antes de salir. Sin esto,
+    // volver atrás a cambiar una respuesta le borraría lo que acababa de
+    // escribir, y es lo más personal de todo el cuestionario.
+    if(curQ===5){
+      const wt=document.getElementById('qWriteText');
+      if(wt) answers.p5write=wt.value.trim();
+    }
     curQ--;
     renderQ();
   }
@@ -10363,8 +10399,8 @@ const ADM_LANDING_SIN_PERMISO='No se pudo guardar: tu cuenta no tiene permiso de
 // la tabla, así que la función es el único camino y rechaza entero antes de
 // escribir. Un bug en esta pantalla no puede corromper el cuestionario.
 //
-// El paso 5 NO aparece: existe en el árbol y no lo lee nadie (pendiente 8). Se
-// manda de vuelta intacto para no perderlo.
+// Los CINCO pasos son editables. El 5 se añadió en agosto de 2026, cuando el paso
+// dejó de ser dato muerto y empezó a dibujarse de verdad.
 // ============================================================================
 let _admCuestEmo=0;        // emoción que se está editando
 let _admCuestArbol=null;   // copia de trabajo, se pinta desde aquí
@@ -10473,6 +10509,17 @@ function _admCuestPintar(){
   });
   h+='</div></div>';
 
+  // ── Paso 5: el cierre. Lo único del cuestionario que le devuelve algo a ella.
+  h+='<div class="adm-tx-card hogar-rise-in"><div class="adm-tx-titulo">Paso 5 · lo que le dices al terminar</div>'
+    +'<div class="adm-field-hint" style="margin-bottom:14px;">Es lo último que lee, y cambia según lo que respondió al principio. No es una pregunta: es tu respuesta a cómo terminó.</div>';
+  ids.forEach((r,i)=>{
+    h+='<div class="adm-cuest-rama-bloque">'
+      +'<div class="adm-cuest-rama-tit">Si respondió «'+esc(a.p1.opciones[i].titulo)+'»</div>'
+      +_admCuestCampo('Tu cierre', 'p5.'+r, (a.p5||{})[r]||'', true)
+      +'</div>';
+  });
+  h+='</div>';
+
   h+='<div class="adm-cuest-acciones">'
     +'<button type="button" class="adm-btn-mini suave" onclick="_admCuestAbrir('+_admCuestEmo+')">Descartar cambios</button>'
     +'<button type="button" class="adm-btn-mini primario" id="adm-cuest-guardar" onclick="guardarCuestionarioHogar(this)">Guardar</button>'
@@ -10516,8 +10563,7 @@ async function guardarCuestionarioHogar(btn){
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
     if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
-    // Se manda el árbol ENTERO, con p5 incluido aunque no se edite: la función
-    // exige las cinco claves y así el paso 5 no se pierde por el camino.
+    // El árbol entero, los cinco pasos. La función exige las cinco claves.
     const { error } = await window.sb.rpc('hogar_guardar_cuestionario', {
       p_emo: _admCuestEmo,
       p_arbol: _admCuestArbol

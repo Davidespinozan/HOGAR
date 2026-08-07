@@ -10,9 +10,8 @@ esto está roto, son decisiones aplazadas.
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
 | 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
-| 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | Nada: falta hacerlo | Una columna, `crear-checkout` y la RPC de borrado |
-| 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | No existe el editor todavía | Diseño de una pantalla del panel |
-| 8 | [El paso 5 del cuestionario existe en el árbol y no se usa](#8--el-paso-5-del-cuestionario-existe-en-el-árbol-y-no-se-usa) | Decisión de producto de Andrea | `QUEST_TREE`, el motor y el editor |
+| 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | **Resuelto para la ventana realista.** Falta reconciliar contra Stripe para cerrarlo del todo | Una función programada |
+| 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | **Sorteado, no resuelto:** el editor es solo texto, así que hoy no puede reordenar nada | Vuelve a aplicar si el editor gana añadir o quitar opciones |
 
 Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
 y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
@@ -462,48 +461,6 @@ hoy y donde la va a leer quien lo toque.
 
 ---
 
-## 8 · El paso 5 del cuestionario existe en el árbol y no se usa
-
-**Estado: dato muerto, conservado a propósito.** Detectado en agosto de 2026 al
-preparar el editor del cuestionario.
-
-Cada emoción de `QUEST_TREE` trae una clave `p5` con **cuatro textos de cierre**, uno
-por rama (A, B, C, D). Ninguna usuaria los ha visto nunca:
-
-| Señal | Estado |
-|---|---|
-| `Q_TOTAL_STEPS` | vale **4** |
-| `renderQ()` | solo dibuja `curQ` de 1 a 4 |
-| Lecturas de `tree.p5` | **ninguna** en todo el archivo |
-| `qOpenWrite()`, que revelaría el paso 5 | existe y **no la llama nadie** |
-| `#qWriteSlot`, donde se montaría | **no está en el HTML** |
-
-De rebote, `answers.p5write` —el texto libre del cierre— tampoco se rellena jamás:
-`qFinish()` lo lee de `#qWriteText`, que solo existe si `qOpenWrite()` corre.
-
-### Qué se hizo y por qué
-
-`p5` **se conserva** en el árbol y la función `hogar_guardar_cuestionario` **exige las
-cinco claves**. El editor las devuelve intactas, así que no cuesta nada mantenerlas y
-el paso queda listo si algún día se revive.
-
-Lo que **no** se hizo es darle campos en el editor. Sería crear un control muerto:
-Andrea escribiría textos que nadie lee — exactamente el problema que se acababa de
-quitar con `andrea_foto_chat`, donde subía su foto y ninguna clienta la veía.
-
-### La decisión que falta
-
-**¿Debe el cuestionario tener un quinto paso?** No es una pregunta técnica. Hoy son
-cuatro y funcionan; el paso 5 sería un cierre escrito por Andrea, distinto según la
-rama, más un espacio opcional para que la usuaria escriba antes de terminar.
-
-Si la respuesta es sí, hay que subir `Q_TOTAL_STEPS` a 5, escribir el nodo en
-`renderQ()`, montar `#qWriteSlot` en el HTML y añadir la sección al editor. Si es no,
-lo honesto es borrar `p5`, `qOpenWrite()` y `qWriteTextareaHTML()` del código y quitar
-la clave del validador — pero eso ya no se puede deshacer, así que primero pregúntale.
-
----
-
 # Cerrados
 
 No son pendientes. Se dejan escritos porque costaron trabajo diagnosticar y
@@ -566,3 +523,25 @@ es una **vista**, y se lee **sin sesión** al cargar la página
 se sustituye por una tabla, **debe seguir siendo legible por `anon`** o la landing
 deja de mostrar precio y textos a todo visitante que no haya entrado. Ese fue el
 motivo de comprobar tabla por tabla en vez de aplicar el cambio a ciegas.
+
+## El paso 5 del cuestionario — construido el 7 de agosto de 2026
+
+Estuvo abierto como pendiente 8 unas horas: los veinte textos de cierre existían en
+`QUEST_TREE` y **no los leía nadie**, porque `Q_TOTAL_STEPS` valía 4 y el nodo del
+paso 5 nunca se dibujó.
+
+**Se construyó en vez de borrarse**, y la razón fue una: en las cinco emociones, la
+cuarta rama es la de quien termina peor —*se intensificó*, *quedé más vacía*, *se
+abrió más*— y su texto es el más largo y el que desactiva la culpa (*«No fallaste, no
+exageraste, no pasaste de la línea»*). Es contención para el momento en que la
+práctica destapó algo, y **era justo quien se quedaba sin nada**.
+
+Qué se tocó: `Q_TOTAL_STEPS` a 5, el nodo del paso 5 en `renderQ()` —con el cierre de
+la rama, el texto opcional detrás de un botón y *Terminar*—, y la sección del paso 5
+en el editor del panel, que pasó de 56 a 60 campos.
+
+De paso se arregló que `prevQ()` perdía lo escrito al volver atrás desde el cierre.
+
+Y quedó vivo `answers.p5write`, que hasta entonces nunca se rellenaba: ahora llega al
+guardado, se congela en `qa` y se ve en el historial.
+
