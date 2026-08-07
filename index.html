@@ -1236,7 +1236,14 @@ body.app-active { overflow: hidden; }
 
 .app-nav-back:hover { background: var(--crema); }
 
-.app-nav-logo { height: 40px; }
+/* 46px y no 40: los dos botones redondos de la derecha también miden 40, así que
+   sobre el papel estaban igualados — pero el peso óptico no lo estaba. Los
+   círculos son masas rellenas y el logo reparte su tinta entre la casita y la
+   palabra, así que se leía más ligero de lo que medía.
+   Y 46 y no 54 como en la landing: aquí no hay un CTA relleno compitiendo (el
+   problema allí era UNIRME), y esta barra es sticky en la pantalla de práctica,
+   donde cada píxel se lo quita al vídeo. */
+.app-nav-logo { height: 46px; }
 .app-nav-logo img { height: 100%; display: block; filter: brightness(0.85); transition: filter 0.3s ease; }
 
 /* En pantallas con emoción activa (header de color), el logo café se vuelve blanco */
