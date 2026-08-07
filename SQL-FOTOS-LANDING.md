@@ -128,3 +128,108 @@ Son dos mecanismos distintos por debajo, porque son dos cosas distintas: la del 
 es un fondo CSS (`.msg-avatar`) y la del inicio es un `<img>`. La del inicio además
 tiene una red de seguridad extra: si la foto nueva no llegara a cargar (borrada del
 bucket, red caída), vuelve sola a `hero-meditacion.jpg` en vez de quedarse rota.
+
+---
+
+# Las tres que faltaban — todas las imágenes de la landing editables
+
+Quedaban tres imágenes clavadas en el código. Con estas columnas, **ninguna imagen de
+la landing depende ya de un despliegue**:
+
+| Imagen | Dónde se ve | Antes |
+|---|---|---|
+| `andrea_foto_perfil` | el retrato de *Detrás de HOGAR* | ⛔ en el HTML |
+| `landing_trans_imagen` | el recuadro de *Lo que empieza a cambiar* | ⛔ en el HTML |
+| `landing_cierre_imagen` | el fondo de *Tu espacio te espera* | ⛔ en el CSS |
+
+Dos decisiones de diseño que conviene entender antes de tocar nada:
+
+**El retrato es una columna aparte del avatar.** `andrea_foto_chat` es el círculo
+pequeño de dentro de la app; `andrea_foto_perfil` es la foto grande que ve quien
+todavía no ha entrado. Dos encuadres para dos sitios, así que dos columnas. Lo que no
+podía seguir pasando es que una fuera editable y la otra no: Andrea cambiaba su foto y
+la landing seguía enseñando la vieja.
+
+**El cierre lleva UNA columna aunque el CSS lo pinte dos veces.** El hero necesita dos
+(`landing_hero_imagen` y `..._movil`) porque una foto apaisada no funciona en vertical
+y hacen falta dos recortes. El cierre es la misma imagen servida a dos anchos —
+`_landingSetCierreImg()` inyecta las dos reglas desde un solo valor. Darle dos
+controles sería pedirle que suba la misma foto dos veces.
+
+## Cómo correrlo
+
+Supabase → **SQL Editor** → pega y ejecuta:
+
+```sql
+-- ============================================================================
+-- HOGAR — las tres imágenes que faltaban, editables desde el panel.
+-- Idempotente: se puede correr dos veces sin efecto.
+-- ============================================================================
+
+ALTER TABLE public.hogar_config
+  ADD COLUMN IF NOT EXISTS andrea_foto_perfil    text,
+  ADD COLUMN IF NOT EXISTS landing_cierre_imagen text,
+  ADD COLUMN IF NOT EXISTS landing_trans_imagen  text;
+
+-- Siembra con las imágenes que el código usa hoy, solo donde esté vacío: correr
+-- esto NO cambia nada de lo que se ve.
+UPDATE public.hogar_config
+SET
+  andrea_foto_perfil = COALESCE(
+    NULLIF(TRIM(andrea_foto_perfil), ''),
+    'https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/andrea-perfil.webp'
+  ),
+  landing_cierre_imagen = COALESCE(
+    NULLIF(TRIM(landing_cierre_imagen), ''),
+    'https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png'
+  ),
+  landing_trans_imagen = COALESCE(
+    NULLIF(TRIM(landing_trans_imagen), ''),
+    'https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png'
+  )
+WHERE id = 1;
+
+-- OTRA VEZ, Y ES LA TERCERA: las columnas NUEVAS van AL FINAL, después de las que
+-- la vista ya tenía y en este orden. CREATE OR REPLACE VIEW solo sabe AÑADIR al
+-- final — no puede insertar en medio ni reordenar. Meterlas antes de
+-- precio_centavos es lo que hizo fallar la migración de andrea_foto_chat y dejó
+-- esa foto sin llegar a ninguna clienta.
+CREATE OR REPLACE VIEW public.hogar_landing
+WITH (security_invoker = false)
+AS
+SELECT
+  landing_hero_titulo,
+  landing_hero_subtitulo,
+  landing_hero_imagen,
+  landing_hero_imagen_movil,
+  precio_centavos,
+  andrea_foto_chat,
+  andrea_foto_perfil,                -- las tres nuevas, al final y en este orden
+  landing_cierre_imagen,
+  landing_trans_imagen
+FROM public.hogar_config
+WHERE id = 1;
+
+GRANT SELECT ON public.hogar_landing TO anon, authenticated;
+```
+
+## Verificar
+
+```bash
+curl -s "https://lxpgqhghxfqsahwrdmzo.supabase.co/rest/v1/hogar_landing" \
+  -H "apikey: <ANON_KEY>" | python3 -m json.tool
+```
+
+Debe devolver **nueve** campos, con `andrea_foto_perfil`, `landing_cierre_imagen` y
+`landing_trans_imagen` los tres últimos. Si siguen siendo seis, el `CREATE OR REPLACE`
+falló: mira el error en el editor, no lo des por bueno.
+
+Después, como Andrea: panel → **Tu landing**. Deben verse **seis** fotos — las dos del
+hero, las dos de las secciones de más abajo, *Tu foto* y *Tu retrato de la landing*.
+
+## Antes o después del código
+
+**Da igual para la landing, pero el SQL tiene que ir antes de que Andrea suba nada.**
+Las tres imágenes siguen escritas en el código, así que la landing se ve bien sin
+correr esto. Lo que no funciona sin las columnas son los botones *Cambiar foto* de esas
+tres tarjetas: el UPDATE fallaría con un error de columna inexistente.

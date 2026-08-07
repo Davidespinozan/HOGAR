@@ -4,6 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HOGAR — Regulación a través del movimiento</title>
+<meta name="description" content="Prácticas guiadas de 15, 30 o 45 minutos, según cómo te sientes hoy. Entrena con estructura, sin exigencia.">
+
+<!-- ===========================================================================
+     FAVICON — la casa con el corazón del logo, en crema sobre terracota.
+     Va en línea (data URI) y no como archivo por tres razones: no añade una
+     petición de red, escala a cualquier tamaño sin pixelarse, y se ve igual en
+     pestaña clara y oscura porque lleva su propio fondo.
+     El logo COMPLETO no sirve aquí: a 16 px la palabra "HOGAR" es ilegible y el
+     trazo marrón sobre transparente desaparece en las pestañas oscuras.
+     =========================================================================== -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C0673F'/%3E%3Cg fill='none' stroke='%23F5EBD9' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 30 L32 15 L51 30'/%3E%3Cpath d='M18 30 V47 H46 V30'/%3E%3Cpath d='M32 43 C24 37 23.5 30 27.5 29 C30 28.4 31.4 30.4 32 32 C32.6 30.4 34 28.4 36.5 29 C40.5 30 40 37 32 43 Z'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23C0673F'/%3E%3Cg fill='none' stroke='%23F5EBD9' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 30 L32 15 L51 30'/%3E%3Cpath d='M18 30 V47 H46 V30'/%3E%3Cpath d='M32 43 C24 37 23.5 30 27.5 29 C30 28.4 31.4 30.4 32 32 C32.6 30.4 34 28.4 36.5 29 C40.5 30 40 37 32 43 Z'/%3E%3C/g%3E%3C/svg%3E">
+<meta name="theme-color" content="#F5EBD9">
+
+<!-- ===========================================================================
+     VISTA PREVIA AL COMPARTIR (WhatsApp, Instagram, Facebook, X).
+     og.jpg vive en el repo y NO en el bucket a propósito: así va versionada con
+     el código, la publica Netlify desde la raíz y no depende de una subida a
+     Supabase ni de que nadie la borre por error.
+     Las URLs son ABSOLUTAS porque así lo exige og:image — una ruta relativa la
+     ignoran todos los rastreadores.
+     =========================================================================== -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HOGAR">
+<meta property="og:locale" content="es_MX">
+<meta property="og:url" content="https://hogarbyandrea.netlify.app/">
+<meta property="og:title" content="HOGAR — Entrena con estructura, sin exigencia">
+<meta property="og:description" content="Prácticas guiadas de 15, 30 o 45 minutos, según cómo te sientes hoy.">
+<meta property="og:image" content="https://hogarbyandrea.netlify.app/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Una mujer sentada en meditación en una sala luminosa, con el nombre HOGAR.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HOGAR — Entrena con estructura, sin exigencia">
+<meta name="twitter:description" content="Prácticas guiadas de 15, 30 o 45 minutos, según cómo te sientes hoy.">
+<meta name="twitter:image" content="https://hogarbyandrea.netlify.app/og.jpg">
+<link rel="canonical" href="https://hogarbyandrea.netlify.app/">
+
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,200;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -4214,7 +4252,7 @@ body.app-active { overflow: hidden; }
 <div class="marquee-bar"><div class="marquee-track">Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> Fortalece tu energía <span>◇</span> Reconoce tu propio ritmo <span>◇</span> Constancia desde adentro <span>◇</span> </div></div>
 <section class="sect prev-sect" id="sec-prev"><div class="sect-in"><div class="prev-head"><p class="sect-lab rv">¿Qué es HOGAR?</p><h2 class="sect-t rv rd1">Un espacio para entrenar con estructura, sin exigencia.</h2><p class="sect-d rv rd2">Aquí no vienes a exigir ni a corregirte, sino a escuchar tu cuerpo y acompañarlo con movimiento y presencia. Una práctica que se adapta a cómo estás hoy.</p></div><div class="prev-grid"><div class="prev-howto"><p class="prev-howto-pill">Cómo funciona</p><h3 class="prev-howto-title">Tu práctica, paso a paso</h3></div><div class="prev-feats prev-feats-left rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Check-in antes de cada práctica</h4><p>HOGAR te sugiere una práctica.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Movimiento consciente</h4><p>Sesiones de 15, 30 o 45 minutos.</p></div></div></div><div class="prev-phone rv"><div class="prev-phone-in"><div class="pp-screen" id="pp-screen"></div></div></div><div class="prev-feats prev-feats-right rv rd2"><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Integrando lo que viviste</h4><p>Lectura breve al terminar.</p></div></div><div class="pf-i"><div class="pf-ico">✦</div><div class="pf-txt"><h4>Cuestionario + registro</h4><p>Privado, sin juicio.</p></div></div></div></div></div></section>
 
-<section class="sect trans-sect" style="background:linear-gradient(160deg,var(--texto-oscuro) 0%,var(--terracota-oscuro) 100%);color:var(--crema);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" style="background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png?width=1600&resize=contain&quality=72');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
+<section class="sect trans-sect" style="background:linear-gradient(160deg,var(--texto-oscuro) 0%,var(--terracota-oscuro) 100%);color:var(--crema);"><div class="sect-in"><div class="trans-grid"><div><p class="sect-lab rv">Transformación</p><h2 class="sect-t rv rd1">Lo que empieza a cambiar</h2><p class="sect-d rv rd2">No se trata sólo de cómo te ves. Se trata de cómo te sostienes.</p><div class="rv rd3"><div class="tr-i"><div class="tr-ck">✓</div><h4>Más energía estable</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Mayor fuerza física y mental</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Claridad en tus hábitos</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Confianza en tu propio ritmo</h4></div><div class="tr-i"><div class="tr-ck">✓</div><h4>Disciplina que se siente ligera</h4></div></div></div><div class="trans-img rv" style="position:relative;"><div class="trans-img-box" id="trans-img-box" style="background-image:url('https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png?width=1600&resize=contain&quality=72');"></div><div class="tr-quote"><p>"Cada sesión es presencia.<br>Cada repetición es conciencia."</p></div></div></div></div></section>
 
 <section class="sect parati-sect" style="background:var(--crema);" id="sec-parati"><div class="sect-in parati-in"><p class="sect-lab rv">¿Es para ti?</p><h2 class="sect-t rv rd1">HOGAR es para ti <em>si…</em></h2><p class="parati-p rv rd2">Ya probaste métodos. Ya te prometiste constancia. Ya te cansaste de sentir que nunca alcanza.</p><p class="parati-p rv rd3">Esto no es para empezar de cero otra vez. Es para entrenar con estructura, <strong>pero sin látigo</strong>.</p></div></section>
 <section class="sect" style="background:var(--crema);" id="sec-testimonios"><div class="sect-in" style="text-align:center;"><p class="sect-lab rv">— Testimonios</p><h2 class="sect-t rv rd1">Lo que dicen quienes <em>ya son parte.</em></h2><div class="tst-grid">
@@ -4232,7 +4270,7 @@ body.app-active { overflow: hidden; }
     <button class="btn btn-w rv rd2" onclick="go('signup')" style="padding:1.1rem 3rem;font-size:.82rem;">Comenzar mi práctica</button>
   </div>
 </section>
-<section class="sect cre-sect"><div class="sect-in"><div class="cre-layout"><div class="cre-photo rv"><div class="cre-frame"><div class="cre-frame-img"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/IMG_9251_wrlvvu.jpg?width=900&resize=contain&quality=72" alt="Andrea"></div></div></div><div class="cre-text"><p class="sect-lab rv">Detrás de HOGAR</p><h2 class="sect-t rv rd1" style="text-align:left;">Andrea Labrada</h2><p class="rv rd1" style="font-size:1.1rem;color:var(--tierra);margin-bottom:1rem;text-align:left;">Creado desde la experiencia propia</p><p class="sect-d rv rd2" style="max-width:none;">HOGAR nace de la necesidad de entrenar distinto. De soltar la autoexigencia y encontrar una forma de movimiento que se sienta como cuidado, no como castigo. Un espacio donde la fuerza se entrena en calma y la constancia se construye desde adentro.</p><div class="cre-quote rv rd3" style="border-left-color:var(--terracota);color:var(--terracota);">"No se trata de perseguir un ideal. Se trata de construir una base firme desde la cual vivir."</div></div></div></div></section>
+<section class="sect cre-sect"><div class="sect-in"><div class="cre-layout"><div class="cre-photo rv"><div class="cre-frame"><div class="cre-frame-img"><img id="cre-foto-perfil" src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/andrea-perfil.webp?width=900&resize=contain&quality=72" alt="Andrea"></div></div></div><div class="cre-text"><p class="sect-lab rv">Detrás de HOGAR</p><h2 class="sect-t rv rd1" style="text-align:left;">Andrea Labrada</h2><p class="rv rd1" style="font-size:1.1rem;color:var(--tierra);margin-bottom:1rem;text-align:left;">Creado desde la experiencia propia</p><p class="sect-d rv rd2" style="max-width:none;">HOGAR nace de la necesidad de entrenar distinto. De soltar la autoexigencia y encontrar una forma de movimiento que se sienta como cuidado, no como castigo. Un espacio donde la fuerza se entrena en calma y la constancia se construye desde adentro.</p><div class="cre-quote rv rd3" style="border-left-color:var(--terracota);color:var(--terracota);">"No se trata de perseguir un ideal. Se trata de construir una base firme desde la cual vivir."</div></div></div></div></section>
 <section class="sect" style="background:var(--crema);" id="sec-faq"><div class="sect-in" style="text-align:center;"><h2 class="sect-t rv">Preguntas frecuentes</h2><div class="faq-w"><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Qué incluye cada sesión? <span>+</span></button><div class="faq-a"><p>Cada sesión incluye un check-in emocional, una práctica de movimiento guiada (de 15, 30 o 45 min), una lectura breve de integración y un cuestionario de registro personal.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Necesito experiencia previa? <span>+</span></button><div class="faq-a"><p>No. Las prácticas son de 15, 30 o 45 minutos y están pensadas para distintos estados del cuerpo. Puedes empezar donde estás hoy.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Esto reemplaza terapia? <span>+</span></button><div class="faq-a"><p>No. Es un complemento de autocuidado corporal y emocional. No sustituye procesos terapéuticos ni atención médica.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Qué pasa si un día no tengo ganas? <span>+</span></button><div class="faq-a"><p>Nada está mal. También hay espacio para la pausa y el descanso. Escuchar eso también es práctica.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Es pago único? <span>+</span></button><div class="faq-a"><p>Sí. Pagas una vez y tienes acceso completo. Sin renovaciones ni cargos recurrentes.</p></div></div></div></div></section>
 <footer class="lft"><div class="lft-top"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR"><p class="lft-tag">Regulación a través del movimiento</p></div><div class="lft-bottom"><p class="lft-copy">© 2026 HOGAR</p><div class="lft-links"><a href="javascript:void(0)" onclick="abrirLegal('terminos')">Términos</a><a href="javascript:void(0)" onclick="abrirLegal('privacidad')">Privacidad</a></div></div></footer>
 <!-- ===== MODALES LEGALES — los abre el pie de la landing ===== -->
@@ -6875,7 +6913,8 @@ function _landingPrecioTxt(centavos){
 
 // Ancho MÁXIMO en pantalla de cada foto, no el del archivo: pedir más grande solo
 // engorda la descarga sin que se vea mejor.
-const FOTO_ANCHO={ hero:1600, heroMovil:900, andrea:400 };
+const FOTO_ANCHO={ hero:1600, heroMovil:900, andrea:400, perfil:900,
+                   cierre:1600, cierreMovil:900, trans:1600 };
 
 // resize=contain NO ES OPCIONAL Y NO ES ESTÉTICA. Sin él, Supabase conserva la
 // ALTURA ORIGINAL y devuelve la imagen aplastada: hero-andrea.jpg, que es
@@ -6963,6 +7002,69 @@ function _landingSetFotoAndrea(url){
   _admPintarAvatar();
 }
 
+// Foto del código para el retrato de "Detrás de HOGAR". Misma red de seguridad que
+// FOTO_ANDREA_COD: si la de la base no carga, se vuelve a ésta en vez de un hueco.
+const FOTO_PERFIL_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/andrea-perfil.webp?width=900&resize=contain&quality=72';
+
+// El retrato de la sección "Detrás de HOGAR" de la landing.
+//
+// Es la SEGUNDA foto de Andrea y no la misma que andrea_foto_chat, a propósito:
+// aquélla es el avatar redondo que ven sus usuarias dentro de la app, y ésta es el
+// retrato grande que ve quien todavía no ha entrado. Dos encuadres para dos sitios,
+// así que dos columnas.
+//
+// Lo que NO puede volver a pasar es que una sea editable y la otra esté clavada en
+// el HTML: es justo lo que había antes de esto, y significaba que Andrea cambiaba
+// su foto y la landing seguía enseñando la vieja.
+//
+// El encuadre lo resuelve el CSS que ya estaba: .cre-frame-img img lleva
+// object-fit:cover, así que cualquier proporción —la vertical de un teléfono o una
+// apaisada como la anterior— se recorta al marco sin deformarse. Comprobado en los
+// tres anchos con la foto vertical nueva: no hizo falta tocar el marco.
+function _landingSetFotoPerfil(url){
+  if(!url) return;
+  const img=document.getElementById('cre-foto-perfil');
+  if(!img) return;
+  const opt=_fotoOptimizada(url, FOTO_ANCHO.perfil);
+  img.onerror=function(){
+    if(this.src!==FOTO_PERFIL_COD){ this.onerror=null; this.src=FOTO_PERFIL_COD; }
+  };
+  img.src=opt;
+}
+
+// El fondo de la sección de cierre, "Tu espacio te espera" — la sala con el reloj
+// de arena.
+//
+// UNA SOLA COLUMNA PARA LAS DOS PANTALLAS, y no dos como el hero. La diferencia es
+// real: el hero necesita dos archivos porque una foto apaisada no funciona en
+// vertical, y por eso Andrea sube dos recortes distintos. Aquí es la MISMA imagen
+// servida a dos anchos, que es exactamente lo que hacía el CSS antes de esto.
+// Darle dos controles sería pedirle que suba la misma foto dos veces.
+function _landingSetCierreImg(url){
+  if(!url) return;
+  let tag=document.getElementById('landing-cierre-override');
+  if(!tag){ tag=document.createElement('style'); tag.id='landing-cierre-override'; document.head.appendChild(tag); }
+  const esc=u=>u.replace(/["\\]/g,'\\$&');
+  const grande=esc(_fotoOptimizada(url, FOTO_ANCHO.cierre));
+  const chica =esc(_fotoOptimizada(url, FOTO_ANCHO.cierreMovil));
+  // Solo background-image: el color de respaldo, el center/cover y el velo de
+  // .cierre::before se quedan como estaban. Si se pisara el shorthand `background`
+  // se perdería el var(--texto-oscuro) de debajo y el texto quedaría sobre blanco
+  // mientras carga la imagen.
+  tag.textContent=
+     '@media(min-width:481px){.cierre{background-image:url("'+grande+'") !important;}}'
+    +'@media(max-width:480px){.cierre{background-image:url("'+chica+'") !important;}}';
+}
+
+// El recuadro de la sección "Lo que empieza a cambiar" — la mujer en la esterilla.
+// Es un background-image en línea sobre un div, así que se cambia por style.
+function _landingSetTransImg(url){
+  if(!url) return;
+  const box=document.getElementById('trans-img-box');
+  if(!box) return;
+  box.style.backgroundImage='url("'+_fotoOptimizada(url, FOTO_ANCHO.trans).replace(/["\\]/g,'\\$&')+'")';
+}
+
 async function precargarLandingHogar(){
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
@@ -6982,6 +7084,9 @@ async function precargarLandingHogar(){
     const img=String(data.landing_hero_imagen||'').trim();
     const imgMovil=String(data.landing_hero_imagen_movil||'').trim();
     const fotoChat=String(data.andrea_foto_chat||'').trim();
+    const fotoPerfil=String(data.andrea_foto_perfil||'').trim();
+    const imgCierre=String(data.landing_cierre_imagen||'').trim();
+    const imgTrans=String(data.landing_trans_imagen||'').trim();
     const precio=_landingPrecioTxt(data.precio_centavos);
 
     const h1=document.querySelector('#s-landing .hero h1');
@@ -6994,6 +7099,9 @@ async function precargarLandingHogar(){
     // la que trae el CSS, que es la que se ve hoy. Nunca un hueco.
     if(imgMovil && /^https:\/\//i.test(imgMovil)) _landingSetHeroMovilImg(imgMovil);
     if(fotoChat && /^https:\/\//i.test(fotoChat)) _landingSetFotoAndrea(fotoChat);
+    if(fotoPerfil && /^https:\/\//i.test(fotoPerfil)) _landingSetFotoPerfil(fotoPerfil);
+    if(imgCierre && /^https:\/\//i.test(imgCierre)) _landingSetCierreImg(imgCierre);
+    if(imgTrans && /^https:\/\//i.test(imgTrans)) _landingSetTransImg(imgTrans);
     if(precio && pc) pc.innerHTML=precio;
     console.log('[HOGAR landing] landing cargada desde Supabase ✓');
   }catch(e){
@@ -9984,13 +10092,19 @@ function _admLandingHTML(c){
   const FOTO_CHAT_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/hero-meditacion.jpg?width=400&resize=contain&quality=72';
   const imgMovil=(c.landing_hero_imagen_movil!=null && String(c.landing_hero_imagen_movil).trim()!=='')?c.landing_hero_imagen_movil:HERO_MOVIL_COD;
   const fotoChat=(c.andrea_foto_chat!=null && String(c.andrea_foto_chat).trim()!=='')?c.andrea_foto_chat:FOTO_CHAT_COD;
+  const FOTO_PERFIL_PREV='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/andrea-perfil.webp';
+  const fotoPerfil=(c.andrea_foto_perfil!=null && String(c.andrea_foto_perfil).trim()!=='')?c.andrea_foto_perfil:FOTO_PERFIL_PREV;
+  const CIERRE_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png?width=900&resize=contain&quality=70';
+  const TRANS_COD='https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar/ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png?width=900&resize=contain&quality=72';
+  const imgCierre=(c.landing_cierre_imagen!=null && String(c.landing_cierre_imagen).trim()!=='')?c.landing_cierre_imagen:CIERRE_COD;
+  const imgTrans=(c.landing_trans_imagen!=null && String(c.landing_trans_imagen).trim()!=='')?c.landing_trans_imagen:TRANS_COD;
   const precioTxt=_landingPrecioTxt(c.precio_centavos);
 
   let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TU LANDING</div>';
   html+='<div class="adm-alert" id="adm-landing-msg"></div>';
   html+='<p class="adm-card-text" style="margin-bottom:16px;">'
-    +'El texto y la imagen principal de la página que ven quienes aún no entran. '
-    +'La imagen vertical del teléfono se queda fija por ahora.</p>';
+    +'El texto y las fotos de la página que ven quienes aún no entran. '
+    +'Cada foto se guarda sola al cambiarla; los textos y el precio, con Guardar.</p>';
 
   // 1) Las tres fotos, cada una etiquetada con dónde se ve. Los ids de la de
   // escritorio (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS de
@@ -10023,6 +10137,22 @@ function _admLandingHTML(c){
       +'<input type="url" id="adm-lp-img" placeholder="https://…" value="'+_admEsc(img)+'" oninput="_admLandingPreview()">'
     +'</details>';
 
+  // Los dos fondos de más abajo en la página. Van juntos y después del hero porque
+  // ése es el orden en que aparecen al bajar por la landing: primero el hero, luego
+  // "Lo que empieza a cambiar" y al final "Tu espacio te espera".
+  //
+  // El del cierre lleva UN solo control aunque el CSS lo pinte en dos sitios: es la
+  // misma imagen a dos anchos, no dos recortes. Ver _landingSetCierreImg().
+  html+='<div class="adm-lp-fotos">'
+    +foto('h','adm-lp-preview-trans','adm-lp-file-trans','adm-lp-subir-trans', imgTrans,
+          'subirFotoTransHogar','Foto de "Lo que empieza a cambiar"',
+          'El recuadro que acompaña a la lista de beneficios, a media página.')
+    +foto('h','adm-lp-preview-cierre','adm-lp-file-cierre','adm-lp-subir-cierre', imgCierre,
+          'subirFotoCierreHogar','Foto de "Tu espacio te espera"',
+          'El fondo grande del final, detrás del último botón. Se usa en computadora y en celular.')
+    +'</div>'
+    +'<div class="adm-field-hint" style="margin-bottom:16px;">Van de fondo y con texto encima, así que funcionan mejor las fotos tranquilas, sin nada importante en el centro.</div>';
+
   // 2) La foto de Andrea del chat: redonda, como se ve de verdad.
   html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
     +'<div class="adm-lp-foto-tit">Tu foto</div>'
@@ -10032,10 +10162,29 @@ function _admLandingHTML(c){
           +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
       +'</div>'
       +'<div class="adm-lp-chat-txt">'
-        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">Es la que ven tus usuarias: junto a tus mensajes dentro de la práctica, y en su inicio. Con cambiarla aquí, cambia en los dos sitios.</div>'
+        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">Es la que ven tus usuarias dentro de la app: junto a tus mensajes en la práctica, en su inicio y en tu panel. Con cambiarla aquí, cambia en los tres sitios.</div>'
         +'<input type="file" id="adm-lp-file-chat" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="subirFotoChatHogar(this)">'
         +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-chat" '
           +'onclick="document.getElementById(\'adm-lp-file-chat\').click()">Cambiar foto</button>'
+      +'</div>'
+    +'</div>'
+    +'</div>';
+
+  // 3) El retrato de "Detrás de HOGAR". Va PEGADO a "Tu foto" a propósito: son sus
+  // dos fotos, y verlas juntas es lo que evita que cambie una creyendo que cambió
+  // las dos. Cada nota dice dónde se ve exactamente la suya.
+  html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
+    +'<div class="adm-lp-foto-tit">Tu retrato de la landing</div>'
+    +'<div class="adm-lp-chat-fila">'
+      +'<div class="adm-lp-marco v" style="width:104px;flex-shrink:0;">'
+        +'<img id="adm-lp-preview-perfil" src="'+_admEsc(fotoPerfil)+'" alt="Tu retrato" '
+          +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'" style="height:140px;">'
+      +'</div>'
+      +'<div class="adm-lp-chat-txt">'
+        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">La grande de la sección <em>Detrás de HOGAR</em>, la que ve quien todavía no ha entrado. Es distinta de la de arriba: aquí sales en grande, así que suele funcionar una foto de cuerpo o de medio cuerpo.</div>'
+        +'<input type="file" id="adm-lp-file-perfil" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="subirFotoPerfilHogar(this)">'
+        +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-perfil" '
+          +'onclick="document.getElementById(\'adm-lp-file-perfil\').click()">Cambiar foto</button>'
       +'</div>'
     +'</div>'
     +'</div>';
@@ -10116,7 +10265,13 @@ const ADM_FOTOS={
   movil:  { col:'landing_hero_imagen_movil', prefijo:'hero-movil-',   btn:'adm-lp-subir-movil',
             prev:'adm-lp-preview-movil', aplicar:u=>_landingSetHeroMovilImg(u) },
   chat:   { col:'andrea_foto_chat',          prefijo:'andrea-chat-',  btn:'adm-lp-subir-chat',
-            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoAndrea(u) }
+            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoAndrea(u) },
+  perfil: { col:'andrea_foto_perfil',        prefijo:'andrea-perfil-',btn:'adm-lp-subir-perfil',
+            prev:'adm-lp-preview-perfil',aplicar:u=>_landingSetFotoPerfil(u) },
+  cierre: { col:'landing_cierre_imagen',     prefijo:'cierre-',       btn:'adm-lp-subir-cierre',
+            prev:'adm-lp-preview-cierre',aplicar:u=>_landingSetCierreImg(u) },
+  trans:  { col:'landing_trans_imagen',      prefijo:'trans-',        btn:'adm-lp-subir-trans',
+            prev:'adm-lp-preview-trans', aplicar:u=>_landingSetTransImg(u) }
 };
 
 // SUBIDA DIRECTA de una de las fotos. Andrea elige un archivo de su compu; se sube
@@ -10229,6 +10384,9 @@ async function subirFotoHogar(input, clave){
 async function subirImagenHeroHogar(input){ return subirFotoHogar(input,'desktop'); }
 async function subirFotoMovilHogar(input){ return subirFotoHogar(input,'movil'); }
 async function subirFotoChatHogar(input){ return subirFotoHogar(input,'chat'); }
+async function subirFotoPerfilHogar(input){ return subirFotoHogar(input,'perfil'); }
+async function subirFotoCierreHogar(input){ return subirFotoHogar(input,'cierre'); }
+async function subirFotoTransHogar(input){ return subirFotoHogar(input,'trans'); }
 
 async function guardarLandingHogar(btn){
   _admLandingMsg('');
