@@ -345,8 +345,21 @@ dos sitios a la vez, `auth.users` y `hogar_usuarias`.
 
 ## 6 · Cobro huérfano: pagar y borrar la cuenta antes del webhook
 
-**Estado: mitigado, no cerrado.** Detectado en agosto de 2026 al llevar el botón
-de borrar cuenta al muro.
+**Estado: resuelto para la ventana realista, no cerrado del todo.** Detectado en
+agosto de 2026 al llevar el botón de borrar cuenta al muro; arreglado en agosto de
+2026 con `checkout_iniciado_en` (ver `SQL-COBRO-HUERFANO.md`).
+
+> **Qué cubre y qué no.** El arreglo cubre la ventana en la que esto ocurre de
+> verdad: los minutos u horas entre pagar y que llegue el webhook. **No** cubre un
+> webhook caído durante días — si el endpoint estuviera roto cinco días y ella
+> borrara el sexto, la marca ya habría caducado y volveríamos a quedarnos sin
+> registro. La cobertura completa pediría **reconciliar contra Stripe**
+> periódicamente: listar los cargos de la cuenta conectada y cruzarlos con
+> `hogar_usuarias` y `hogar_bajas` para encontrar los que no cuadran. Eso es otra
+> tarea, con su propia función programada, y no se ha hecho.
+>
+> Lo que queda abajo es la descripción del problema original y del camino que se
+> siguió; se conserva porque explica por qué el arreglo es como es.
 
 ### La secuencia
 

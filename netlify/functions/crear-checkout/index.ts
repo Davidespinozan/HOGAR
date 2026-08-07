@@ -234,6 +234,29 @@ export const handler: Handler = async (event) => {
 
     const origin = resolverOrigen(event.headers);
 
+    // Marca de pago en vuelo, del lado del servidor.
+    //
+    // Es lo que permite dos cosas que antes no se podían: dejar fila en
+    // hogar_bajas aunque el webhook no haya llegado —el cobro huérfano— y que el
+    // muro ESPERAR funcione entre dispositivos, no solo en el que pagó.
+    //
+    // ESTE `await` NO PUEDE TUMBAR EL PAGO, y por eso va con su propio try. Si
+    // Supabase parpadea, se registra y se sigue: quedarse sin la marca es volver
+    // a como estaba HOY; no dejarla pagar es perder la venta y su confianza. El
+    // dinero manda sobre la contabilidad.
+    try {
+      const { error: marcaErr } = await admin
+        .from('hogar_usuarias')
+        .update({ checkout_iniciado_en: new Date().toISOString() })
+        .eq('id', auth.user.id);
+      if (marcaErr) {
+        console.error('[crear-checkout] no se pudo marcar checkout_iniciado_en:', marcaErr.message);
+      }
+    } catch (marcaErr) {
+      console.error('[crear-checkout] no se pudo marcar checkout_iniciado_en:',
+        marcaErr instanceof Error ? marcaErr.message : marcaErr);
+    }
+
     // metadata en la session Y en el payment_intent: el webhook resuelve por
     // ahí a quién acreditar, y la etiqueta app lo separa de los eventos de EKKO.
     const metadata = { app: APP_TAG, user_id: auth.user.id };

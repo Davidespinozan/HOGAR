@@ -77,7 +77,13 @@ async function acreditarPago(session: Stripe.Checkout.Session): Promise<void> {
       estatus: 'activa',
       // Deja de ser una concesión: el cobro llegó. Si venía de un acceso manual,
       // esto lo apaga y las métricas dejan de tratarlo como cortesía.
-      acceso_manual: false
+      acceso_manual: false,
+      // La marca de pago en vuelo ya cumplió: el dinero está acreditado y
+      // `pagado` lo dice mejor. Se apaga aquí, en el MISMO update, para no
+      // añadir una llamada que pudiera fallar por su cuenta y dejar la fila a
+      // medias. Si esto no llegara a correr, la barrería el job diario a las
+      // 72 h y mientras tanto solo sostendría el muro ESPERAR media hora de más.
+      checkout_iniciado_en: null
     })
     .eq('id', userId);
   if (error) throw new Error(`activar clienta: ${error.message}`);

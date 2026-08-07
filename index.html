@@ -6626,7 +6626,11 @@ function cargarAccesoHogar(){
       const { data:{ session } } = await window.sb.auth.getSession();
       if(!session || !session.user){ U.acceso=null; return null; }
       const { data, error } = await window.sb.from('hogar_usuarias')
-        .select('pagado').eq('id', session.user.id).maybeSingle();
+        // checkout_iniciado_en viaja con `pagado` en la misma consulta a
+        // propósito: es lo que permite que _hayPagoEnVuelo() siga siendo
+        // SÍNCRONA. Si tuviera que ir a la red por su cuenta, habría que volver
+        // asíncronos el muro y el diálogo de borrado, que hoy pintan de un tirón.
+        .select('pagado,checkout_iniciado_en').eq('id', session.user.id).maybeSingle();
       if(error) throw error;
       // Sin fila NO es "no pagó": es que no se pudo ver. Con RLS, una policy
       // ausente devuelve vacío sin error, y confundir eso con un impago
@@ -6636,6 +6640,10 @@ function cargarAccesoHogar(){
         U.acceso=null; return null;
       }
       U.acceso = (data.pagado===true);
+      // Se guarda como número para que _hayPagoEnVuelo() compare igual que con
+      // la marca del localStorage, sin dos formatos de fecha conviviendo.
+      const t=Date.parse(data.checkout_iniciado_en||'');
+      U.checkoutEnVuelo = isNaN(t) ? 0 : t;
       return U.acceso;
     }catch(e){
       console.warn('[HOGAR acceso] no se pudo leer:', (e&&e.message)||e);
@@ -6789,10 +6797,15 @@ function irAAcceso(){ go('acceso'); }
 // diferencia importa: si se marcara antes del redirect, quien CANCELA el pago
 // volvería y vería "esperando confirmación" sin haber pagado nada.
 //
-// Es por dispositivo: si paga en el móvil y abre en el portátil, el portátil
-// enseña el botón normal. No es un agujero — el cortafuegos de crear-checkout
-// para el cobro igual; esto solo evita el susto. La versión a prueba de
-// dispositivos sería una columna checkout_iniciado_at en hogar_usuarias.
+// ESTA MARCA ES POR DISPOSITIVO Y YA NO ESTÁ SOLA. Antes, pagar en el móvil y
+// abrir en el portátil dejaba al portátil enseñando el botón de pagar otra vez.
+// Desde agosto de 2026 hay además hogar_usuarias.checkout_iniciado_en, que
+// escribe crear-checkout y ve cualquier dispositivo; _hayPagoEnVuelo() mira las
+// dos y le basta con una.
+//
+// El localStorage se queda porque es INSTANTÁNEO: al volver de Stripe está ahí
+// sin esperar a ninguna consulta, y eso es justo el momento en que la clienta
+// mira la pantalla.
 const PAGO_EN_VUELO_KEY='hogar_pago_en_vuelo';
 const PAGO_EN_VUELO_MS=30*60*1000;   // 30 min: pasado ese rato, vuelve el botón
 
@@ -6802,12 +6815,30 @@ function _marcarPagoEnVuelo(){
 function _olvidarPagoEnVuelo(){
   try{ localStorage.removeItem(PAGO_EN_VUELO_KEY); }catch(_){}
 }
-/** ¿Hay un pago reciente sin confirmar? Caduca sola para no encerrar a nadie. */
+/** ¿Hay un pago reciente sin confirmar? Caduca sola para no encerrar a nadie.
+ *
+ *  DOS FUENTES, y basta con una:
+ *    · el localStorage — instantáneo, pero solo en ESTE dispositivo;
+ *    · hogar_usuarias.checkout_iniciado_en — la escribe crear-checkout y la ve
+ *      cualquier dispositivo. Es lo que arregla pagar en el móvil y abrir en el
+ *      portátil, donde antes le salía el botón de pagar otra vez.
+ *
+ *  LAS DOS CON LA MISMA VENTANA DE 30 MINUTOS, que NO es la de 72 h de la baja.
+ *  Son preguntas distintas: allí es "¿pudo haber dinero?" y aquí "¿le enseño el
+ *  botón de pagar?". Con 72 h aquí, quien abrió el checkout y se arrepintió se
+ *  quedaría tres días viendo "esperando confirmación" SIN PODER PAGAR. Ese es el
+ *  peor fallo posible de todo esto: bloquea el ingreso y parece un bug del sitio.
+ *
+ *  Si la columna no se ha leído todavía (U.checkoutEnVuelo sin valor), queda solo
+ *  el localStorage — exactamente el comportamiento de antes, nunca peor. */
 function _hayPagoEnVuelo(){
+  const fresco=t=>!!t && (Date.now()-t) <= PAGO_EN_VUELO_MS;
+  // La columna primero: es la que vale entre dispositivos.
+  if(U && fresco(U.checkoutEnVuelo)) return true;
   try{
     const t=Number(localStorage.getItem(PAGO_EN_VUELO_KEY)||0);
     if(!t) return false;
-    if(Date.now()-t > PAGO_EN_VUELO_MS){ _olvidarPagoEnVuelo(); return false; }
+    if(!fresco(t)){ _olvidarPagoEnVuelo(); return false; }
     return true;
   }catch(_){ return false; }
 }
