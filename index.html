@@ -32,7 +32,7 @@
 .scr{display:none;}
 .scr.on{display:block;animation:scrIn .5s ease;}
 /* Todas las screens que NO son landing se fijan al viewport */
-#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on,#s-admin.on,#s-acceso.on{
+#s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,#s-dash.on,#s-checkin.on,#s-ci1.on,#s-ci2.on,#s-prac.on,#s-quest.on,#s-done.on,#s-profile.on,#s-history.on,#s-admin.on,#s-acceso.on{
   position:fixed;top:0;left:0;width:100%;height:100%;overflow-y:auto;z-index:200;background:var(--crema);
 }
 @keyframes scrIn{from{opacity:0}to{opacity:1}}@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(244,200,184,.3)}50%{box-shadow:0 0 40px rgba(244,200,184,.5)}}
@@ -804,7 +804,7 @@
 
 /* — Ambient orb backgrounds (solo app screens, no landing) — */
 #s-signup.on,#s-login.on,#s-recover.on,#s-newpass.on,
-#s-dash.on,#s-ci1.on,#s-ci2.on,
+#s-dash.on,#s-checkin.on,#s-ci1.on,#s-ci2.on,
 #s-prac.on,#s-quest.on,
 #s-done.on,#s-profile.on,#s-history.on,#s-admin.on,#s-acceso.on{
   background: linear-gradient(180deg, var(--salmon-claro) 0%, var(--crema-claro) 100%) !important;
@@ -1661,6 +1661,66 @@ body.app-active { overflow: hidden; }
   margin:14px 0;
   border:none;
 }
+/* Reconocimiento de la práctica de hoy. Va bajo el saludo y encima de la cita de
+   Andrea. El tono es bajo A PROPÓSITO: sin tarjeta, sin check, sin color de
+   "logro" y sin contar cuántas veces — solo una línea que constata. HOGAR nace de
+   soltar la autoexigencia, y un marcador la devuelve por la puerta de atrás.
+   Nace oculto: solo lo enciende pintarReconocimientoHoy(), y nunca se vuelve a
+   apagar dentro de una sesión (ver el comentario de esa función). */
+.dash-hoy{
+  position:relative; z-index:1;
+  margin:0 0 16px;
+}
+.dash-hoy-txt{
+  font-family:'Montserrat',sans-serif;
+  font-style:italic; font-weight:300;
+  font-size:17px; line-height:1.3;
+  color:#3a2820;
+  margin:0;
+}
+.dash-hoy-meta{
+  font-family:'Montserrat',sans-serif;
+  font-size:11px; letter-spacing:1.5px;
+  text-transform:uppercase; font-weight:500;
+  color:#9c7a68;
+  margin:6px 0 0;
+}
+/* Botón principal del dashboard — la única puerta al check-in. Hereda el aspecto
+   de .action-card (el final del chat) para que abrir la práctica y empezarla se
+   vean como el mismo gesto. */
+.dash-cta{
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  width:100%; max-width:720px;
+  margin:0 auto 32px;
+  padding:22px 26px;
+  border:none; border-radius:18px;
+  background:linear-gradient(135deg, var(--salmon-rosa) 0%, var(--terracota-oscuro) 100%);
+  box-shadow:0 8px 20px rgba(184,95,61,0.35);
+  cursor:pointer; text-align:left;
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+.dash-cta:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 32px rgba(184,95,61,0.45);
+}
+.dash-cta-txt{
+  font-family:'Montserrat',sans-serif;
+  font-size:19px; font-weight:300; line-height:1.2;
+  color:var(--crema);
+}
+.dash-cta-arrow{
+  width:44px; height:44px; border-radius:50%;
+  background:rgba(245,235,217,0.2);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; color:var(--crema);
+  flex-shrink:0;
+}
+@media(max-width:480px){
+  .dash-cta{ padding:18px 20px; margin-bottom:24px; }
+  .dash-cta-txt{ font-size:17px; }
+  .dash-cta-arrow{ width:38px; height:38px; font-size:18px; }
+  .dash-hoy-txt{ font-size:16px; }
+}
 .dash-andrea-glass{
   position:relative; z-index:1;
   background:rgba(255,255,255,.6);
@@ -1877,8 +1937,8 @@ body.app-active { overflow: hidden; }
   box-shadow: 0 6px 24px color-mix(in srgb, var(--emo-color) 40%, transparent) !important;
 }
 
-/* ===== ACTION CARD del flow conversacional (regla base + bridge para #s-dash) ===== */
-#s-dash .action-card {
+/* ===== ACTION CARD del flow conversacional (regla base + bridge para #s-checkin) ===== */
+#s-checkin .action-card {
   background: linear-gradient(135deg, var(--salmon-rosa) 0%, var(--terracota-oscuro) 100%);
   border-radius: 18px;
   padding: 20px 24px;
@@ -1892,37 +1952,37 @@ body.app-active { overflow: hidden; }
   margin-top: 8px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-#s-dash .action-card:hover {
+#s-checkin .action-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 14px 32px rgba(184,95,61,0.45);
 }
-#s-dash .action-card .label {
+#s-checkin .action-card .label {
   font-size: 10px;
   letter-spacing: 2.5px;
   opacity: 0.9;
   font-weight: 600;
   margin-bottom: 6px;
 }
-#s-dash .action-card .title {
+#s-checkin .action-card .title {
   font-family: 'Montserrat', sans-serif;
   font-size: 19px;
   font-weight: 300;
   line-height: 1.2;
   color: var(--crema);
 }
-#s-dash .action-card .title em {
+#s-checkin .action-card .title em {
   font-weight: 700;
   font-style: italic;
   color: var(--crema);
 }
-#s-dash .action-card .meta {
+#s-checkin .action-card .meta {
   font-size: 11px;
   font-style: italic;
   opacity: 0.9;
   font-weight: 300;
   margin-top: 4px;
 }
-#s-dash .action-card .action-arrow {
+#s-checkin .action-card .action-arrow {
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -1935,11 +1995,11 @@ body.app-active { overflow: hidden; }
 }
 
 /* ===== TINTE .emocion-activa para IDs nuevos (s-XXX) ===== */
-#s-dash.emocion-activa .bubble.right,
+#s-checkin.emocion-activa .bubble.right,
 #s-prac.emocion-activa .bubble.right {
   background: var(--emo-color, var(--terracota));
 }
-#s-dash.emocion-activa .action-card {
+#s-checkin.emocion-activa .action-card {
   background: linear-gradient(135deg, var(--salmon-rosa) 0%, var(--terracota-oscuro) 100%) !important;
 }
 
@@ -4424,6 +4484,12 @@ body.app-active { overflow: hidden; }
         <p class="dash-hello" id="dash-hello">Hola,</p>
         <h1 class="dash-name"><span id="user-name">Andrea</span>.</h1>
         <hr class="dash-rule">
+        <!-- Reconocimiento de la práctica de hoy. Oculto de nacimiento: lo
+             enciende pintarReconocimientoHoy() cuando hi[0] es de hoy. -->
+        <div class="dash-hoy" id="dash-hoy" style="display:none;">
+          <p class="dash-hoy-txt">Hoy estuviste aquí.</p>
+          <p class="dash-hoy-meta" id="dash-hoy-meta"></p>
+        </div>
       </div>
       <div class="dash-andrea-glass">
         <div class="dash-andrea-photo">
@@ -4459,6 +4525,37 @@ body.app-active { overflow: hidden; }
         <div class="stat-tile-sub">días consecutivos</div>
       </div>
     </div>
+    <!-- Única puerta al check-in. El texto lo cambia pintarReconocimientoHoy(). -->
+    <button class="dash-cta" onclick="go('checkin')">
+      <span class="dash-cta-txt" id="dash-cta-txt">Empezar mi práctica</span>
+      <span class="dash-cta-arrow">→</span>
+    </button>
+    <div class="dash-paisaje" id="dash-paisaje">
+      <div class="dash-paisaje-header">
+        <span class="dash-paisaje-eyebrow">Tu <em>paisaje</em> · últimos 14 días</span>
+        <span class="dash-paisaje-meta" id="dash-paisaje-meta">EN RACHA</span>
+      </div>
+      <div class="dash-paisaje-dots" id="dash-paisaje-dots"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECK-IN CONVERSACIONAL — el chat con Andrea, a pantalla completa.
+     El bloque de abajo VIVÍA DENTRO DE #s-dash y se movió aquí tal cual: mismos
+     ids, mismas clases, mismo contenido. Los ids importan y no son decorativos —
+     #dash-chat-messages lo busca appendChatMsg() y #dash-pills-emocion lo llena
+     renderEmoPills() y lo colorea el CSS por :nth-child. Renombrarlos obliga a
+     tocar ambos sitios. Y tiene que haber UNO SOLO en todo el documento: dos
+     copias y getElementById empieza a escribir en el invisible, sin dar error. -->
+<div id="s-checkin" class="scr">
+  <div class="app-nav">
+    <button class="app-nav-back" onclick="go('dash')">← Salir</button>
+    <div class="app-nav-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
+    </div>
+    <div style="width:88px;"></div>
+  </div>
+  <div class="app-container">
     <div class="dash-chat-section">
       <div class="dash-chat-eyebrow">TU MOMENTO</div>
       <div class="dash-chat-messages" id="dash-chat-messages">
@@ -4474,20 +4571,13 @@ body.app-active { overflow: hidden; }
         <button id="dash-fallback-link" onclick="go('ci1')" style="display:block;margin:18px auto 0;background:none;border:none;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:var(--texto-medio);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:0;transition:color .2s;" onmouseover="this.style.color='var(--terracota)'" onmouseout="this.style.color='var(--texto-medio)'">¿No estás segura cómo te sientes? Ver opciones detalladas →</button>
       </div>
     </div>
-    <div class="dash-paisaje" id="dash-paisaje">
-      <div class="dash-paisaje-header">
-        <span class="dash-paisaje-eyebrow">Tu <em>paisaje</em> · últimos 14 días</span>
-        <span class="dash-paisaje-meta" id="dash-paisaje-meta">EN RACHA</span>
-      </div>
-      <div class="dash-paisaje-dots" id="dash-paisaje-dots"></div>
-    </div>
   </div>
 </div>
 
 <!-- CHECK-IN 1: EMOCION -->
 <div id="s-ci1" class="scr">
   <div class="app-nav">
-    <button class="app-nav-back" onclick="go('dash')">← Volver</button>
+    <button class="app-nav-back" onclick="go('checkin')">← Volver</button>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/object/public/hogar/LOGOHOGAR_qasyyc.png" alt="HOGAR">
     </div>
@@ -5723,7 +5813,10 @@ function go(id){
   // Solo desvía ante un false CONFIRMADO: con el acceso desconocido se deja
   // pasar, igual que en pT(). Andrea nunca llega aquí con false (esAdmin la
   // resuelve en true sin consultar).
-  if(id==='dash' && U && U.acceso===false) id='acceso';
+  // El check-in entra por el mismo muro que el dashboard. Sin esto se colaría
+  // hasta la conversación entera y la pared solo aparecería al pulsar la tarjeta
+  // final, que es donde pT() consulta el acceso: tarde y peor.
+  if((id==='dash'||id==='checkin') && U && U.acceso===false) id='acceso';
   // Scroll to absolute top FIRST, before switching screens
   window.scrollTo({top:0,left:0,behavior:'instant'});
   document.documentElement.scrollTop=0;
@@ -5738,7 +5831,12 @@ function go(id){
     document.body.scrollTop=0;
   });
   if(id==='acceso')_accPintarAcceso();
-  if(id==='dash'){resetDashChat();uD();refrescarHistorialYStats();}
+  if(id==='dash'){uD();refrescarHistorialYStats();}
+  // El reset viaja con el chat: antes lo disparaba la entrada al dashboard porque
+  // era ahí donde vivía. Sin esto, la segunda visita al check-in se encuentra la
+  // conversación anterior entera, con las pills apagadas y _dashStep atascado en
+  // 'lista' — se ve bien y no responde a nada.
+  if(id==='checkin')resetDashChat();
   if(id==='profile'){uP();refrescarHistorialYStats();}
   if(id==='history')renderHistory(window._histFilter||'todos');
   if(id==='admin')loadAdmin();
@@ -6055,6 +6153,7 @@ function applyUser(supaUser){
   const fullName=(meta.full_name||'').trim();
   const nombre=fullName || (supaUser.email? supaUser.email.split('@')[0] : 'tu HOGAR');
   U={ name:nombre, fullName:fullName, email:supaUser.email||'', sessions:0, streak:0, days:0 };
+  apagarReconocimientoHoy();
 }
 
 // Detecta si un error/respuesta indica correo duplicado
@@ -6809,6 +6908,56 @@ function _dailyNoteIndex(arr){
   const days=Math.floor(localMidnightMs/86400000);
   return ((days % arr.length) + arr.length) % arr.length;
 }
+// Ritmo guardado ('Ritmo Base') → minutos. La duración NO es una columna de
+// hogar_sesiones: solo se guarda `ritmo`, así que aquí se deriva. Es el inverso de
+// DUR_LABEL. Un ritmo que no esté en el mapa devuelve '' y quien lo pinta se queda
+// solo con el nombre, en vez de inventarse una duración.
+const RITMO_MIN={'Micro':'15','Base':'30','Profundo':'45'};
+function _minutosDeRitmo(ritmo){
+  const r=String(ritmo==null?'':ritmo).replace(/^Ritmo\s+/i,'').trim();
+  return RITMO_MIN[r]||'';
+}
+
+// Enciende el reconocimiento de "hoy ya practicaste" y cambia el texto del botón.
+//
+// SOLO ENCIENDE, NUNCA APAGA, y es a propósito. Se llama dos veces por visita al
+// dashboard: primero desde uD(), con el hi[] que hay en memoria, y después desde
+// refrescarHistorialYStats(), con lo que traiga la nube. Al volver de una práctica
+// hi[0] ya es la de hoy —la mete qFinish() antes de go('done')—, pero el guardado
+// en la nube va en segundo plano: si el refresco gana la carrera al INSERT, la
+// nube todavía no la tiene, y un "apagar si no la veo" borraría el reconocimiento
+// un segundo después de encenderlo. Preferimos que no aparezca a que parpadee.
+// El único apagado es apagarReconocimientoHoy(), al construir U.
+function pintarReconocimientoHoy(){
+  const caja=document.getElementById('dash-hoy');
+  if(!caja) return;
+  // hi[] va de más reciente a más antigua en sus dos orígenes: la nube ordena por
+  // created_at descendente y qFinish() hace unshift. Basta con mirar la primera.
+  const ult=(hi&&hi.length)?hi[0]:null;
+  // 'Hoy' lo ponen los dos caminos: fechaLegible() para lo que viene de la nube y
+  // qFinish() a mano para la que se acaba de terminar.
+  if(!ult || ult.fecha!=='Hoy') return;
+  const ritmo=String(ult.ritmo||ult.r||'').trim();
+  const min=_minutosDeRitmo(ritmo);
+  const meta=document.getElementById('dash-hoy-meta');
+  if(meta) meta.textContent = min ? (ritmo+' · '+min+' min') : ritmo;
+  caja.style.display='';
+  // Practicar dos veces el mismo día no cambia el texto ni suma un contador:
+  // enseña la última y ya. Contarlas sería un marcador, y eso es lo contrario de
+  // reconocer.
+  const cta=document.getElementById('dash-cta-txt');
+  if(cta) cta.textContent='Practicar otra vez';
+}
+
+// El único apagado. Lo llama applyUser(), porque el reconocimiento que quedó
+// encendido es el de la usuaria anterior.
+function apagarReconocimientoHoy(){
+  const caja=document.getElementById('dash-hoy');
+  if(caja) caja.style.display='none';
+  const cta=document.getElementById('dash-cta-txt');
+  if(cta) cta.textContent='Empezar mi práctica';
+}
+
 function uD(){
   if(!U)return;
   const $=id=>document.getElementById(id);
@@ -6822,6 +6971,9 @@ function uD(){
   if($('dash-aside-meta'))$('dash-aside-meta').textContent='ANDREA · HOY';
   if($('dash-paisaje-meta'))$('dash-paisaje-meta').textContent=U.streak>0?'EN RACHA':'CONSTRUYENDO';
   renderPaisaje();
+  // Con el hi[] que haya en memoria. Al volver de una práctica ya trae la de hoy,
+  // así que el reconocimiento sale sin esperar a la nube.
+  pintarReconocimientoHoy();
 }
 
 
@@ -7020,13 +7172,24 @@ const PRACTICE_TO_EMO = {
   'Descarga Segura': 'tensa'
 };
 
-// Screens del flow que reciben el tinte .emocion-activa cuando se selecciona emoción
-const FLOW_SCREENS = ['s-dash','s-prac','s-quest','s-done'];
+// Screens del flow que reciben el tinte .emocion-activa cuando se selecciona
+// emoción. s-checkin entró aquí al salir el chat del dashboard, y no es opcional:
+// esta lista es también la que USA resetDashChat() PARA LIMPIAR el tinte. Una
+// pantalla que se tiñe y no está en la lista se queda teñida de la emoción de
+// ayer para siempre.
+const FLOW_SCREENS = ['s-checkin','s-prac','s-quest','s-done'];
 
-// Pick emoción: detecta from-dash y delega; si no, flow tradicional
+// Pick emoción: detecta si viene del chat y delega; si no, flow tradicional.
+//
+// OJO AL CENTINELA: la que decide entre las DOS check-in que conviven (el chat
+// conversacional y el clásico de s-ci1/s-ci2) es esta pregunta por la pantalla
+// visible. Apuntaba a s-dash mientras el chat vivía dentro del dashboard. Si se
+// queda desincronizada con dónde está el chat, la respuesta pasa a ser siempre
+// "no" y el chat se autodesactiva en silencio: tocar una emoción salta a la
+// pantalla vieja de duración y Andrea no contesta nunca. Lo mismo en pickTime().
 function pickEmo(idx){
   curEmo=idx; sP=EMO_PRAC[idx]; curQ=0; answers={};
-  const fromDash=document.getElementById('s-dash').classList.contains('on');
+  const fromDash=document.getElementById('s-checkin').classList.contains('on');
   if(fromDash){
     dashSelectEstado(idx);
   } else {
@@ -7124,7 +7287,7 @@ function appendTiempoPills(){
 
 // Pick tiempo: detecta from-dash y delega al flow conversacional o al tradicional pT()
 function pickTime(time, rhy){
-  const fromDash=document.getElementById('s-dash').classList.contains('on');
+  const fromDash=document.getElementById('s-checkin').classList.contains('on');
   if(fromDash){
     dashSelectTiempo(time, rhy);
   } else {
@@ -8211,6 +8374,10 @@ async function refrescarHistorialYStats(){
     if($('ps'))$('ps').textContent=U.sessions;
     if($('pk'))$('pk').textContent=U.streak;
     renderPaisaje();
+    // Segunda pasada, ya con hi[] reconstruido desde la nube: es la que enciende
+    // el reconocimiento al entrar de nuevas (login, recarga), cuando uD() corrió
+    // con hi[] todavía vacío.
+    pintarReconocimientoHoy();
   }catch(err){ /* silencioso: se queda con el cache actual */ }
 }
 
