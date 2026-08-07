@@ -10507,7 +10507,12 @@ function abrirRecortador(origen, opciones){
     img.onerror=function(){
       _recCerrarSilencioso();
       resolve(null);
-      _admLandingMsg('No se pudo abrir esa foto para recortarla. Prueba con otra.','error');
+      // El HEIC llega hasta aquí a propósito (ver subirFotoHogar): si el
+      // navegador sabe decodificarlo, el canvas lo convierte y nadie se entera;
+      // si no, cae en este onerror y toca decir por qué, no un error genérico.
+      _admLandingMsg(opciones.esHeic
+        ? 'Este navegador no sabe abrir fotos HEIC, el formato de la cámara del iPhone. Desde el iPhone suele funcionar; si no, ábrela, dale a Compartir y guárdala como JPG.'
+        : 'No se pudo abrir esa foto para recortarla. Prueba con otra.','error');
     };
     img.src=url;
   });
@@ -10820,12 +10825,28 @@ async function subirFotoHogar(input, clave){
   // lo procesa, así que rechazarlo aquí con un mensaje claro es lo honesto.
   const TIPOS_OK=['image/jpeg','image/jpg','image/png','image/webp','image/avif'];
   const tipo=String(file.type||'').toLowerCase();
+  const esHeic=/heic|heif/.test(tipo) || /\.hei[cf]$/i.test(file.name||'');
   if(!TIPOS_OK.includes(tipo)){
-    const esHeic=/heic|heif/.test(tipo) || /\.hei[cf]$/i.test(file.name||'');
-    _admLandingMsg(esHeic
-      ? 'Esa foto está en formato HEIC, el de la cámara del iPhone, y muchos navegadores no lo muestran. En el celular ábrela, dale a Compartir y guárdala como JPG; o en Ajustes → Cámara → Formatos, elige "Más compatible".'
-      : 'Ese archivo no es una imagen que podamos usar. Elige un JPG, PNG o WEBP.','error');
-    _reset(); return;
+    // EL HEIC SÍ PASA CUANDO HAY RECORTADOR, y solo entonces. El recorte dibuja
+    // la foto en un canvas y la saca como JPEG, así que en un navegador que sepa
+    // decodificar HEIC —Safari, que usa el decodificador del sistema— la
+    // conversión ocurre sola y ella no se entera de nada. Donde no se sepa
+    // (Chrome, Firefox, Android) el <img> falla, y abrirRecortador() lo dice con
+    // el mismo mensaje de siempre en vez de subir algo que nadie podrá ver.
+    //
+    // Los cuatro fondos no llevan recortador, así que ahí se sigue rechazando de
+    // entrada: sin canvas de por medio, un HEIC subido es un hueco en la landing.
+    //
+    // OJO CON EL `accept` DE LOS INPUTS: se queda SIN heic a propósito. Cuando la
+    // lista no lo incluye, el selector de iOS entrega la foto ya convertida a
+    // JPEG — que es el mejor camino de todos. Añadirlo haría que iOS pasara el
+    // HEIC crudo y empeoraría justo el caso más común.
+    if(!(esHeic && cfg.recorte)){
+      _admLandingMsg(esHeic
+        ? 'Esa foto está en formato HEIC, el de la cámara del iPhone, y muchos navegadores no lo muestran. En el celular ábrela, dale a Compartir y guárdala como JPG; o en Ajustes → Cámara → Formatos, elige "Más compatible".'
+        : 'Ese archivo no es una imagen que podamos usar. Elige un JPG, PNG o WEBP.','error');
+      _reset(); return;
+    }
   }
   if(file.size > ADM_HERO_MAX_MB*1024*1024){
     const mb=(file.size/1024/1024).toFixed(1);
@@ -10843,7 +10864,7 @@ async function subirFotoHogar(input, clave){
   // funcionar. Lo que se recorta es el File que ya tenemos en mano.
   _reset();
   if(cfg.recorte){
-    const recortada=await abrirRecortador(file, cfg.recorte);
+    const recortada=await abrirRecortador(file, Object.assign({}, cfg.recorte, { esHeic:esHeic }));
     if(!recortada) return;             // canceló: no se sube nada, sigue la de antes
     file=recortada;
   }
