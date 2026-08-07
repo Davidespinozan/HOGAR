@@ -57,6 +57,19 @@ WHERE id = 1;
 -- quien tuviera el enlace. No se expone ningún dato de Stripe.
 -- ============================================================================
 
+-- EL ORDEN DE ESTAS COLUMNAS NO ES COSMÉTICO. `andrea_foto_chat` va LA ÚLTIMA,
+-- después de precio_centavos, y tiene que quedarse ahí.
+--
+-- CREATE OR REPLACE VIEW solo sabe AÑADIR columnas AL FINAL: no puede insertarlas
+-- en medio ni reordenarlas. Este script antes la ponía entre imagen_movil y
+-- precio_centavos, y por eso falló en su día con
+--
+--     cannot change name of view column "precio_centavos" to "andrea_foto_chat"
+--
+-- Lo que dejó la base a medias: el ALTER TABLE sí creó la columna, pero la vista
+-- se quedó sin ella. Resultado, "Tu foto" era un control muerto — Andrea la subía,
+-- la previsualización cambiaba, y ninguna clienta la veía nunca, porque las
+-- visitantes leen esta vista y no hogar_config.
 CREATE OR REPLACE VIEW public.hogar_landing
 WITH (security_invoker = false)      -- corre con permisos del dueño: puede leer
 AS                                   -- hogar_config aunque el visitante no pueda
@@ -65,8 +78,8 @@ SELECT
   landing_hero_subtitulo,
   landing_hero_imagen,
   landing_hero_imagen_movil,
-  andrea_foto_chat,
-  precio_centavos
+  precio_centavos,
+  andrea_foto_chat                   -- LA ÚLTIMA. Ver el comentario de arriba.
 FROM public.hogar_config
 WHERE id = 1;
 
