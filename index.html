@@ -142,6 +142,57 @@
 /* ===== ACCESO MANUAL — modal del panel de Andrea =====
    Hereda .legal-ov/.legal-modal y solo añade lo suyo. Usa los tokens --adm-*
    para que no se despegue del resto del panel si algún día cambian. */
+/* ===========================================================================
+   RECORTADOR DE FOTOS — el marco no se mueve, la foto sí.
+   Pensado para el dedo primero: el escritorio hereda. Reutiliza .legal-ov como
+   fondo, pero con su propia caja porque aquí el contenido no scrollea.
+   =========================================================================== */
+.rec-modal{width:100%;max-width:520px;background:#fff;border-radius:24px;overflow:hidden;
+  display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(61,36,24,.32);}
+.rec-head{flex-shrink:0;padding:18px 22px 14px;border-bottom:1px solid #f2e8dd;}
+.rec-tit{font-family:'Montserrat',sans-serif;font-size:15px;font-weight:700;color:var(--texto-oscuro);}
+.rec-sub{font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:300;color:var(--texto-medio);
+  margin-top:4px;line-height:1.45;}
+/* El escenario. touch-action:none NO ES OPCIONAL Y NO ES ESTÉTICA: sin esto el
+   navegador se queda el arrastre para hacer scroll de la página y la foto no se
+   mueve. Solo se nota en un teléfono de verdad — con ratón todo parece bien. */
+.rec-escena{position:relative;overflow:hidden;background:#2a1c14;
+  touch-action:none;-webkit-user-select:none;user-select:none;cursor:grab;}
+.rec-escena.arrastrando{cursor:grabbing;}
+.rec-escena img{position:absolute;left:50%;top:50%;transform-origin:center center;
+  will-change:transform;pointer-events:none;-webkit-user-drag:none;max-width:none;}
+/* El marco: un agujero limpio con el resto oscurecido, hecho con un box-shadow
+   gigante para no tener que superponer cuatro divs. */
+.rec-marco{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  box-shadow:0 0 0 9999px rgba(26,16,11,.62);pointer-events:none;
+  border:2px solid rgba(250,243,229,.92);}
+.rec-marco.circulo{border-radius:50%;}
+.rec-pie{flex-shrink:0;padding:14px 22px 18px;}
+.rec-zoom{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.rec-zoom span{font-size:15px;color:var(--texto-medio);line-height:1;user-select:none;}
+/* El deslizador existe además del pellizco a propósito: si el pellizco falla en
+   algún dispositivo, esto sigue permitiendo encuadrar. */
+.rec-zoom input[type=range]{flex:1 1 auto;accent-color:var(--terracota);height:26px;}
+.rec-btns{display:flex;gap:10px;}
+.rec-btns button{flex:1 1 0;padding:14px 12px;border-radius:100px;border:none;cursor:pointer;
+  font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.6px;
+  text-transform:uppercase;transition:background .2s,opacity .2s;}
+.rec-cancelar{background:transparent;border:1px solid rgba(200,175,160,.7) !important;color:var(--texto-medio);}
+.rec-cancelar:hover{background:var(--crema-claro);}
+.rec-usar{background:linear-gradient(135deg,#c66b41,#b05730);color:#fff;}
+.rec-usar[disabled]{opacity:.55;cursor:default;}
+.rec-error{font-family:'Montserrat',sans-serif;font-size:.78rem;color:#9c3a2e;
+  background:#f7e2dc;border:1px solid #eecbc0;border-radius:12px;padding:10px 12px;margin-bottom:12px;}
+/* En móvil los modales de HOGAR son hojas ancladas abajo — .legal-ov ya pone
+   padding:0 y align-items:flex-end en este mismo corte. El recortador sigue el
+   mismo idioma en vez de inventarse otro: esquinas redondeadas solo arriba, y los
+   botones al borde inferior, que es donde llega el pulgar. */
+@media(max-width:480px){
+  .rec-modal{max-width:none;border-radius:22px 22px 0 0;}
+  .rec-head{padding:16px 18px 12px;}
+  .rec-pie{padding:12px 18px calc(16px + env(safe-area-inset-bottom));}
+  .rec-btns button{padding:15px 10px;}   /* pulgar */
+}
 .acm-modal{max-width:520px;}
 /* A quién: lo primero y lo más grande del modal. */
 .acm-quien{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:18px;
@@ -4447,6 +4498,35 @@ body.app-active { overflow: hidden; }
      Sin ventana de arrepentimiento —es inmediato e irreversible—, así que toda
      la fricción está aquí: el correo a la vista, lo que desaparece, el aviso
      aparte para quien pagó, y escribir BORRAR para habilitar el botón. -->
+<!-- RECORTADOR. Uno solo en todo el documento: lo reutilizan la subida y el botón
+     de recortar la foto ya puesta. No se cierra al tocar fuera, a diferencia de
+     los otros modales: aquí un toque despistado mientras se arrastra tiraría el
+     encuadre que estaba haciendo. -->
+<div class="legal-ov" id="rec-ov" role="dialog" aria-modal="true" aria-labelledby="rec-tit">
+  <div class="rec-modal">
+    <div class="rec-head">
+      <div class="rec-tit" id="rec-tit">Recorta tu foto</div>
+      <div class="rec-sub" id="rec-sub">Arrastra la foto y acércala hasta que quede como quieres.</div>
+    </div>
+    <div class="rec-escena" id="rec-escena">
+      <img id="rec-img" alt="">
+      <div class="rec-marco" id="rec-marco"></div>
+    </div>
+    <div class="rec-pie">
+      <div class="rec-error" id="rec-error" style="display:none;"></div>
+      <div class="rec-zoom">
+        <span aria-hidden="true">–</span>
+        <input type="range" id="rec-zoom" min="0" max="100" value="0" aria-label="Acercar o alejar la foto">
+        <span aria-hidden="true">+</span>
+      </div>
+      <div class="rec-btns">
+        <button type="button" class="rec-cancelar" onclick="cerrarRecortador()">Cancelar</button>
+        <button type="button" class="rec-usar" id="rec-usar" onclick="confirmarRecorte()">Usar esta foto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="legal-ov" id="bc-modal" role="dialog" aria-modal="true" aria-labelledby="bc-tit" onclick="cerrarBorrarCuentaSiFuera(event)">
   <div class="legal-modal bc-modal">
     <div class="legal-head">
@@ -10259,6 +10339,8 @@ function _admLandingHTML(c){
         +'<input type="file" id="adm-lp-file-chat" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="subirFotoChatHogar(this)">'
         +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-chat" '
           +'onclick="document.getElementById(\'adm-lp-file-chat\').click()">Cambiar foto</button>'
+        +'<button type="button" class="adm-btn-mini suave" style="margin-left:8px;" '
+          +'onclick="recortarFotoActual(\'chat\')">Recortar</button>'
       +'</div>'
     +'</div>'
     +'</div>';
@@ -10278,6 +10360,8 @@ function _admLandingHTML(c){
         +'<input type="file" id="adm-lp-file-perfil" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="subirFotoPerfilHogar(this)">'
         +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-perfil" '
           +'onclick="document.getElementById(\'adm-lp-file-perfil\').click()">Cambiar foto</button>'
+        +'<button type="button" class="adm-btn-mini suave" style="margin-left:8px;" '
+          +'onclick="recortarFotoActual(\'perfil\')">Recortar</button>'
       +'</div>'
     +'</div>'
     +'</div>';
@@ -10352,15 +10436,353 @@ function _admExtImagen(file){
 // dónde se guarda, con qué prefijo se sube, qué botón y qué previsualización toca,
 // y qué hay que repintar en vivo al terminar. Todo lo demás —validar, subir,
 // comprobar el permiso, avisar— es idéntico, así que vive una sola vez.
+// ============================================================================
+// RECORTADOR DE FOTOS
+//
+// POR QUÉ SE RECORTA EN EL NAVEGADOR Y NO AL SERVIR: el transformador de Supabase
+// no sabe recortar por región. Solo escala y hace cover CENTRADO. Comprobado
+// contra el bucket real (agosto de 2026): `crop=`, `x/y`, `left/top`,
+// `gravity=north` y `focus=top` devuelven EXACTAMENTE los mismos bytes que sin
+// ellos — los parámetros que no conoce los ignora en silencio, así que parecen
+// funcionar hasta que comparas el contenido. Guardar coordenadas obligaría a
+// montar una función que recorte al vuelo. Así que la foto se hornea recortada
+// antes de subir, y el resto de la cadena no se entera.
+//
+// Solo lo llevan las DOS fotos con su cara. Los cuatro fondos son paisajes: el
+// recorte al centro les funciona y darles esto sería trabajo sin ganancia.
+//
+// El modelo es el de Instagram: el marco no se mueve, la foto sí. Es más simple
+// que un rectángulo con ocho asas y mucho mejor con el dedo.
+// ============================================================================
+
+const _rec={ abierto:false, img:null, fw:0, fh:0, base:1, escala:1, tx:0, ty:0,
+             salida:null, resolver:null, punteros:new Map(), pinza:null };
+
+const REC_ZOOM_MAX=4;   // 4x sobre la escala que ya cubre el marco
+
+/** Deshace _fotoOptimizada(): del /render/ vuelve al /object/ original. Recortar
+ *  desde el archivo entero y no desde una copia ya reducida conserva calidad. */
+function _fotoOriginal(url){
+  const u=String(url||'');
+  const M='/storage/v1/render/image/public/hogar/';
+  const i=u.indexOf(M);
+  if(i<0) return u;
+  return u.slice(0,i)+'/storage/v1/object/public/hogar/'+u.slice(i+M.length).split('?')[0];
+}
+
+/** Abre el recortador. Devuelve una Promesa con un File JPEG, o null si cancela.
+ *  `origen` puede ser un File o una URL del bucket. */
+function abrirRecortador(origen, opciones){
+  return new Promise(resolve=>{
+    const ov=document.getElementById('rec-ov');
+    const img=document.getElementById('rec-img');
+    if(!ov||!img){ resolve(null); return; }
+    _rec.salida=opciones.salida;
+    _rec.resolver=resolve;
+    _rec.abierto=true;
+    _recError('');
+    document.getElementById('rec-tit').textContent=opciones.titulo||'Recorta tu foto';
+    document.getElementById('rec-sub').textContent=opciones.nota||'Arrastra la foto y acércala hasta que quede como quieres.';
+    document.getElementById('rec-marco').classList.toggle('circulo', !!opciones.circulo);
+
+    // LA IMAGEN QUE SE VE ES LA ÚNICA FUENTE DEL RECORTE, y es deliberado. Las
+    // fotos del iPhone traen orientación EXIF; un <img> la aplica solo y
+    // drawImage dibuja lo mismo que ella está viendo. createImageBitmap NO lo
+    // hace salvo que se le pida, y entonces lo guardado sale girado respecto a lo
+    // que confirmó — un fallo que no se ve nunca desde un escritorio.
+    img.removeAttribute('src');
+    const esURL=typeof origen==='string';
+    // crossOrigin solo para http(s): hace falta para que el canvas no se ensucie
+    // al recortar una foto ya subida (el bucket manda access-control-allow-origin).
+    if(esURL) img.crossOrigin='anonymous'; else img.removeAttribute('crossorigin');
+    const url=esURL?_fotoOriginal(origen):URL.createObjectURL(origen);
+    _rec.objectURL=esURL?null:url;
+
+    _recInitGestos();
+    img.onload=function(){
+      _recMedirYEncajar();
+      ov.classList.add('open');
+      _recBloquearFondo(true);
+    };
+    img.onerror=function(){
+      _recCerrarSilencioso();
+      resolve(null);
+      _admLandingMsg('No se pudo abrir esa foto para recortarla. Prueba con otra.','error');
+    };
+    img.src=url;
+  });
+}
+
+/** Calcula el marco según el hueco disponible y encaja la foto cubriéndolo. */
+function _recMedirYEncajar(){
+  const esc=document.getElementById('rec-escena');
+  const marco=document.getElementById('rec-marco');
+  const img=document.getElementById('rec-img');
+  const rel=_rec.salida.h/_rec.salida.w;          // alto/ancho del destino
+
+  // Alto del escenario: se reparte el viewport dejando sitio a cabecera y pie.
+  // En móvil manda la altura de la pantalla; en escritorio, el ancho del modal.
+  const anchoModal=Math.min(520, window.innerWidth-40);
+  const altoDisp=Math.max(220, Math.min(window.innerHeight-260, 460));
+  esc.style.height=altoDisp+'px';
+
+  // El marco: el mayor que quepa con su proporción, con aire alrededor.
+  let fw=Math.min(anchoModal-64, 380);
+  let fh=fw*rel;
+  if(fh>altoDisp-40){ fh=altoDisp-40; fw=fh/rel; }
+  _rec.fw=Math.round(fw); _rec.fh=Math.round(fh);
+  marco.style.width=_rec.fw+'px';
+  marco.style.height=_rec.fh+'px';
+
+  const iw=img.naturalWidth||1, ih=img.naturalHeight||1;
+  img.style.width=iw+'px'; img.style.height=ih+'px';
+  // Escala mínima = la que CUBRE el marco. Por debajo se vería hueco, así que es
+  // el suelo del zoom: alejando del todo se llega justo a lo que se ve hoy con
+  // object-fit:cover, nunca peor.
+  _rec.base=Math.max(_rec.fw/iw, _rec.fh/ih);
+  _rec.escala=_rec.base; _rec.tx=0; _rec.ty=0;
+  _rec.img=img;
+  const z=document.getElementById('rec-zoom'); if(z) z.value=0;
+  _recAplicar();
+}
+
+/** Acota el desplazamiento para que la foto nunca deje ver un borde vacío. */
+function _recAcotar(){
+  const iw=_rec.img.naturalWidth*_rec.escala;
+  const ih=_rec.img.naturalHeight*_rec.escala;
+  const maxX=Math.max(0,(iw-_rec.fw)/2);
+  const maxY=Math.max(0,(ih-_rec.fh)/2);
+  _rec.tx=Math.max(-maxX, Math.min(maxX, _rec.tx));
+  _rec.ty=Math.max(-maxY, Math.min(maxY, _rec.ty));
+}
+
+function _recAplicar(){
+  _recAcotar();
+  const s=_rec.escala;
+  // translate(-50%,-50%) centra la imagen en el escenario; lo demás es el encuadre.
+  _rec.img.style.transform=
+    'translate(-50%,-50%) translate('+_rec.tx+'px,'+_rec.ty+'px) scale('+s+')';
+}
+
+function _recZoomAbs(nuevaEscala, cx, cy){
+  const anterior=_rec.escala;
+  const s=Math.max(_rec.base, Math.min(_rec.base*REC_ZOOM_MAX, nuevaEscala));
+  if(s===anterior) return;
+  // Zoom hacia el punto que se está tocando, no hacia el centro: es lo que hace
+  // que el pellizco se sienta natural.
+  if(cx!==undefined){
+    const k=s/anterior;
+    _rec.tx=cx-(cx-_rec.tx)*k;
+    _rec.ty=cy-(cy-_rec.ty)*k;
+  }
+  _rec.escala=s;
+  const z=document.getElementById('rec-zoom');
+  if(z) z.value=Math.round(((s/_rec.base)-1)/(REC_ZOOM_MAX-1)*100);
+  _recAplicar();
+}
+
+// ── Gestos. Pointer Events unifica ratón y dedo en un solo camino de código.
+function _recInitGestos(){
+  const esc=document.getElementById('rec-escena');
+  if(!esc||esc._recListo) return;
+  esc._recListo=true;
+
+  const centro=()=>{const r=esc.getBoundingClientRect();return {x:r.left+r.width/2, y:r.top+r.height/2};};
+
+  esc.addEventListener('pointerdown',e=>{
+    if(!_rec.abierto) return;
+    // La captura mantiene el arrastre aunque el dedo se salga del escenario.
+    // En try porque algunos navegadores lanzan si el puntero ya no está activo, y
+    // perder la captura es peor que un arrastre que se corta en el borde.
+    try{ esc.setPointerCapture(e.pointerId); }catch(_){}
+    _rec.punteros.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    esc.classList.add('arrastrando');
+    if(_rec.punteros.size===2) _rec.pinza=_recPinzaEstado();
+  });
+
+  esc.addEventListener('pointermove',e=>{
+    if(!_rec.abierto || !_rec.punteros.has(e.pointerId)) return;
+    const prev=_rec.punteros.get(e.pointerId);
+    _rec.punteros.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    if(_rec.punteros.size>=2 && _rec.pinza){
+      const ahora=_recPinzaEstado();
+      if(_rec.pinza.d>0){
+        const c=centro();
+        _recZoomAbs(_rec.escala*(ahora.d/_rec.pinza.d), ahora.x-c.x, ahora.y-c.y);
+      }
+      _rec.pinza=ahora;
+    } else {
+      _rec.tx+=e.clientX-prev.x;
+      _rec.ty+=e.clientY-prev.y;
+      _recAplicar();
+    }
+  });
+
+  const soltar=e=>{
+    _rec.punteros.delete(e.pointerId);
+    if(_rec.punteros.size<2) _rec.pinza=null;
+    if(!_rec.punteros.size) esc.classList.remove('arrastrando');
+  };
+  esc.addEventListener('pointerup',soltar);
+  esc.addEventListener('pointercancel',soltar);
+
+  // Rueda del ratón: comodidad en escritorio, no sustituye al deslizador.
+  esc.addEventListener('wheel',e=>{
+    if(!_rec.abierto) return;
+    e.preventDefault();
+    const c=centro();
+    _recZoomAbs(_rec.escala*(e.deltaY<0?1.08:1/1.08), e.clientX-c.x, e.clientY-c.y);
+  },{passive:false});
+
+  const z=document.getElementById('rec-zoom');
+  if(z) z.addEventListener('input',()=>{
+    _recZoomAbs(_rec.base*(1+(Number(z.value)/100)*(REC_ZOOM_MAX-1)));
+  });
+
+  window.addEventListener('resize',()=>{ if(_rec.abierto) _recMedirYEncajar(); });
+  window.addEventListener('keydown',e=>{ if(_rec.abierto && e.key==='Escape') cerrarRecortador(); });
+}
+
+function _recPinzaEstado(){
+  const p=[..._rec.punteros.values()];
+  const dx=p[0].x-p[1].x, dy=p[0].y-p[1].y;
+  return { d:Math.hypot(dx,dy), x:(p[0].x+p[1].x)/2, y:(p[0].y+p[1].y)/2 };
+}
+
+function _recError(msg){
+  const e=document.getElementById('rec-error');
+  if(!e) return;
+  e.textContent=msg||'';
+  e.style.display=msg?'':'none';
+}
+
+/** Congela el fondo mientras el recortador está abierto.
+ *  NO basta con document.body: dentro de la app quien scrollea es la pantalla
+ *  activa (.scr.on lleva overflow-y:auto), igual que hace el drawer del panel. */
+function _recBloquearFondo(on){
+  document.body.style.overflow=on?'hidden':'';
+  const scr=document.querySelector('.scr.on');
+  if(scr) scr.style.overflow=on?'hidden':'';
+}
+
+function _recCerrarSilencioso(){
+  const ov=document.getElementById('rec-ov');
+  if(ov) ov.classList.remove('open');
+  _recBloquearFondo(false);
+  if(_rec.objectURL){ try{ URL.revokeObjectURL(_rec.objectURL); }catch(_){} _rec.objectURL=null; }
+  _rec.abierto=false; _rec.punteros.clear(); _rec.pinza=null;
+}
+
+function cerrarRecortador(){
+  const r=_rec.resolver; _rec.resolver=null;
+  _recCerrarSilencioso();
+  if(r) r(null);
+}
+
+/** Recorta lo que hay dentro del marco y devuelve un File JPEG. */
+function confirmarRecorte(){
+  const btn=document.getElementById('rec-usar');
+  const img=_rec.img;
+  if(!img || !img.naturalWidth){ _recError('La foto no terminó de cargar. Espera un momento.'); return; }
+  if(btn) btn.disabled=true;
+  _recError('');
+
+  const s=_rec.escala, iw=img.naturalWidth, ih=img.naturalHeight;
+  // Del encuadre en pantalla a píxeles del archivo original.
+  const sw=Math.min(iw, _rec.fw/s), sh=Math.min(ih, _rec.fh/s);
+  let sx=(iw-sw)/2-_rec.tx/s;
+  let sy=(ih-sh)/2-_rec.ty/s;
+  sx=Math.max(0, Math.min(iw-sw, sx));
+  sy=Math.max(0, Math.min(ih-sh, sy));
+
+  // EL LIENZO ES SIEMPRE DEL TAMAÑO DE SALIDA (800x800 o 900x1200), nunca del
+  // original. Es la defensa contra el fallo de Safari en iOS con fotos de 12 MP:
+  // el límite que revienta es el de superficie del canvas, y 0,6 MP no lo roza.
+  // La foto grande ya está decodificada —se está viendo— así que dibujarla
+  // reducida no añade memoria.
+  const cv=document.createElement('canvas');
+  cv.width=_rec.salida.w; cv.height=_rec.salida.h;
+  const ctx=cv.getContext('2d');
+  ctx.imageSmoothingQuality='high';
+  try{
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+  }catch(err){
+    if(btn) btn.disabled=false;
+    _recError('No se pudo recortar esta foto. Prueba a subirla de nuevo.');
+    return;
+  }
+
+  // ¿DIBUJÓ DE VERDAD? Cuando Safari se queda sin memoria no lanza: devuelve un
+  // lienzo VACÍO y se subiría una foto en blanco sin que nadie se entere. Se
+  // muestrea el alfa ANTES de poner el fondo blanco: si todo sigue transparente,
+  // el dibujo no ocurrió. Con el fondo ya puesto esto sería indistinguible de una
+  // foto legítimamente clara.
+  let pintó=false;
+  try{
+    const N=5;
+    for(let a=0;a<N && !pintó;a++) for(let b=0;b<N && !pintó;b++){
+      const px=ctx.getImageData(Math.floor(cv.width*(a+0.5)/N), Math.floor(cv.height*(b+0.5)/N), 1, 1).data;
+      if(px[3]!==0) pintó=true;
+    }
+  }catch(err){
+    // getImageData lanza SecurityError si el lienzo quedó contaminado. Hoy no
+    // pasa —el bucket manda CORS abierto— pero si algún día cambiara, mejor
+    // decirlo que subir algo roto.
+    if(btn) btn.disabled=false;
+    _recError('No se pudo leer esta foto por seguridad del navegador. Súbela desde tu dispositivo.');
+    return;
+  }
+  if(!pintó){
+    if(btn) btn.disabled=false;
+    _recError('Tu navegador no pudo procesar una foto tan grande. Prueba con una más pequeña.');
+    return;
+  }
+
+  // Fondo blanco DEBAJO: el JPEG no tiene transparencia, y sin esto un PNG con
+  // alfa saldría con los huecos en negro.
+  ctx.globalCompositeOperation='destination-over';
+  ctx.fillStyle='#ffffff';
+  ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.globalCompositeOperation='source-over';
+
+  // JPEG y no WebP: el formato de ENTREGA lo decide el transformador, así que
+  // guardar JPEG no cuesta nada y quita de en medio el toBlob de WebP, que no
+  // está en los Safari antiguos.
+  cv.toBlob(function(blob){
+    if(btn) btn.disabled=false;
+    if(!blob || blob.size<1024){
+      _recError('No se pudo generar la foto recortada. Inténtalo otra vez.');
+      return;
+    }
+    const file=new File([blob], 'recorte.jpg', { type:'image/jpeg' });
+    const r=_rec.resolver; _rec.resolver=null;
+    _recCerrarSilencioso();
+    if(r) r(file);
+  }, 'image/jpeg', 0.9);
+}
+
 const ADM_FOTOS={
   desktop:{ col:'landing_hero_imagen',       prefijo:'hero-landing-', btn:'adm-lp-subir',
             prev:'adm-lp-preview-img', campo:'adm-lp-img', aplicar:u=>_landingSetHeroImg(u) },
   movil:  { col:'landing_hero_imagen_movil', prefijo:'hero-movil-',   btn:'adm-lp-subir-movil',
             prev:'adm-lp-preview-movil', aplicar:u=>_landingSetHeroMovilImg(u) },
+  // `recorte` solo en las DOS con su cara. Su presencia es lo que activa el
+  // recortador: los cuatro fondos no lo tienen y siguen subiéndose de un clic.
+  // El cuadrado sale de las tres superficies del avatar —el del chat de 40px, el
+  // del panel de 44 y el círculo de 62 del dashboard—, que son círculos con
+  // cover. El 3/4 es la proporción del marco de "Detrás de HOGAR" (0,762 en
+  // escritorio, 0,765 en tablet, 0,75 en móvil): con 0,75 el recorte extra en los
+  // otros dos es del 1,6%, invisible.
   chat:   { col:'andrea_foto_chat',          prefijo:'andrea-chat-',  btn:'adm-lp-subir-chat',
-            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoAndrea(u) },
+            prev:'adm-lp-preview-chat',  aplicar:u=>_landingSetFotoAndrea(u),
+            recorte:{ salida:{w:800,h:800}, circulo:true,
+                      titulo:'Recorta tu foto',
+                      nota:'Así se verá en el círculo. Arrástrala y acércala hasta centrar tu cara.' } },
   perfil: { col:'andrea_foto_perfil',        prefijo:'andrea-perfil-',btn:'adm-lp-subir-perfil',
-            prev:'adm-lp-preview-perfil',aplicar:u=>_landingSetFotoPerfil(u) },
+            prev:'adm-lp-preview-perfil',aplicar:u=>_landingSetFotoPerfil(u),
+            recorte:{ salida:{w:900,h:1200},
+                      titulo:'Recorta tu retrato',
+                      nota:'Así se verá en la landing. Arrástralo y acércalo hasta que quede como quieres.' } },
   cierre: { col:'landing_cierre_imagen',     prefijo:'cierre-',       btn:'adm-lp-subir-cierre',
             prev:'adm-lp-preview-cierre',aplicar:u=>_landingSetCierreImg(u) },
   trans:  { col:'landing_trans_imagen',      prefijo:'trans-',        btn:'adm-lp-subir-trans',
@@ -10380,8 +10802,12 @@ async function subirFotoHogar(input, clave){
   const cfg=ADM_FOTOS[clave];
   if(!cfg){ console.warn('[HOGAR admin] foto desconocida:', clave); return; }
   _admLandingMsg('');
-  const file=input && input.files && input.files[0];
+  let file=input && input.files && input.files[0];
   if(!file) return;
+  // El input se vacía YA, no al final. Si no, cancelar el recorte y volver a
+  // elegir el MISMO archivo no dispara 'change' otra vez y el botón parece roto.
+  // Se guarda el File en una variable antes, que sobrevive al reset.
+  const _reset=()=>{ try{ input.value=''; }catch(_){} };
 
   // a) Validaciones antes de tocar la red.
   //
@@ -10399,14 +10825,56 @@ async function subirFotoHogar(input, clave){
     _admLandingMsg(esHeic
       ? 'Esa foto está en formato HEIC, el de la cámara del iPhone, y muchos navegadores no lo muestran. En el celular ábrela, dale a Compartir y guárdala como JPG; o en Ajustes → Cámara → Formatos, elige "Más compatible".'
       : 'Ese archivo no es una imagen que podamos usar. Elige un JPG, PNG o WEBP.','error');
-    input.value=''; return;
+    _reset(); return;
   }
   if(file.size > ADM_HERO_MAX_MB*1024*1024){
     const mb=(file.size/1024/1024).toFixed(1);
     _admLandingMsg('La imagen pesa '+mb+' MB. El máximo es '+ADM_HERO_MAX_MB+' MB: usa una más ligera.','error');
-    input.value=''; return;
+    _reset(); return;
   }
 
+  // b) El recorte, solo para las fotos que lo piden (las dos con su cara).
+  //
+  // VA DESPUÉS DE VALIDAR, y el orden importa: si fuera antes, un archivo de
+  // 40 MP se decodificaría en el móvil ANTES de que nadie lo rechazara. Aquí ya
+  // sabemos que es una imagen usable y que no pasa de 5 MB.
+  //
+  // El input se vacía ya: si cancela y vuelve a elegir la misma foto, tiene que
+  // funcionar. Lo que se recorta es el File que ya tenemos en mano.
+  _reset();
+  if(cfg.recorte){
+    const recortada=await abrirRecortador(file, cfg.recorte);
+    if(!recortada) return;             // canceló: no se sube nada, sigue la de antes
+    file=recortada;
+  }
+  return _subirArchivoFoto(file, cfg);
+}
+
+/** Recorta la foto que YA está puesta, sin volver a subirla desde el dispositivo.
+ *
+ *  Es lo que Andrea necesita el primer día: sus dos fotos ya están ahí y lo que
+ *  falla es el encuadre. Se puede porque el bucket manda
+ *  `access-control-allow-origin: *`, así que el canvas lee la imagen remota sin
+ *  contaminarse; si eso cambiara, confirmarRecorte() lo detecta y lo dice.
+ *
+ *  Recortar una foto ya subida la vuelve a comprimir, así que pierde un poco.
+ *  Para encuadrar varias veces seguidas, mejor partir del archivo original. */
+async function recortarFotoActual(clave){
+  const cfg=ADM_FOTOS[clave];
+  if(!cfg || !cfg.recorte) return;
+  _admLandingMsg('');
+  const prev=document.getElementById(cfg.prev);
+  const src=prev && prev.getAttribute('src');
+  if(!src){ _admLandingMsg('No hay ninguna foto que recortar todavía.','error'); return; }
+  const recortada=await abrirRecortador(src, cfg.recorte);
+  if(!recortada) return;
+  return _subirArchivoFoto(recortada, cfg);
+}
+
+/** Sube un File ya listo: al bucket, a su columna y a la app en vivo.
+ *  Separado de subirFotoHogar() para que el recorte de la foto ya puesta use
+ *  exactamente el mismo camino — mismos reintentos, mismos mensajes de error. */
+async function _subirArchivoFoto(file, cfg){
   const btn=document.getElementById(cfg.btn);
   const previo=btn?btn.textContent:'';
   try{
@@ -10468,7 +10936,6 @@ async function subirFotoHogar(input, clave){
         : 'No pudimos subir la imagen. Intenta de nuevo en un momento.','error');
     }
   }finally{
-    if(input) input.value='';   // permite volver a elegir el mismo archivo
     if(btn){ btn.disabled=false; btn.textContent=previo||'Cambiar foto'; }
   }
 }
