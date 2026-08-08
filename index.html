@@ -5081,6 +5081,11 @@ body.app-active { overflow: hidden; }
         <li>Tu registro privado, sin juicio</li>
       </ul>
       <button class="btn btn-r btn-full" id="acc-btn" onclick="iniciarPagoHogar(this)">Activar mi acceso</button>
+      <!-- Segunda acción, SOLO en el estado "empezaste y no sabemos". Nace oculta
+           y no está detrás de ningún desplegable: si no pagó, tiene que poder
+           pagar sin buscar. Va debajo y sin relleno porque la primaria es
+           "Comprobar de nuevo" — comprobar es gratis y pagar dos veces no. -->
+      <button type="button" class="btn btn-o btn-full" id="acc-btn2" style="display:none;margin-top:10px;"></button>
       <!-- Lo rellena _pintarMuroAcceso() con el mailto y el correo de registro
            ya escritos. Antes esta pantalla no ofrecía NINGUNA vía de contacto:
            quien no podía entrar se quedaba sin a dónde acudir. -->
@@ -6632,7 +6637,7 @@ function cargarAccesoHogar(){
       if(!session || !session.user){ U.acceso=null; return null; }
       const { data, error } = await window.sb.from('hogar_usuarias')
         // checkout_iniciado_en viaja con `pagado` en la misma consulta a
-        // propósito: es lo que permite que _hayPagoEnVuelo() siga siendo
+        // propósito: es lo que permite que _estadoPago() siga siendo
         // SÍNCRONA. Si tuviera que ir a la red por su cuenta, habría que volver
         // asíncronos el muro y el diálogo de borrado, que hoy pintan de un tirón.
         .select('pagado,checkout_iniciado_en').eq('id', session.user.id).maybeSingle();
@@ -6645,7 +6650,7 @@ function cargarAccesoHogar(){
         U.acceso=null; return null;
       }
       U.acceso = (data.pagado===true);
-      // Se guarda como número para que _hayPagoEnVuelo() compare igual que con
+      // Se guarda como número para que _estadoPago() compare igual que con
       // la marca del localStorage, sin dos formatos de fecha conviviendo.
       const t=Date.parse(data.checkout_iniciado_en||'');
       U.checkoutEnVuelo = isNaN(t) ? 0 : t;
@@ -6717,20 +6722,50 @@ function _accPintarAcceso(){
 // que en ESPERAR se ocultan el importe y la lista de candados.
 function _pintarMuroAcceso(){
   try{
-    const esperando=_hayPagoEnVuelo();
+    const estado=_estadoPago();
+    const esperando=(estado==='confirmando');
     const txt=document.getElementById('acc-txt');
     const btn=document.getElementById('acc-btn');
+    const btn2=document.getElementById('acc-btn2');
     const precio=document.getElementById('acc-precio');
     const precioSub=document.querySelector('#s-acceso .acc-precio-sub');
     const caminosTit=document.querySelector('#s-acceso .acc-caminos-tit');
     const caminos=document.getElementById('acc-caminos');
     const ayuda=document.getElementById('acc-ayuda');
 
+    // El precio se esconde SOLO cuando consta que pagó. En 'empezado' se enseña:
+    // no estamos afirmando que pagara, así que no hay razón para ocultarle lo que
+    // cuesta a quien probablemente no llegó a pagarlo.
     [precio,precioSub,caminosTit,caminos].forEach(el=>{
       if(el) el.style.display = esperando ? 'none' : '';
     });
+    if(btn2) btn2.style.display='none';   // solo lo enciende 'empezado'
 
-    if(esperando){
+    if(estado==='empezado'){
+      // NI AFIRMAR NI ESCONDER. La app sabe que abrió el checkout y nada más, así
+      // que el texto lo dice tal cual y le deja las dos salidas a la vista.
+      if(txt) txt.textContent='Empezaste un pago hace un momento. Si lo completaste, tu acceso se activa solo en cuanto Stripe nos lo confirme. Si no llegaste a terminarlo, puedes activarlo ahora.';
+      if(btn){
+        // Comprobar es la primaria por asimetría de COSTE, no de probabilidad: lo
+        // más frecuente es que no pagara, pero comprobar es gratis y pagar dos
+        // veces cuesta dinero y una conversación incómoda con Andrea.
+        btn.textContent='Comprobar de nuevo';
+        btn.setAttribute('onclick','reintentarConfirmacionPago(this)');
+      }
+      if(btn2){
+        btn2.style.display='';
+        btn2.textContent='No pagué · Activar mi acceso';
+        btn2.setAttribute('onclick','iniciarPagoHogar(this)');
+      }
+      if(ayuda){
+        ayuda.style.display='';
+        ayuda.innerHTML='¿Algún problema? '+enlaceAyudaHogar(
+          'Ayuda con mi acceso a HOGAR',
+          'Hola Andrea:\n\nEmpecé a pagar mi acceso a HOGAR y no sé si se completó.\n\n'
+            +'Mi correo de registro: '+_emailUsuaria()+'\n\nGracias.',
+          'Escríbenos');
+      }
+    }else if(esperando){
       // Sin "no hace falta que vuelvas a pagar": esa frase le mete en la cabeza
       // la idea de pagar otra vez a quien no la tenía, y suena a que a otras ya
       // les pasó. Quien no puede pagar dos veces no necesita que se lo digan: el
@@ -6805,7 +6840,7 @@ function irAAcceso(){ go('acceso'); }
 // ESTA MARCA ES POR DISPOSITIVO Y YA NO ESTÁ SOLA. Antes, pagar en el móvil y
 // abrir en el portátil dejaba al portátil enseñando el botón de pagar otra vez.
 // Desde agosto de 2026 hay además hogar_usuarias.checkout_iniciado_en, que
-// escribe crear-checkout y ve cualquier dispositivo; _hayPagoEnVuelo() mira las
+// escribe crear-checkout y ve cualquier dispositivo; _estadoPago() mira las
 // dos y le basta con una.
 //
 // El localStorage se queda porque es INSTANTÁNEO: al volver de Stripe está ahí
@@ -6816,6 +6851,27 @@ const PAGO_EN_VUELO_MS=30*60*1000;   // 30 min: pasado ese rato, vuelve el botó
 
 function _marcarPagoEnVuelo(){
   try{ localStorage.setItem(PAGO_EN_VUELO_KEY, String(Date.now())); }catch(_){}
+}
+
+/** Desmiente el pago cuando Stripe devuelve por cancel_url.
+ *
+ *  La RPC no acepta parámetros a propósito: solo puede apagar la columna de
+ *  auth.uid(), así que desde el navegador no hay forma de apuntarla a la fila de
+ *  otra. Y solo toca esa columna — nada de `pagado` ni del acceso.
+ *
+ *  Si falla no se avisa: no haber podido borrar una marca no es un problema de
+ *  ella. Lo peor que pasa es volver al estado "empezaste un pago" hasta que la
+ *  marca caduque sola a los 30 minutos, que es de donde venimos. */
+async function _cancelarCheckoutHogar(){
+  if(U) U.checkoutEnVuelo=0;      // el muro de ESTE dispositivo, ya
+  _olvidarPagoEnVuelo();
+  try{
+    if(!window.sb) return;
+    const { error } = await window.sb.rpc('hogar_cancelar_checkout');
+    if(error) console.warn('[HOGAR pago] no se pudo apagar la marca de checkout:', error.message);
+  }catch(e){
+    console.warn('[HOGAR pago] no se pudo apagar la marca de checkout:', (e&&e.message)||e);
+  }
 }
 function _olvidarPagoEnVuelo(){
   try{ localStorage.removeItem(PAGO_EN_VUELO_KEY); }catch(_){}
@@ -6836,16 +6892,33 @@ function _olvidarPagoEnVuelo(){
  *
  *  Si la columna no se ha leído todavía (U.checkoutEnVuelo sin valor), queda solo
  *  el localStorage — exactamente el comportamiento de antes, nunca peor. */
-function _hayPagoEnVuelo(){
+/** El estado del pago, en TRES valores. Aquí vivía _hayPagoEnVuelo(), que
+ *  devolvía un sí/no; se borró en vez de dejarla como envoltorio porque colapsar
+ *  esto en un booleano ES el bug, y quien la encontrara volvería a usarla.
+ *
+ *    'confirmando' → volvió de Stripe por ?pago=exito. PAGÓ. Es la señal fuerte.
+ *    'empezado'    → solo consta que abrió el checkout. NO sabemos si terminó.
+ *    null          → no hay nada en curso.
+ *
+ *  Las dos fuentes NO dicen lo mismo, y ahí estuvo el fallo. El localStorage se
+ *  pone al VOLVER con éxito, así que significa "pagó". checkout_iniciado_en se
+ *  escribe al ABRIR el checkout, así que solo significa "empezó". Al fusionarlas
+ *  en un sí/no, el muro pasó a decirle "Recibimos tu pago" a quien había cerrado
+ *  Stripe sin pagar — y encima le escondía el botón de pagar durante media hora.
+ *
+ *  'confirmando' gana cuando hay las dos: es el camino normal de una compra,
+ *  donde la columna todavía está puesta porque el webhook no ha llegado.
+ *
+ *  Misma ventana de 30 min para las dos, que NO es la de 72 h de la baja. */
+function _estadoPago(){
   const fresco=t=>!!t && (Date.now()-t) <= PAGO_EN_VUELO_MS;
-  // La columna primero: es la que vale entre dispositivos.
-  if(U && fresco(U.checkoutEnVuelo)) return true;
   try{
     const t=Number(localStorage.getItem(PAGO_EN_VUELO_KEY)||0);
-    if(!t) return false;
-    if(!fresco(t)){ _olvidarPagoEnVuelo(); return false; }
-    return true;
-  }catch(_){ return false; }
+    if(t && !fresco(t)) _olvidarPagoEnVuelo();
+    else if(t) return 'confirmando';
+  }catch(_){ /* sin localStorage queda la columna */ }
+  if(U && fresco(U.checkoutEnVuelo)) return 'empezado';
+  return null;
 }
 
 // Espera creciente en vez de 5 intentos fijos de 2 s. Los 10 s de antes se
@@ -6958,6 +7031,12 @@ async function _authInit(){
         if(typeof refrescarHistorialYStats==='function') refrescarHistorialYStats();
         _confirmarPagoHogar();
       }else if(pago==='cancelado'){
+        // Aquí SÍ sabemos que no pagó: Stripe la devolvió por cancel_url. Se
+        // apaga la marca en la base para que el muro no la deje media hora en
+        // "empezaste un pago" — y se apaga en TODOS sus dispositivos, no solo en
+        // este. Es el abandono más común, así que esto hace que el estado
+        // intermedio casi no llegue a verse.
+        _cancelarCheckoutHogar();
         setTimeout(()=>alert('El pago se canceló. Puedes intentarlo de nuevo cuando quieras.'), 300);
       }
     }
@@ -9409,19 +9488,22 @@ function abrirBorrarCuenta(){
   const $=x=>document.getElementById(x);
   $('bc-email').textContent=U.email||'—';
 
-  // TRES situaciones de dinero, no dos. El aviso cambia con cada una porque el
-  // mismo texto en las tres sería falso en dos de ellas.
+  // CUATRO situaciones de dinero. El mismo texto en todas sería falso en tres.
   //
   //   pagó y consta      → pierde el acceso que compró
-  //   pagó y NO consta   → el caso feo: acaba de pagar, el webhook no ha llegado
-  //                        y está en el muro. Si borra ahora, su fila desaparece
-  //                        antes de que el webhook la encuentre y el cobro queda
-  //                        huérfano: sin cuenta, y sin fila en hogar_bajas —que
-  //                        solo se crea si `pagado` ya es true—.
-  //   no pagó            → sin bloque: hablarle de un dinero que no puso solo
-  //                        confunde.
+  //   'confirmando'      → volvió de Stripe con éxito y el webhook no ha llegado.
+  //                        Pagó: el aviso puede afirmarlo.
+  //   'empezado'         → solo consta que abrió el checkout. Aquí NO se puede
+  //                        afirmar que pagó — es el mismo error que tenía el muro
+  //                        —, pero sí avisar, porque PUDO haber dinero y ese es
+  //                        justo el cobro huérfano.
+  //   nada               → sin bloque: hablarle de un dinero que no puso confunde.
+  //
+  // Desde agosto de 2026 la RPC de borrado deja fila en hogar_bajas también por
+  // checkout reciente, así que el cobro ya no se pierde del todo aunque borre.
+  // El aviso sigue, porque recuperar el acceso después es igual de engorroso.
   const pagoConsta=(U.acceso===true);
-  const pagoEnVuelo=(!pagoConsta && typeof _hayPagoEnVuelo==='function' && _hayPagoEnVuelo());
+  const estadoPago=(!pagoConsta && typeof _estadoPago==='function') ? _estadoPago() : null;
   const av=$('bc-aviso-pago');
   if(pagoConsta){
     av.style.display='';
@@ -9429,11 +9511,16 @@ function abrirBorrarCuenta(){
       +'pierdes y <strong>no se te devuelve el dinero</strong>. Si más adelante quieres volver, '
       +'tendrías que comprarlo otra vez. Si crees que tu caso merece una devolución, escríbenos '
       +'antes de borrar.';
-  }else if(pagoEnVuelo){
+  }else if(estadoPago==='confirmando'){
     av.style.display='';
     av.innerHTML='<strong>Tu pago todavía se está confirmando.</strong> Si borras la cuenta '
       +'ahora, el cobro se queda sin cuenta a la que acreditarse y recuperarlo sería mucho más '
       +'difícil. Espera unos minutos, o escríbenos a '+HOGAR_CONTACTO+' antes de borrar.';
+  }else if(estadoPago==='empezado'){
+    av.style.display='';
+    av.innerHTML='<strong>Empezaste un pago hace un momento.</strong> Si llegaste a completarlo '
+      +'y borras la cuenta ahora, el cobro se queda sin cuenta a la que acreditarse y '
+      +'recuperarlo sería mucho más difícil. Si no pagaste, puedes borrar sin problema.';
   }else{
     av.style.display='none';
   }
