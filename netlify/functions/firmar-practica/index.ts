@@ -1,7 +1,7 @@
 import type { Handler } from '@netlify/functions';
 import { ok, badRequest, forbidden, serverError, preflight } from '../_lib/http';
 import { getAdminClient } from '../_lib/supabase';
-import { autenticar } from '../_lib/auth';
+import { autenticar, esAdmin } from '../_lib/auth';
 
 /**
  * POST /firmar-practica — devuelve las direcciones temporales del vídeo y su voz.
@@ -68,23 +68,31 @@ export const handler: Handler = async (event) => {
 
     const admin = getAdminClient();
 
-    // ── El pago. SOLO `pagado`.
+    // ── Quién puede ver una práctica: la dueña, o quien tenga el acceso activo.
     //
-    // `acceso_manual` NO se mira, y es deliberado: es una marca de PROCEDENCIA
+    // ANDREA ENTRA POR SER ANDREA, NO POR HABER PAGADO. Su fila tiene
+    // `pagado = false` —nunca compró nada, su ficha dice "Sin compra"— y la
+    // primera versión de esta función comprobaba solo el pago, así que la dejaba
+    // fuera de sus propias prácticas. Necesita verlas para revisarlas y para
+    // grabar contenido nuevo.
+    //
+    // Es el mismo criterio que usa el navegador en cargarAccesoHogar(), donde
+    // esAdmin() ya la deja pasar antes de mirar `pagado`. Aquí faltaba.
+    //
+    // `acceso_manual` NO se mira, y eso sigue igual: es una marca de PROCEDENCIA
     // —cómo se concedió el acceso—, no de autorización. Cuando Andrea concede
-    // acceso a mano, acceso-manual escribe `pagado: true` igual. Mirarlo aquí o
-    // duplicaría la comprobación o dejaría fuera por error a quien tiene acceso
-    // legítimo.
-    //
-    // Sin fila es 403: la cuenta se borró, y no hay a quién dejar entrar.
-    const { data: usuaria, error: errUsuaria } = await admin
-      .from('hogar_usuarias')
-      .select('pagado')
-      .eq('id', auth.user.id)
-      .maybeSingle();
-    if (errUsuaria) throw new Error(`hogar_usuarias: ${errUsuaria.message}`);
-    if (!usuaria || usuaria.pagado !== true) {
-      return forbidden('Tu acceso todavía no está activo.');
+    // acceso a mano, acceso-manual escribe `pagado: true` igual.
+    if (!esAdmin(auth.user.email)) {
+      // Sin fila es 403: la cuenta se borró, y no hay a quién dejar entrar.
+      const { data: usuaria, error: errUsuaria } = await admin
+        .from('hogar_usuarias')
+        .select('pagado')
+        .eq('id', auth.user.id)
+        .maybeSingle();
+      if (errUsuaria) throw new Error(`hogar_usuarias: ${errUsuaria.message}`);
+      if (!usuaria || usuaria.pagado !== true) {
+        return forbidden('Tu acceso todavía no está activo.');
+      }
     }
 
     // ── Las dos direcciones, en UNA llamada y con la MISMA vigencia.

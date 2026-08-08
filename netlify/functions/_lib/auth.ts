@@ -47,13 +47,27 @@ export async function autenticar(event: HandlerEvent): Promise<ResultadoAuth> {
  * Igual que autenticar(), pero además exige que sea Andrea. Las funciones de
  * administración (Connect) rechazan a cualquier otra cuenta.
  */
+/**
+ * ¿Es la dueña? Un solo sitio donde vive el criterio.
+ *
+ * Estaba escrito dentro de autenticarAdmin(), y por eso firmar-practica —que NO
+ * exige ser admin, solo necesita saber si lo es— acabó comprobando únicamente
+ * `pagado` y dejando a Andrea fuera de sus propias prácticas: su fila tiene
+ * `pagado = false` porque ella nunca compró nada.
+ *
+ * Extraerlo evita que las dos comprobaciones se separen con el tiempo.
+ */
+export function esAdmin(email: string | null | undefined): boolean {
+  const adminEmail = optionalEnv('ADMIN_EMAIL', ADMIN_EMAIL_DEFAULT).toLowerCase().trim();
+  const suyo = (email ?? '').toLowerCase().trim();
+  return !!suyo && suyo === adminEmail;
+}
+
 export async function autenticarAdmin(event: HandlerEvent): Promise<ResultadoAuth> {
   const res = await autenticar(event);
   if (!res.ok) return res;
 
-  const adminEmail = optionalEnv('ADMIN_EMAIL', ADMIN_EMAIL_DEFAULT).toLowerCase().trim();
-  const email = (res.user.email ?? '').toLowerCase().trim();
-  if (!email || email !== adminEmail) {
+  if (!esAdmin(res.user.email)) {
     return { ok: false, response: forbidden('Solo Andrea puede administrar los cobros') };
   }
   return res;
