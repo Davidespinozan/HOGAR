@@ -11529,6 +11529,28 @@ async function _subirArchivoFoto(file, cfg){
     const url=pub && pub.publicUrl;
     if(!url) throw new Error('no se obtuvo la URL pública');
 
+    // d.2) COMPROBAR QUE EL ARCHIVO ESTÁ DE VERDAD, ANTES DE GUARDAR LA URL.
+    //
+    // getPublicUrl NO consulta nada: arma la dirección con cadenas y siempre
+    // devuelve algo, exista el archivo o no. Sin esta comprobación se podía
+    // guardar en la base una URL que da 404, y entonces la landing se queda con
+    // una imagen rota mientras el panel dice "Imagen actualizada".
+    //
+    // Va ANTES del UPDATE a propósito: si el archivo no llegó, lo que no hay que
+    // hacer es apuntar la columna a él.
+    let llego=false;
+    for(let intento=0; intento<2 && !llego; intento++){
+      if(intento) await new Promise(r=>setTimeout(r,800));  // margen de propagación
+      try{
+        const r=await fetch(url, { method:'HEAD', cache:'no-store' });
+        llego = r.ok;
+      }catch(_){ /* red: se reintenta y si no, se avisa abajo */ }
+    }
+    if(!llego){
+      throw new Error('La subida no dejó el archivo en el bucket «'+BUCKET_MARCA
+        +'». Comprueba que existe y que tu cuenta tiene permiso para subir ahí.');
+    }
+
     // e) Guardar solo esta columna en hogar_config. Con RLS, 0 filas = sin permiso.
     const patch={ updated_at:new Date().toISOString() };
     patch[cfg.col]=url;
@@ -11544,17 +11566,26 @@ async function _subirArchivoFoto(file, cfg){
     if(cfg.aplicar) try{ cfg.aplicar(url); }catch(_){}
     _admLandingMsg('Imagen actualizada','ok');
   }catch(e){
-    // Log del error COMPLETO de Supabase, no solo el mensaje, para diagnóstico.
-    console.warn('[HOGAR admin] subir foto '+clave+' — error completo:', e);
+    // ESTE BLOQUE LLEGÓ A ROMPERSE SOLO, y con él desapareció el aviso de
+    // cualquier fallo. Decía `clave`, que era un parámetro de subirFotoHogar y no
+    // existe aquí: al extraer esta función se quedó la referencia. Entonces el
+    // catch lanzaba un ReferenceError, nadie lo recogía —la subida se llama desde
+    // un onchange, sin await— y la subida fallaba en el más absoluto silencio,
+    // con el botón restaurándose como si todo hubiera ido bien.
+    //
+    // Aquí solo se usa lo que la función recibe. Si algún día se vuelve a
+    // extraer, esa es la regla.
+    console.warn('[HOGAR admin] subir foto ('+cfg.col+') — error completo:', e);
     const m=(e&&e.message)||'';
-    // Si la columna aún no existe, el error de Postgres lo dice: mejor mandarla al
-    // SQL que dejarla pensando que fue un problema de permisos o de red.
     if(/column .* does not exist|42703/i.test(m)){
       _admLandingMsg('Falta preparar la base para esta foto: corre el SQL de SQL-FOTOS-LANDING.md en Supabase.','error');
+    }else if(/permission|denied|policy|unauthorized|row-level|403/i.test(m)){
+      _admLandingMsg('No se pudo subir: tu cuenta no tiene permiso para escribir en «'
+        +BUCKET_MARCA+'». Revisa la policy hogar_publico_subir.','error');
     }else{
-      _admLandingMsg(/permission|denied|policy|unauthorized|row-level|403/i.test(m)
-        ? 'No se pudo subir: tu cuenta no tiene permiso para subir imágenes.'
-        : 'No pudimos subir la imagen. Intenta de nuevo en un momento.','error');
+      // EL MENSAJE REAL, no uno genérico. Esta pantalla la ve solo Andrea, y un
+      // "intenta de nuevo" la deja sin nada que contarme cuando algo falla.
+      _admLandingMsg('No pudimos subir la imagen. '+(m||'Error desconocido.'),'error');
     }
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=previo||'Cambiar foto'; }
