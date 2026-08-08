@@ -6741,6 +6741,14 @@ function _pintarMuroAcceso(){
     });
     if(btn2) btn2.style.display='none';   // solo lo enciende 'empezado'
 
+    // EL REPINTADO DEFINE EL ESTADO ENTERO, INCLUIDO `disabled`. Antes solo
+    // reescribía el texto, y eso dejaba un botón muerto: iniciarPagoHogar() los
+    // deshabilita al ir a Stripe, y si ella vuelve con el botón atrás el
+    // navegador puede restaurar la página de su caché —sin recargar— con el
+    // botón todavía apagado. Repintar el texto sin reactivar lo dejaba diciendo
+    // lo correcto y sin responder al clic, que es peor que decir algo raro.
+    [btn,btn2].forEach(b=>{ if(b) b.disabled=false; });
+
     if(estado==='empezado'){
       // NI AFIRMAR NI ESCONDER. La app sabe que abrió el checkout y nada más, así
       // que el texto lo dice tal cual y le deja las dos salidas a la vista.
@@ -6815,18 +6823,48 @@ async function reintentarConfirmacionPago(btn){
       alert('¡Listo! Tu acceso ya está activo. 🌿');
       go('dash'); return;
     }
-    alert('Todavía no consta. Tu pago está registrado: dale un par de minutos y '
-      +'vuelve a comprobar. Si sigue igual, escríbenos a '+HOGAR_CONTACTO+'.');
+    // EL AVISO CAMBIA CON EL ESTADO. Decir "tu pago está registrado" a quien solo
+    // abrió el checkout es la misma mentira que tenía el muro, movida al alert:
+    // el texto se quedó sin actualizar cuando el muro pasó a tener tres estados.
+    if(_estadoPago()==='empezado'){
+      alert('Todavía no consta ningún pago. Si no llegaste a terminarlo, puedes '
+        +'activar tu acceso con el botón de abajo. Y si sí pagaste, dale un par de '
+        +'minutos y vuelve a comprobar.');
+    }else{
+      alert('Todavía no consta. Tu pago está registrado: dale un par de minutos y '
+        +'vuelve a comprobar. Si sigue igual, escríbenos a '+HOGAR_CONTACTO+'.');
+    }
   }catch(e){
     console.warn('[HOGAR acceso] reintento de confirmación falló:', e);
     alert('No pudimos comprobarlo ahora mismo. Inténtalo en un momento.');
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=txt||'Comprobar de nuevo'; }
+    // Se repinta al terminar: la marca puede haber caducado mientras comprobaba,
+    // y entonces el muro entero cambia de estado. Sin esto se quedaría con los
+    // textos del estado anterior hasta que ella navegara a otro sitio.
+    _pintarMuroAcceso();
   }
 }
 
 // Manda a la pantalla de acceso. go() se encarga de pintarla.
 function irAAcceso(){ go('acceso'); }
+
+// VOLVER DE STRIPE CON EL BOTÓN ATRÁS. El navegador puede restaurar la página de
+// su caché sin recargarla: no hay `load`, no se vuelve a llamar a go('acceso') y
+// el muro se queda tal cual estaba al irse — con el botón en "Redirigiendo a pago
+// seguro…" y apagado. `pageshow` es el único evento que también salta en esa
+// restauración, así que es el sitio donde repintar.
+//
+// Se llama a _pintarMuroAcceso() y no a _accPintarAcceso() a propósito: el
+// primero es puro DOM y se puede repetir sin coste, el segundo relee el precio.
+window.addEventListener('pageshow', function(){
+  try{
+    const s=document.getElementById('s-acceso');
+    if(s && s.classList.contains('on') && typeof _pintarMuroAcceso==='function'){
+      _pintarMuroAcceso();
+    }
+  }catch(_){}
+});
 
 // ===== COMPRA EN VUELO =====
 // Marca local que dice "esta persona volvió de Stripe con un pago hecho, pero
