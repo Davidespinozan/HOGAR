@@ -357,6 +357,16 @@ agosto de 2026 al llevar el botón de borrar cuenta al muro; arreglado en agosto
 > `hogar_usuarias` y `hogar_bajas` para encontrar los que no cuadran. Eso es otra
 > tarea, con su propia función programada, y no se ha hecho.
 >
+> **Un residuo aceptado a sabiendas.** `hogar_cancelar_checkout()` —la RPC que
+> apaga la marca cuando Stripe devuelve por `cancel_url`— permite en teoría borrar
+> el rastro de un pago **real**: pagar, llamarla desde la consola del navegador y
+> borrar la cuenta antes de que llegue el webhook. Esa persona se quedaría sin fila
+> en `hogar_bajas`. No se tapa porque **el cargo sigue en Stripe con
+> `metadata.user_id`**: `hogar_bajas` no es la prueba del cobro, es un atajo para
+> encontrarlo. Taparlo pediría que la cancelación pasara por una función de Netlify
+> que consultara a Stripe antes de apagar nada — mucho aparato contra alguien que
+> necesita saber SQL para perjudicarse a sí mismo.
+>
 > Lo que queda abajo es la descripción del problema original y del camino que se
 > siguió; se conserva porque explica por qué el arreglo es como es.
 

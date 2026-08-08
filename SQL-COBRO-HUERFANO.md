@@ -192,3 +192,93 @@ La ventana realista de minutos u horas entre pagar y que llegue el webhook. **No
 cubre un webhook caído durante días: si el endpoint estuviera roto cinco días y ella
 borrara el sexto, la marca ya habría caducado. La cobertura completa pediría
 reconciliar contra Stripe periódicamente, y es otra tarea (ver pendiente 6).
+
+
+---
+
+# La cancelación — `hogar_cancelar_checkout()`
+
+Añadido el 8 de agosto de 2026, después de que la columna causara un bug en
+producción.
+
+## Por qué hizo falta
+
+`checkout_iniciado_en` se escribe al **iniciar** el checkout, así que solo significa
+"empezó un pago". El muro la trataba como si significara "pagó": quien abría Stripe y
+lo cerraba sin pagar leía **"Recibimos tu pago y lo estamos confirmando"** y, peor,
+se le escondía el botón de pagar durante 30 minutos. Un bug que bloqueaba ventas.
+
+El arreglo de fondo fue en el cliente —tres estados en vez de un booleano, ver
+`_estadoPago()`—. Esta función resuelve además el caso más común: cuando Stripe la
+devuelve por `cancel_url` **sabemos con certeza que no pagó**, así que la marca se
+apaga en el acto y en todos sus dispositivos.
+
+## Cómo correrlo
+
+```sql
+-- ============================================================================
+-- HOGAR — apagar la marca de checkout cuando Stripe devuelve ?pago=cancelado.
+-- Idempotente: se puede correr dos veces sin efecto.
+-- ============================================================================
+
+-- SIN PARÁMETROS, Y ES LA GARANTÍA ENTERA. La llama el NAVEGADOR, así que si
+-- aceptara un user_id cualquiera podría apuntar a la fila de otra. Al no
+-- aceptarlo, el único destino posible es auth.uid(): la sesión de quien llama.
+-- Tampoco devuelve nada — ni siquiera si encontró fila — para no convertirla en
+-- una forma de averiguar qué cuentas existen.
+CREATE OR REPLACE FUNCTION public.hogar_cancelar_checkout()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_uid uuid := auth.uid();
+BEGIN
+  -- Sin sesión no hay nada que apagar. Se sale en silencio: que alguien llame a
+  -- esto sin estar dentro no es un error del que haya que informar.
+  IF v_uid IS NULL THEN
+    RETURN;
+  END IF;
+
+  -- SOLO esta columna y SOLO esta fila. Nada de pagado, ni de acceso_manual, ni
+  -- de nada que decida si entra o no: esta función existe para desmentir un pago
+  -- que no ocurrió, no para tocar el acceso.
+  UPDATE public.hogar_usuarias
+     SET checkout_iniciado_en = NULL
+   WHERE id = v_uid;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.hogar_cancelar_checkout() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.hogar_cancelar_checkout() TO authenticated;
+```
+
+## Verificar
+
+```sql
+SELECT proname, pronargs, prosecdef
+  FROM pg_proc WHERE proname = 'hogar_cancelar_checkout';
+
+SELECT has_function_privilege('anon',          'public.hogar_cancelar_checkout()', 'EXECUTE') AS anon,
+       has_function_privilege('authenticated', 'public.hogar_cancelar_checkout()', 'EXECUTE') AS autenticada;
+```
+
+`pronargs = 0`, `prosecdef = t`, `anon = false`, `autenticada = true`. **Si `pronargs`
+no es 0, para**: significa que se coló una versión con parámetro, y entonces sí se
+podría apuntar a la fila de otra.
+
+## El residuo que se acepta a sabiendas
+
+Esta función permite, en teoría, borrar la marca de un pago **real**: pagar, abrir la
+consola del navegador, llamarla, y borrar la cuenta antes de que llegue el webhook.
+Esa persona se quedaría sin fila en `hogar_bajas`.
+
+**No se tapa**, y la razón es concreta: **el cargo sigue en Stripe, con
+`metadata.user_id` dentro**. `hogar_bajas` no es la prueba del cobro — es un atajo
+para encontrarlo. Andrea puede rastrearlo igual, solo que con más trabajo.
+
+Taparlo exigiría que la cancelación pasara por una función de Netlify que preguntara
+a Stripe si esa sesión se pagó antes de apagar nada. Es mucho aparato contra un
+atacante que necesita saber SQL para perjudicarse a sí mismo. Si algún día hay volumen
+y alguien lo intenta, ahí está el camino.
