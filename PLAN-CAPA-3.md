@@ -65,6 +65,9 @@ Los 15 audios `.mp3` suman ~360 MB (14-32 MB cada uno). No hace falta tocarlos.
 
 ### Marca y landing — 8 archivos reales, 7,8 MB
 
+> **Desactualizado.** Este inventario es de antes del recortador y de la sustitución
+> del retrato. La lista viva y comprobada son los **nueve** archivos de la fase 1.
+
 `LOGOHOGAR_qasyyc.png`, `hero-andrea.jpg`, `hero-andrea-vertical-NUEVA.jpg`,
 `hero-meditacion.jpg`, `IMG_9251_wrlvvu.jpg` y tres `ideogram-*`.
 
@@ -90,52 +93,138 @@ Los 12 GB **no se mueven nunca**.
 
 ---
 
-## FASE 0 — Las policies de `storage.objects` *(David, SQL)*
+## FASE 0 — Las policies de `storage.objects` *(David, SQL)* ✅ HECHA
 
-**Es la fase crítica, y no estaba en la versión anterior de este plan.**
+**Comprobado el 8 de agosto de 2026, y el resultado no fue el esperado.**
 
-`SQL-CONTENIDO.md` creó esta policy para que el panel pudiera listar el bucket:
+La versión anterior de esta fase daba por hecho que existía una policy demasiado
+permisiva (`hogar_bucket_listar` para todo `authenticated`), heredada de
+`SQL-CONTENIDO.md`, que en un bucket privado sería la puerta de atrás: las descargas
+de un bucket privado pasan por `/object/authenticated/…` y comprueban esa misma
+policy.
+
+**No existía.** Nunca se creó. Sobre `storage.objects` solo había dos policies, las
+dos atadas al uid de Andrea:
+
+| Policy | Qué |
+|---|---|
+| `hogar_andrea_update` | UPDATE sobre `hogar`, solo su uid |
+| `hogar_andrea_upload` | INSERT sobre `hogar`, solo su uid |
+
+Ninguna con `to public`, así que tampoco había lectura anónima por esa vía.
+
+### La otra cara, que sí era un problema
+
+No había **ninguna** policy de SELECT. Y eso significa que `list()` devolvía `[]`
+**hasta para Andrea**. El código ya lo sabía —hay un comentario en `loadContenido()`
+que dice literalmente *«un `[]` por falta de policy»*— y cae a su modo de respaldo:
+**sondear con HEAD las URLs públicas**.
+
+O sea que el inventario del panel funciona hoy **solo porque el bucket es público**.
+Al volverlo privado morirían los dos caminos a la vez —el listado por falta de
+policy, el sondeo por falta de bucket público— y diría "0 de 30 archivos".
+
+Así que la fase se dio la vuelta: **no había que restringir una policy, había que
+crear una.**
+
+### El SQL que se corrió
 
 ```sql
-create policy hogar_bucket_listar on storage.objects
-  for select to authenticated using (bucket_id = 'hogar');
+-- ============================================================================
+-- HOGAR — capa 3, fases 0 y 1.  Bucket privado y bucket público nuevo.
+-- Idempotente: se puede correr dos veces sin efecto.
+--
+-- Estado de partida (comprobado el 8 de agosto de 2026): sobre storage.objects
+-- solo existen hogar_andrea_update y hogar_andrea_upload, las dos atadas al uid
+-- de Andrea. NO hay ninguna policy de SELECT, ni ninguna con `to public`.
+-- ============================================================================
+
+-- ── 1) LECTURA DEL BUCKET PRIVADO, SOLO PARA ANDREA ─────────────────────────
+--
+-- Hoy no existe ninguna policy de SELECT, y por eso `list()` devuelve [] hasta
+-- para Andrea. El panel lo sabe y cae a su modo de respaldo: sondear con HEAD
+-- las URLs PÚBLICAS. Eso funciona solo mientras el bucket sea público.
+--
+-- Al volverlo privado mueren los dos caminos a la vez —el listado por falta de
+-- policy, el sondeo por falta de bucket público— y el inventario diría "0 de 30".
+-- Esta policy es lo que deja vivo el primero.
+--
+-- Se ata al uid y no al correo, igual que las dos que ya existen: el correo se
+-- puede cambiar desde Supabase Auth, el uid no.
+--
+-- OJO: esto NO abre la puerta a las clientas. Da SELECT solo a Andrea, así que
+-- ninguna otra cuenta autenticada puede leer ni descargar por la vía
+-- /object/authenticated/. Las clientas entran por URL firmada, que la emite una
+-- función con service_role y no pasa por RLS.
+DROP POLICY IF EXISTS hogar_andrea_listar ON storage.objects;
+CREATE POLICY hogar_andrea_listar ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'hogar' AND auth.uid() = 'f749320b-bec8-4b60-9de2-1b5fe79c6fcd');
+
+-- ── 2) EL BUCKET PÚBLICO NUEVO ──────────────────────────────────────────────
+--
+-- Aquí van los 9 archivos de marca. El bucket es público, así que la LECTURA no
+-- pasa por RLS y no hace falta policy para que la landing se vea.
+--
+-- La escritura sí, y va atada al uid de Andrea igual que en `hogar`. El plan
+-- original proponía `to authenticated` a secas: eso dejaría a CUALQUIER cuenta
+-- registrada subir archivos a un bucket público servido desde el dominio de
+-- HOGAR. No es el agujero de los vídeos, pero es un sitio donde alojar lo que
+-- sea a costa de Andrea.
+DROP POLICY IF EXISTS hogar_publico_subir ON storage.objects;
+CREATE POLICY hogar_publico_subir ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'hogar-publico' AND auth.uid() = 'f749320b-bec8-4b60-9de2-1b5fe79c6fcd');
+
+-- Reemplazar una foto por otra con el mismo nombre es un UPDATE, no un INSERT.
+-- Hoy no ocurre —cada subida lleva su timestamp— pero sin esto un upsert fallaría
+-- con un error de permisos difícil de leer.
+DROP POLICY IF EXISTS hogar_publico_actualizar ON storage.objects;
+CREATE POLICY hogar_publico_actualizar ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'hogar-publico' AND auth.uid() = 'f749320b-bec8-4b60-9de2-1b5fe79c6fcd');
+
+-- El panel también lista este bucket al previsualizar. Mismo criterio.
+DROP POLICY IF EXISTS hogar_publico_listar ON storage.objects;
+CREATE POLICY hogar_publico_listar ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'hogar-publico' AND auth.uid() = 'f749320b-bec8-4b60-9de2-1b5fe79c6fcd');
 ```
 
-Sobre un bucket **público** es inofensiva. Sobre uno **privado** es la puerta de
-atrás: las descargas de un bucket privado pasan por `/object/authenticated/…` y
-**comprueban esa misma policy**. Con ella puesta, cualquier cuenta registrada
-—aunque no haya pagado nunca— puede bajarse los 15 vídeos.
+### Por qué el `insert` del bucket público va atado al uid
 
-Habríamos cerrado la puerta de la calle dejando la de atrás abierta. Todo el trabajo
-de las fases siguientes no serviría de nada.
+La versión anterior de este plan proponía `for insert to authenticated with check
+(bucket_id = 'hogar-publico')`, sin comprobar quién. Con las dos policies existentes
+delante se ve que desentona: las de `hogar` van atadas al uid.
 
-Aquel documento ofrecía la variante restringida a Andrea como opcional. **Al volver
-el bucket privado deja de serlo.**
+Dejarlo abierto permitiría a **cualquier cuenta registrada** subir archivos a un
+bucket público servido desde el dominio de HOGAR. No es el agujero de los vídeos,
+pero es un sitio gratis donde alojar lo que sea a costa de Andrea.
 
-### Primero, ver qué hay vivo
+### Verificación
 
 ```sql
-select polname, polcmd, pg_get_expr(polqual, polrelid) as condicion
-  from pg_policy where polrelid = 'storage.objects'::regclass;
+SELECT polname, polcmd,
+       pg_get_expr(polqual, polrelid)      AS lectura,
+       pg_get_expr(polwithcheck, polrelid) AS escritura
+  FROM pg_policy WHERE polrelid = 'storage.objects'::regclass
+ ORDER BY polname;
 ```
 
-### Después, restringir
+Deben salir **seis**, todas con el uid dentro y ninguna con `to public`.
 
-```sql
-drop policy if exists hogar_bucket_listar on storage.objects;
-create policy hogar_bucket_listar on storage.objects
-  for select to authenticated
-  using (bucket_id = 'hogar'
-         and auth.jwt() ->> 'email' = 'andrealaso1997@hotmail.com');
-```
+Probado además en un Postgres local reproduciendo las dos policies originales:
+7 comprobaciones, 7 correctas. Andrea lista el bucket privado; una clienta
+autenticada no ve nada; `anon` tampoco; Andrea sube al público; una clienta no puede
+subir ni al público ni al privado.
 
-El inventario del panel es de Andrea, así que restringirlo a ella no quita nada.
-La función que firma usa el `service_role`, que no pasa por RLS y no se ve afectada.
+> **Nadie puede BORRAR objetos**: no hay policy de DELETE, ni la había antes. Si
+> algún día hay que borrar un archivo, se hace desde el panel de Supabase, no desde
+> la app.
 
-**Reversible**: volver a la policy amplia.
-
-- [ ] Listadas las policies actuales
-- [ ] `hogar_bucket_listar` restringida a Andrea
+- [x] Listadas las policies actuales
+- [x] Creada `hogar_andrea_listar` (SELECT sobre `hogar`, solo su uid)
+- [x] Creadas las tres de `hogar-publico`, todas atadas al uid
 - [ ] El inventario del panel sigue funcionando como Andrea
 
 ---
@@ -145,23 +234,46 @@ La función que firma usa el `service_role`, que no pasa por RLS y no se ve afec
 Storage → **New bucket** → nombre `hogar-publico`, marcar **Public bucket** →
 Create.
 
-Luego **copiar** (no mover) los 8 archivos de marca: en `hogar`, seleccionarlos →
-*Download*; entrar a `hogar-publico` → *Upload files*.
+Las policies de escritura ya están puestas (fase 0). Solo queda **copiar** (no
+mover) los archivos de marca: en `hogar`, seleccionarlos → *Download*; entrar a
+`hogar-publico` → *Upload files*.
 
-Después, en SQL Editor, para que Andrea pueda seguir subiendo sus fotos:
+### Los archivos — son NUEVE, no ocho
 
-```sql
-create policy hogar_publico_subir on storage.objects
-  for insert to authenticated with check (bucket_id = 'hogar-publico');
-create policy hogar_publico_listar on storage.objects
-  for select to authenticated using (bucket_id = 'hogar-publico');
-```
+La versión anterior de este plan decía ocho, y se escribió antes de que existiera el
+recortador. **Andrea ya subió dos fotos con él, y son las que el sitio sirve hoy.**
+
+| # | Nombre exacto | KB | Qué es |
+|---|---|---|---|
+| 1 | `LOGOHOGAR_qasyyc.png` | 649 | El logo. Sale en 19 sitios |
+| 2 | `hero-andrea.jpg` | 432 | Hero de escritorio |
+| 3 | `hero-andrea-vertical-NUEVA.jpg` | 221 | Hero de celular |
+| 4 | `hero-meditacion.jpg` | 336 | Respaldo de "Tu foto" |
+| 5 | `andrea-perfil.webp` | 106 | Respaldo del retrato |
+| 6 | `andrea-chat-1786120884226.webp` | 106 | **"Tu foto" en vivo** |
+| 7 | `andrea-perfil-1786120873420.webp` | 106 | **El retrato en vivo** |
+| 8 | `ideogram-v3.0_Cozy_minimalist_home_yoga_practice_space_serene_modern_house_interior_soft_natur-2.jpg_bvurmm.png` | 955 | Fondo de "Lo que empieza a cambiar" |
+| 9 | `ideogram-v3.0_Serene_cozy_minimalist_home_reflection_space_empty_tranquil_room_no_people_warm_-2.jpg_nymnzl.png` | 816 | Fondo de "Tu espacio te espera" |
+
+**3,6 MB en total.** Los dos nombres largos van literales, con el `.jpg` en medio y
+el sufijo: no son erratas, así se subieron.
+
+**Las 6 y 7 son las que el plan viejo no conocía.** Si se copian solo las ocho de
+entonces, la foto y el retrato de Andrea se rompen en cuanto el bucket sea privado.
+
+**Las 4 y 5 también, aunque la base ya no las use.** Siguen escritas en el código
+como red de seguridad: son lo que se ve si la consulta a Supabase falla. Sin ellas
+en el bucket público, ese respaldo sería una imagen rota.
+
+**`IMG_9251_wrlvvu.jpg` NO se copia.** Es el retrato de 3,7 MB que se sustituyó por
+`andrea-perfil.webp`: cero referencias en el código. Se queda en `hogar`, donde no
+molesta.
 
 **Reversible**: borrar el bucket; nada apunta ahí todavía.
 
 - [ ] Bucket creado y público
-- [ ] 8 archivos copiados
-- [ ] Policies creadas
+- [ ] Los 9 archivos copiados, con sus nombres exactos
+- [ ] Comprobado que los 9 dan 200 desde `hogar-publico`
 
 ---
 
@@ -323,7 +435,7 @@ si es `true`. Sin fila —cuenta borrada— es 403, que es lo correcto.
 
 | Qué | Por qué | Se cubre en |
 |---|---|---|
-| **Cualquier registrada puede bajar los vídeos** | La policy amplia de `authenticated` sobre `storage.objects` | **Fase 0 — la crítica** |
+| **El inventario del panel** (el grave) | Hoy vive del sondeo por HEAD público. Sin bucket público **y** sin policy de SELECT, no queda ningún camino | Fase 0 ✅ + fase 3 |
 | **Todas las imágenes de la landing** | `/render/image/` es de buckets públicos y los normalizadores llevan el bucket escrito | Fase 2 |
 | **Subida y recorte de fotos** | Escriben en `hogar` y resuelven con `getPublicUrl` | Fase 2 |
 | **El audio de la práctica** | Su URL se deriva de la del vídeo por reemplazo de extensión | Fase 3 |
@@ -336,7 +448,7 @@ si es `true`. Sin fila —cuenta borrada— es 403, que es lo correcto.
 
 | Fase | Cómo se deshace |
 |---|---|
-| 0 | Volver a la policy amplia |
+| 0 | Borrar las cuatro policies nuevas. Se vuelve al estado anterior: nadie lista, y el panel sigue con el sondeo mientras el bucket sea público |
 | 1 | Borrar el bucket nuevo; nada apuntaba ahí |
 | 2 | Revertir el deploy |
 | 3 | Revertir el deploy |
