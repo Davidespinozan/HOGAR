@@ -12,6 +12,7 @@ esto está roto, son decisiones aplazadas.
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
 | 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | **Resuelto para la ventana realista.** Falta reconciliar contra Stripe para cerrarlo del todo | Una función programada |
 | 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | **Sorteado, no resuelto:** el editor es solo texto, así que hoy no puede reordenar nada | Vuelve a aplicar si el editor gana añadir o quitar opciones |
+| 9 | [Los textos de la landing no son editables, y una columna por texto no escala](#9--los-textos-de-la-landing-no-son-editables-y-una-columna-por-texto-no-escala) | Falta decidir con Andrea qué texto es voz y cuál es estructura | Una tabla nueva y una sección del panel |
 
 Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
 y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
@@ -468,6 +469,59 @@ mano.
 
 La regla está escrita junto a `QUEST_TREE` en `index.html`, que es donde se edita
 hoy y donde la va a leer quien lo toque.
+
+---
+
+## 9 · Los textos de la landing no son editables, y una columna por texto no escala
+
+**Estado: sin implementar, a la espera de una decisión de contenido.** Anotado el 8
+de agosto de 2026, al pedir Andrea dos cambios de texto que hubo que hacer en código.
+
+### Qué es editable hoy
+
+De toda la landing, solo tres cosas: el **título** y el **subtítulo** del hero
+(`landing_hero_titulo`, `landing_hero_subtitulo`) y el **precio**. Más las seis fotos.
+Todo lo demás —"¿Es para ti?", "Detrás de HOGAR", los testimonios, las preguntas
+frecuentes, "Lo que empieza a cambiar", "Cómo funciona"— vive en `index.html` y solo
+cambia con un despliegue.
+
+### Por qué no se resuelve añadiendo columnas
+
+Es lo que se ha venido haciendo, y ya son **ocho columnas** en `hogar_config` entre
+textos e imágenes. Cada petición nueva añadiría una o dos más. Con veinte columnas
+nadie sabría cuál corresponde a qué trozo de la página, y el editor sería una lista
+de campos sin estructura.
+
+### La forma que propongo
+
+Una tabla **por slot**, no por columna:
+
+```
+hogar_landing_textos (
+  slot        text PRIMARY KEY,   -- 'parati.entradilla', 'cre.parrafo2'…
+  texto       text NOT NULL,
+  updated_at  timestamptz
+)
+```
+
+Con el mismo patrón ya probado en el cuestionario: **respaldo en el código** —si la
+tabla está vacía o Supabase no responde, se ve lo que hay en `index.html`—, escritura
+por una **función que valida** en vez de por policy, y la edición dentro de la sección
+"Tu landing" que ya existe.
+
+### La decisión que falta, y es de contenido, no técnica
+
+**Qué texto es voz y qué texto es estructura.**
+
+- *Voz*: el párrafo de "Detrás de HOGAR", la entradilla de "¿Es para ti?", los
+  testimonios. Cambiarlos es escribir.
+- *Estructura*: los cuatro pasos de "Cómo funciona", los títulos de sección, la lista
+  de la tarjeta de precio. Cambiarlos es rediseñar, y desde un campo de texto se
+  rompe la página sin darse cuenta.
+
+Mezclarlos sería darle a Andrea un panel donde puede romper la landing sin verlo
+venir. Hasta que esa lista esté decidida con ella, no hay nada que construir: el
+trabajo técnico es el de siempre y está probado; lo que falta es saber qué entra.
 
 ---
 
