@@ -225,11 +225,11 @@ subir ni al público ni al privado.
 - [x] Listadas las policies actuales
 - [x] Creada `hogar_andrea_listar` (SELECT sobre `hogar`, solo su uid)
 - [x] Creadas las tres de `hogar-publico`, todas atadas al uid
-- [ ] El inventario del panel sigue funcionando como Andrea
+- [x] El inventario del panel sigue funcionando como Andrea
 
 ---
 
-## FASE 1 — Bucket público nuevo *(David, panel)*
+## FASE 1 — Bucket público nuevo *(David, panel)* ✅ HECHA
 
 Storage → **New bucket** → nombre `hogar-publico`, marcar **Public bucket** →
 Create.
@@ -271,45 +271,48 @@ molesta.
 
 **Reversible**: borrar el bucket; nada apunta ahí todavía.
 
-- [ ] Bucket creado y público
-- [ ] Los 9 archivos copiados, con sus nombres exactos
-- [ ] Comprobado que los 9 dan 200 desde `hogar-publico`
+- [x] Bucket creado y público
+- [x] Los 9 archivos copiados, con sus nombres exactos
+- [x] Comprobado que los 9 dan 200 desde `hogar-publico`
 
 ---
 
-## FASE 2 — El código apunta la marca al bucket nuevo *(Claude)*
+## FASE 2 — El código apunta la marca al bucket nuevo *(Claude)* ✅ HECHA
 
-**El alcance creció desde la versión anterior**, que hablaba de "~16 referencias y
-tres fotos". Hoy son:
+Commit `e69035f`. **35 referencias** movidas, en sus dos formas —`/object/` y
+`/render/image/`—. `VIDEO_BASE` se queda en `hogar` y es la única referencia a ese
+bucket que sobrevive.
 
-| Qué | Dónde |
-|---|---|
-| **40 apariciones** de `public/hogar/` | por todo `index.html` |
-| `_fotoOptimizada()` | lleva la ruta del bucket escrita dentro (`MARCA`) |
-| `_fotoOriginal()` | lo mismo, en sentido inverso |
-| `subirFotoHogar()` | sube con `.from('hogar')` y resuelve con `getPublicUrl` |
-| Las **seis** fotos editables | eran tres cuando se escribió el plan |
-| El recortador | lee la foto actual por CORS desde la URL pública |
+### El hallazgo que no estaba previsto: las filas de la base
 
-### El transformador de imágenes solo funciona en buckets públicos
+`hogar_landing` guarda la **URL completa**, no el nombre del archivo. Las filas que
+Andrea grabó antes de la mudanza siguen diciendo `/public/hogar/…`, y ninguna
+migración del código las toca.
 
-Desde que se escribió este plan, **todas** las imágenes pasan por `/render/image/`.
-Ese endpoint es de buckets públicos. Si `hogar` se vuelve privado sin haber
-actualizado los normalizadores, **se cae toda la imagen de la landing**, no solo las
-fotos de Andrea.
+Si los normalizadores solo reconocieran el bucket nuevo, esas filas se servirían del
+privado y **morirían en la fase 4** — incluidas las dos fotos que ella ya subió con
+el recortador, que son las que el sitio enseña hoy.
 
-No es un riesgo, es trabajo: las imágenes de marca viven en `hogar-publico`, así que
-basta con que los normalizadores apunten ahí. Pero olvidarlo rompe la portada.
+La salida fue que `_fotoOptimizada()` y `_fotoOriginal()` **reconozcan los dos
+nombres y emitan siempre el público**. Así las filas viejas se arreglan solas al
+pintarlas y no hace falta tocar la base. Comprobado en vivo: las dos fotos de Andrea
+se piden de `hogar-publico` aunque su fila diga `hogar`.
 
-**Verificar:** la landing en ventana privada, y que "Cambiar foto" y "Recortar"
-sigan funcionando en las seis.
+> Si algún día se quiere limpiar, un `UPDATE` que reemplace `/public/hogar/` por
+> `/public/hogar-publico/` en las seis columnas de imagen dejaría las filas al día.
+> **No es necesario** y no cambia nada de lo que se ve.
 
-**Reversible**: revertir el deploy.
+### Cómo se verificó
 
-- [ ] Las 40 referencias apuntan a `hogar-publico`
-- [ ] Los dos normalizadores actualizados
-- [ ] Subida y recorte funcionando en las seis fotos
-- [ ] Landing correcta sin sesión
+Cargar la landing y mirar **qué pide el navegador**: nueve peticiones a storage, las
+nueve a `hogar-publico`, cero a `hogar`.
+
+- [x] Las 35 referencias apuntan a `hogar-publico`
+- [x] Los dos normalizadores reconocen los dos buckets
+- [x] `VIDEO_BASE` intacto
+- [x] Landing correcta sin sesión, y ninguna petición a `/public/hogar/`
+- [ ] Subir una foto nueva aterriza en `hogar-publico` *(necesita la sesión de Andrea)*
+- [ ] "Recortar" abre la foto actual sin error de CORS *(idem)*
 
 ---
 
