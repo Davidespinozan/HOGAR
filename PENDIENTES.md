@@ -14,6 +14,7 @@ esto está roto, son decisiones aplazadas.
 | 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | **Sorteado, no resuelto:** el editor es solo texto, así que hoy no puede reordenar nada | Vuelve a aplicar si el editor gana añadir o quitar opciones |
 | 9 | [Los textos de la landing no son editables, y una columna por texto no escala](#9--los-textos-de-la-landing-no-son-editables-y-una-columna-por-texto-no-escala) | Falta decidir con Andrea qué texto es voz y cuál es estructura | Una tabla nueva y una sección del panel |
 | 10 | [Comprimir los vídeos: descartado por una medición que no probó los ajustes recomendados](#10--comprimir-los-vídeos-descartado-por-una-medición-que-no-probó-los-ajustes-recomendados) | Nada: falta medirlo bien | Un `ffmpeg`, ningún código |
+| 11 | [Andrea se cuenta a sí misma en sus métricas](#11--andrea-se-cuenta-a-sí-misma-en-sus-métricas) | Decisión de Andrea: ¿quiere verse o no? | Una constante y cuatro consultas |
 
 Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
 y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
@@ -590,6 +591,68 @@ media tarde de cómputo y **no toca ni una línea de código**.
 Se puede hacer antes, después o nunca del plan de capa 3. Lo único que las relaciona
 es que probar la capa 3 reproduce vídeos, y hacerlo con archivos de 1,4 GB quema
 ancho de banda — así que si se va a comprimir, sale más barato hacerlo antes.
+
+## 11 · Andrea se cuenta a sí misma en sus métricas
+
+**Estado: sin resolver, a la espera de una decisión de Andrea.** Detectado el 8 de
+agosto de 2026, al arreglar que `firmar-practica` la dejaba fuera de sus propias
+prácticas.
+
+### El problema
+
+`ADMIN_TEST_EMAILS` excluye de las métricas del panel cuatro correos de prueba. **El
+de Andrea no está en esa lista.** Así que sus propias sesiones cuentan como si fuera
+una clienta:
+
+| Dónde | Qué pasa |
+|---|---|
+| "Prácticas de hoy" | Suma las suyas |
+| "Prácticas este mes" | Igual |
+| "Altas del mes" | Ella misma cuenta como alta |
+| Lista de usuarias | Aparece entre sus clientas |
+| Retención de 7 días | Su actividad infla el numerador |
+
+### Por qué importa AHORA y no antes
+
+Hasta el 8 de agosto de 2026 Andrea **no podía reproducir prácticas**: la función que
+firma las direcciones comprobaba solo `pagado`, y su fila dice `pagado = false`. Al
+arreglarlo, ya puede — y va a hacerlo, porque necesita revisar el contenido y grabar
+material nuevo. **Cada revisión ensucia sus cifras.**
+
+Con cero clientas todavía, además, el ruido es del 100%: si hace tres prácticas para
+revisarlas, su panel dirá que hubo tres prácticas.
+
+### Por qué no se arregló de una
+
+Porque **meterla en `ADMIN_TEST_EMAILS` sería mentir**: esa constante significa
+"correos de prueba que no son clientas reales", y Andrea no es un correo de prueba —
+es la dueña. Un nombre que miente hoy es un bug mañana, cuando alguien lea la lista y
+no entienda por qué está ella ahí.
+
+Lo que hace falta es separar los dos conceptos:
+
+```
+ADMIN_TEST_EMAILS   → correos de prueba (los cuatro de siempre)
+ADMIN_EMAIL         → la dueña (ya existe, se usa en esAdmin)
+_admExcluidosDeMetricas() → la unión de los dos
+```
+
+Y que las cuatro consultas de `loadAdmin()` usen esa unión en vez de la lista de
+pruebas.
+
+### La decisión que falta, y es suya
+
+**¿Quiere Andrea verse en sus propias cifras, o no?**
+
+Lo esperable es que no: el panel existe para mirar el negocio, y ella no es clienta.
+Pero es su panel, y puede que prefiera ver su actividad ahí en vez de en ningún sitio.
+
+Si la respuesta es "no verse", hay una segunda pregunta: ¿solo de las **métricas**, o
+también de la **lista de usuarias**? Son dos cosas distintas y puede querer respuestas
+distintas — verse en la lista tiene sentido para probar el flujo de acceso manual
+sobre su propia cuenta.
+
+---
 
 ---
 
