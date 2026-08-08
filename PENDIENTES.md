@@ -8,11 +8,12 @@ esto está roto, son decisiones aplazadas.
 |---|---|---|---|
 | 1 | [Reembolsos y disputas](#1--reembolsos-y-disputas) | Decisión de negocio de Andrea | `stripe-webhook`, quizá Supabase |
 | 2 | [Contraste de las píldoras `.sect-lab`](#2--contraste-de-las-píldoras-sect-lab) | Decisión estética de marca | Una línea, seis píldoras |
-| 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | Nada: decidido, falta ejecutarlo | Sustituye a `PLAN-CAPA-3.md` |
+| 3 | [Migrar el vídeo a Bunny Stream](#3--migrar-el-vídeo-a-bunny-stream) | **Descartado por coste** en agosto de 2026 | Se retoma `PLAN-CAPA-3.md` |
 | 4 | [Cambiar el correo desde el perfil](#4--cambiar-el-correo-desde-el-perfil) | Falta demanda real; primero verificar un trigger | `index.html`, Supabase Auth y una migración |
 | 6 | [Cobro huérfano: pagar y borrar la cuenta antes del webhook](#6--cobro-huérfano-pagar-y-borrar-la-cuenta-antes-del-webhook) | **Resuelto para la ventana realista.** Falta reconciliar contra Stripe para cerrarlo del todo | Una función programada |
 | 7 | [El editor del cuestionario no debe dejar reordenar los ids de p1](#7--el-editor-del-cuestionario-no-debe-dejar-reordenar-los-ids-de-p1) | **Sorteado, no resuelto:** el editor es solo texto, así que hoy no puede reordenar nada | Vuelve a aplicar si el editor gana añadir o quitar opciones |
 | 9 | [Los textos de la landing no son editables, y una columna por texto no escala](#9--los-textos-de-la-landing-no-son-editables-y-una-columna-por-texto-no-escala) | Falta decidir con Andrea qué texto es voz y cuál es estructura | Una tabla nueva y una sección del panel |
+| 10 | [Comprimir los vídeos: descartado por una medición que no probó los ajustes recomendados](#10--comprimir-los-vídeos-descartado-por-una-medición-que-no-probó-los-ajustes-recomendados) | Nada: falta medirlo bien | Un `ffmpeg`, ningún código |
 
 Los números **no se reutilizan ni se renumeran**: hay commits que citan «pendiente 6»
 y renumerar los dejaría apuntando a otra cosa. Por eso falta el 5.
@@ -230,8 +231,16 @@ actual, o engordar la tipografía de la píldora.
 
 ## 3 · Migrar el vídeo a Bunny Stream
 
-**Estado: decidido en agosto de 2026, sin ejecutar.**
-**Sustituye a `PLAN-CAPA-3.md`. No ejecutar ese plan sin leer esto antes.**
+> **DESCARTADO POR COSTE el 8 de agosto de 2026.** Lo que sigue se conserva porque el
+> análisis del problema —archivos completos servidos desde Supabase— sigue siendo
+> correcto, y porque si algún día el coste deja de ser el obstáculo, el estudio ya
+> está hecho.
+>
+> **`PLAN-CAPA-3.md` vuelve a estar vigente** y es el camino elegido para el agujero
+> de seguridad. La parte de coste que Bunny resolvía de serie **sigue abierta**: hoy
+> la única palanca es la compresión, que es el pendiente 10.
+
+**Estado original: decidido en agosto de 2026, sin ejecutar.**
 
 Prioridad **media**. No bloquea la venta —los vídeos funcionan hoy— pero conviene
 resolverlo antes de tener volumen de clientas.
@@ -522,6 +531,65 @@ por una **función que valida** en vez de por policy, y la edición dentro de la
 Mezclarlos sería darle a Andrea un panel donde puede romper la landing sin verlo
 venir. Hasta que esa lista esté decidida con ella, no hay nada que construir: el
 trabajo técnico es el de siempre y está probado; lo que falta es saber qué entra.
+
+---
+
+## 10 · Comprimir los vídeos: descartado por una medición que no probó los ajustes recomendados
+
+**Estado: sin probar, no descartado.** Separado de `PLAN-CAPA-3.md` el 8 de agosto de
+2026, al retomar ese plan.
+
+### Por qué importa ahora
+
+Con **Bunny descartado por coste** (pendiente 3), la salida de datos sigue siendo de
+Supabase. Las URLs firmadas del plan de capa 3 cierran el agujero de que se compartan
+los enlaces, pero **no reducen la transferencia ni un byte**: un vídeo de 45 minutos
+sigue moviendo ~1,4 GB cada vez que alguien lo reproduce.
+
+| Plan Supabase | Salida/mes | Prácticas de 45 min |
+|---|---|---|
+| Free | 5 GB | **3** |
+| Pro | 250 GB | ~175 |
+
+**La compresión es la única palanca que queda** sobre el coste de operar esto.
+
+### La contradicción que hay que resolver
+
+`PLAN-CAPA-3.md` llegó a llevar un aviso diciendo que la recompresión se había
+descartado por medición, citando esta prueba sobre `DESCARGASEGURA15`:
+
+> `crf 28` + `maxrate 2M` → −30% con pérdida visible, y el bitrate por debajo del
+> techo: «H.264 ya está exprimido».
+
+**Pero eso no es lo que el plan recomienda.** La recomendación es `crf 23 -preset
+slow` **sin techo de bitrate**, y un `maxrate` bajo es justo lo que produce pérdida
+visible sin ahorrar tanto: fuerza al codificador a tirar calidad en los momentos de
+más movimiento en vez de dejarle repartir.
+
+O sea que **la medición registrada no refuta la recomendación**. Puede que al medirla
+bien tampoco compense —el material podría estar ya razonablemente codificado—, pero
+hoy eso no está probado, y la nota de "descartado" daba por cerrado algo que no se
+llegó a intentar.
+
+### Qué haría falta para cerrarlo
+
+Una sola medición honesta, sobre el peor caso:
+
+1. Codificar `DESCARGASEGURA15` con los ajustes del apéndice de `PLAN-CAPA-3.md`
+   (`crf 23 -preset slow -r 30 -movflags +faststart`), **sin `maxrate`**.
+2. Medir VMAF contra el original. Referencia: ≥ 93 es indistinguible para la mayoría.
+   Ojo con los cinco vídeos a 60 fps, donde comparar contra un original de 60 da un
+   VMAF falsamente bajo.
+3. Verlo en un teléfono, dentro de la app. Ninguna métrica sustituye a eso.
+
+Con eso se sabe si el −65% estimado es real o si el material ya estaba exprimido. Es
+media tarde de cómputo y **no toca ni una línea de código**.
+
+### Independiente de la seguridad
+
+Se puede hacer antes, después o nunca del plan de capa 3. Lo único que las relaciona
+es que probar la capa 3 reproduce vídeos, y hacerlo con archivos de 1,4 GB quema
+ancho de banda — así que si se va a comprimir, sale más barato hacerlo antes.
 
 ---
 
