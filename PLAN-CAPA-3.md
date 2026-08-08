@@ -316,49 +316,56 @@ nueve a `hogar-publico`, cero a `hogar`.
 
 ---
 
-## FASE 3 — Firmar URLs, con `hogar` todavía público *(Claude)*
+## FASE 3 — Firmar URLs, con `hogar` todavía público *(Claude)* ✅ HECHA
 
-Una Netlify Function nueva que:
+Commit `8d3a441`. **Aquí el muro deja de ser cosmético.**
 
-1. Autentica el JWT de la clienta.
-2. **Comprueba `pagado`** contra la base (ver más abajo por qué solo eso).
-3. Devuelve las URLs firmadas del vídeo **y del audio** con `createSignedUrls` — en
-   plural, una sola llamada para los dos, misma caducidad.
+`netlify/functions/firmar-practica` autentica el JWT, comprueba el pago contra la
+base y firma **vídeo y voz en una sola llamada** con `createSignedUrls`, cuatro
+horas los dos.
 
-**Aquí el muro deja de ser cosmético.** Un `if` en el navegador se salta con la
-consola; esto no.
+### Lo que se movió del navegador al servidor
 
-### El audio ya no se puede derivar del vídeo
+| Antes | Ahora |
+|---|---|
+| La URL se armaba concatenando cadenas contra un bucket público | La emite el servidor, y solo si consta el pago |
+| La del audio salía de la del vídeo cambiando `.mp4` por `.mp3` | Vienen las dos de la misma respuesta: cada objeto lleva su token |
+| "En preparación" lo adivinaba el cliente con un HEAD (404/400) | Lo decide quien intenta firmar: si no puede, responde `falta:true` |
+| El inventario del panel sondeaba las URLs públicas archivo por archivo | Usa `list()`, que la policy de la fase 0 permite |
 
-Hoy `practiceAudioURL()` construye su URL reemplazando `.mp4` por `.mp3` sobre la
-del vídeo. Con URLs firmadas **cada objeto lleva su propio token**, así que esa
-derivación deja de funcionar. La función devuelve las dos y el cliente deja de
-derivar.
+### Decisiones que conviene no deshacer
 
-La sincronía no se ve afectada: `_reconcileAudio()` compara `currentTime` entre los
-dos elementos y eso es independiente de cómo se obtuvo cada `src`.
+**Solo `pagado`.** `acceso_manual` es una marca de procedencia —cómo se concedió—,
+no de autorización: cuando Andrea concede acceso a mano, `acceso-manual` escribe
+`pagado: true` igual. Mirarlo aquí duplicaría la comprobación o dejaría fuera por
+error a quien tiene acceso legítimo.
 
-### Dos cosas más que hay que mover al servidor
+**Si falta solo la voz, la práctica se sirve en silencio.** Hay vídeos sin su `.mp3`
+y esa combinación funciona. Solo la ausencia del **vídeo** es "en preparación".
 
-- **El aviso "en preparación"**: hoy `_vpClasificarFallo()` hace un HEAD desde el
-  cliente y lee 404/400 como "falta el archivo". Con bucket privado eso deja de
-  distinguir. Lo natural es que lo diga la función: si no puede firmar ese objeto,
-  es que no está.
-- **El inventario del panel**: `_admSondearMedios()` sondea con HEAD público y
-  diría "0 de 30". La salida es usar solo `list()`, que ya existe como MODO 1 y sí
-  funciona en buckets privados con la policy de la fase 0.
+**El `#t=0.1` va después del token.** El fragmento es siempre lo último de una URL;
+delante del `?` rompería la firma.
 
-**Verificar:** una práctica entera, y que una cuenta sin pagar reciba 403.
+**`_pracGen` sigue mandando.** Si cambia de duración mientras viaja la petición, la
+respuesta que llega tarde no pinta nada — el mismo criterio que tenía el HEAD.
 
-**Reversible**: revertir el deploy. Con el bucket aún público, el vídeo se
-reproduce igual mientras tanto.
+### Cómo se verificó
 
-- [ ] Function desplegada
+14 comprobaciones del handler con Supabase simulado —incluidas 403 sin pagar, 403
+sin fila, `falta:true`, voz ausente, entradas inválidas y que un error de base no
+filtre el mensaje interno— y 17 del cliente contra la función simulada. `tsc
+--strict` limpio.
+
+> No se ha visto `createSignedUrls` responder contra el Supabase real: se probó con
+> el cliente simulado. Si algo falla ahí, sale en los logs de Netlify.
+
+- [x] Function desplegada
 - [ ] Práctica completa reproducida con URL firmada
 - [ ] Audio sonando y sincronizado
+- [ ] Retomar posición funciona (salto = petición de rango nueva)
 - [ ] Una cuenta sin pagar recibe 403
 - [ ] El inventario del panel sigue contando 30
-- [ ] El aviso "en preparación" sigue saliendo cuando falta un archivo
+- [ ] En la pestaña Red, el .mp4 viene de `/object/sign/`
 
 ---
 
