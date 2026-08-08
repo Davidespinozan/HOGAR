@@ -8308,22 +8308,54 @@ function _durMin(time){
 }
 // URL del video real según práctica (emoción) + duración elegida.
 //
-// Ya NO hay lista blanca de combinaciones disponibles (antes VIDEOS_45_DISPONIBLES,
-// que solo cubría los 45 min): la URL se arma siempre y es el propio <video> el que
-// descubre si el archivo falta. Ver _vpClasificarFallo(). Así cubrimos CUALQUIER
+// No hay lista blanca de combinaciones: se pide la firma de CUALQUIER
 // práctica × duración, y una combinación nueva empieza a funcionar en cuanto se
-// sube su .mp4, sin tocar el código ni acordarse de actualizar una lista.
-function practiceVideoURL(practica, time){
-  const slug=VIDEO_SLUG[practica];
-  if(!slug) return '';
-  // #t=0.1 → fuerza al navegador a pintar el primer fotograma como vista previa
-  return VIDEO_BASE+slug+_durMin(time)+'.mp4#t=0.1';
-}
-// URL del audio (voz de Andrea encima del video) — mismo patrón que el video pero .mp3
-function practiceAudioURL(practica, time){
-  const u=practiceVideoURL(practica, time);
-  if(!u) return '';
-  return u.replace(/#.*$/,'').replace(/\.mp4$/,'.mp3');
+// sube su .mp4, sin tocar el código ni acordarse de actualizar una lista. Quien
+// dice si existe es el servidor al intentar firmarla.
+// ============================================================================
+// LAS DIRECCIONES DE LA PRÁCTICA — temporales y firmadas por el servidor.
+//
+// Antes se armaban aquí concatenando cadenas contra un bucket público. Eso
+// significaba que la dirección era fija, eterna y funcionaba sin sesión: quien la
+// copiara del código fuente se bajaba el vídeo, y quien pagara podía pasarle los
+// enlaces a media ciudad.
+//
+// Ahora las emite firmar-practica, que comprueba el pago contra la base antes de
+// firmar nada. Un `if` en el navegador se salta con la consola; esto no.
+//
+// EL AUDIO YA NO SE DERIVA DEL VÍDEO. Antes se sacaba cambiando .mp4 por .mp3
+// sobre la misma cadena. Con firma eso es imposible: cada objeto lleva su propio
+// token. Vienen los dos de la misma llamada y con la misma vigencia.
+// ============================================================================
+const FIRMAR_PRACTICA_FN='/.netlify/functions/firmar-practica';
+
+/** Pide las dos direcciones. Devuelve {video, audio, falta} o null si no se pudo.
+ *
+ *  `falta:true` significa que el vídeo no existe todavía en el bucket — lo decide
+ *  el servidor al no poder firmarlo, que es quien de verdad lo sabe. Antes lo
+ *  adivinaba el navegador con un HEAD, y con el bucket privado esa lectura deja de
+ *  distinguir: todo daría 401. */
+async function pedirUrlsPractica(practica, time){
+  if(!VIDEO_SLUG[practica]) return null;
+  try{
+    if(!window.sb) return null;
+    const { data:{ session } } = await window.sb.auth.getSession();
+    if(!session) return null;
+    const res=await fetch(FIRMAR_PRACTICA_FN, {
+      method:'POST',
+      headers:{ 'Authorization':'Bearer '+session.access_token, 'Content-Type':'application/json' },
+      body: JSON.stringify({ practica: practica, minutos: _durMin(time) })
+    });
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok){
+      console.warn('[HOGAR media] no se pudo firmar la práctica:', res.status, json.error||'');
+      return null;
+    }
+    return json;
+  }catch(e){
+    console.warn('[HOGAR media] error al pedir las direcciones:', (e&&e.message)||e);
+    return null;
+  }
 }
 // Generación de práctica. Cada entrada a pT() la incrementa, invalidando las
 // comprobaciones asíncronas que quedaran en vuelo de la práctica anterior: si la
@@ -8358,29 +8390,29 @@ function _vpMostrarPendiente(min){
   console.log('[HOGAR media] video no disponible ('+min+' min) → overlay "en preparación"');
 }
 
-// Un <video> que falla no dice POR QUÉ: el mismo onerror salta si el archivo aún no
-// se ha subido y si la red se cayó a media carga. La diferencia le importa a la
-// usuaria: ante un archivo que no existe, "Reintentar" no va a funcionar nunca.
-// Un HEAD lo aclara — 404 (Storage a veces responde 400 a un objeto inexistente)
-// ⇒ falta el archivo ⇒ overlay "en preparación"; cualquier otra cosa (5xx) o un
-// fetch que rechaza (sin conexión, DNS) ⇒ se queda el error normal con reintento,
-// que es el correcto. Mientras el HEAD viaja dejamos puesto el estado de error ya
-// pintado: si tarda, la usuaria ve el mensaje de siempre, nunca un hueco en blanco.
-async function _vpClasificarFallo(url, min){
-  const gen=_pracGen;
-  let falta=false;
-  try{
-    const r=await fetch(String(url).replace(/#.*$/,''), { method:'HEAD', cache:'no-store' });
-    falta = (r.status===404 || r.status===400);
-    console.log('[HOGAR media] HEAD '+r.status+' · '+url);
-  }catch(err){
-    // Sin red no podemos distinguir: el error con reintento es la lectura correcta.
-    console.log('[HOGAR media] HEAD sin respuesta (red) · '+((err&&err.message)||err));
-    return;
-  }
-  if(gen!==_pracGen) return;   // la usuaria ya se fue a otra práctica/duración
-  if(falta) _vpMostrarPendiente(min);
+// Aviso para cuando NO SE PUDIERON PEDIR las direcciones: red caída, sesión
+// perdida, la función devolviendo 403. Es distinto de "el archivo no existe" —eso
+// lo dice el servidor y lo pinta _vpMostrarPendiente()— y por eso el texto ofrece
+// reintentar, que aquí sí puede funcionar.
+function _vpMostrarErrorMedia(){
+  const cont=document.getElementById('video-container');
+  const vid=document.getElementById('prac-video');
+  const aud=document.getElementById('prac-audio');
+  if(vid){ vid.pause(); try{ vid.removeAttribute('src'); vid.load(); }catch(_){} }
+  if(aud){ aud.pause(); try{ aud.removeAttribute('src'); }catch(_){} }
+  if(cont){ cont.classList.remove('playing','started','buffering'); cont.classList.add('vp-error'); }
+  _vpSetPlayIcon(false);
+  console.log('[HOGAR media] no se pudieron obtener las direcciones firmadas');
 }
+
+// AQUÍ VIVÍA _vpClasificarFallo(), que hacía un HEAD desde el navegador y leía un
+// 404/400 como "el archivo no está". Se quitó al pasar a bucket privado: allí TODO
+// da 401 —exista el objeto o no— así que esa lectura dejó de distinguir nada.
+//
+// Quien sabe de verdad si el archivo existe es quien intenta firmarlo, y por eso
+// la decisión se mudó a firmar-practica: si no puede firmar el vídeo, responde
+// `falta:true` y el cliente pinta el overlay. Un HEAD menos y una fuente de verdad
+// en vez de una adivinanza.
 
 // Detiene y reinicia el video de la práctica (al salir o terminar)
 function stopPracVideo(){
@@ -8544,8 +8576,8 @@ async function pT(time,rhy){
   const vid=$('prac-video'), cont=$('video-container');
   const aud=$('prac-audio');
   // Arrancamos siempre en limpio: sin overlay "en preparación" y con el botón de
-  // terminar visible. Si el archivo resulta no existir, _vpClasificarFallo() los
-  // vuelve a poner. Ya no se decide aquí por una lista blanca de duraciones.
+  // terminar visible. Si el archivo resulta no existir, lo dice firmar-practica y
+  // _vpMostrarPendiente() los vuelve a poner.
   const minOut=_durMin(time);
   // La marca de posición es de ESTA práctica × duración. Se fija antes de
   // tocar el <video> para que ningún handler escriba en la clave anterior.
@@ -8559,14 +8591,30 @@ async function pT(time,rhy){
   if(vid && cont){
     _vpDragging=false;
     cont.classList.remove('playing','started','buffering','vp-error');
-    const url=practiceVideoURL(sP,time);
+    // Las direcciones se piden al servidor. Se guarda la generación de ANTES de
+    // esperar: si mientras viaja la petición ella cambia de duración o se va, la
+    // respuesta ya no pinta nada — el mismo criterio que tenía el HEAD.
+    const genPide=_pracGen;
+    const firmas=await pedirUrlsPractica(sP,time);
+    if(genPide!==_pracGen) return;
+
+    // El vídeo no existe todavía: lo dice el servidor, que es quien lo sabe.
+    if(firmas && firmas.falta){ _vpMostrarPendiente(minOut); return; }
+    // Y si no se pudo ni preguntar —red caída, sesión perdida—, se avisa en vez de
+    // dejar un reproductor mudo que no explica nada.
+    if(!firmas || !firmas.video){ _vpMostrarErrorMedia(); return; }
+
+    // #t=0.1 fuerza al navegador a pintar el primer fotograma como vista previa.
+    // Va DESPUÉS del token: el fragmento es siempre lo último de una URL.
+    const url=firmas.video+'#t=0.1';
     if(url){
       vid.src=url;
       vid.muted=false;
       vid.load();
-      // Cargar el audio sincronizado (voz de Andrea encima del audio del video)
+      // La voz, de la MISMA respuesta. Puede venir null: hay prácticas sin .mp3 y
+      // ésas se reproducen igual, en silencio.
       if(aud){
-        const aurl=practiceAudioURL(sP,time);
+        const aurl=firmas.audio;
         if(aurl){ aud.src=aurl; aud.currentTime=0; try{ aud.volume = 1.0; }catch(e){} aud.load(); }
         else { aud.removeAttribute('src'); }
       }
@@ -8629,9 +8677,10 @@ async function pT(time,rhy){
         _vpSetPlayIcon(false);
         const codeMap={1:'MEDIA_ERR_ABORTED',2:'MEDIA_ERR_NETWORK',3:'MEDIA_ERR_DECODE',4:'MEDIA_ERR_SRC_NOT_SUPPORTED'};
         console.log('[HOGAR media] video onerror · code='+(e?e.code:'?')+' ('+(e?codeMap[e.code]:'?')+') · message='+(e?e.message:'?')+' · src='+vid.currentSrc);
-        // ¿Falta el archivo o se cayó la red? Decide si esto es "en preparación"
-        // o el error normal con reintento, que es el que acabamos de pintar.
-        _vpClasificarFallo(vid.currentSrc||url, minOut);
+        // Ya no se investiga desde aquí: si el archivo faltara, no habríamos
+        // llegado a poner un src — firmar-practica lo habría dicho antes. Así que
+        // esto es un fallo de reproducción de verdad, y el error con reintento que
+        // se acaba de pintar es la lectura correcta.
       };
       // La voz falló pero el video no (aún no se ha subido ese .mp3, o la red la
       // tumbó): la práctica sigue con el video, SIN voz y sin avisar a la usuaria.
@@ -10108,20 +10157,15 @@ async function _admListarBucket(){
 
 // MODO 2 — preguntar por cada archivo esperado. HEAD: responde content-length
 // sin descargar el cuerpo (hay videos de 400+ MB; jamás usar GET aquí).
-async function _admSondearMedios(esperados){
-  const presentes=new Set();
-  const LOTE=6; // de a poco, para no abrir 30 conexiones de golpe
-  for(let i=0;i<esperados.length;i+=LOTE){
-    const grupo=esperados.slice(i,i+LOTE);
-    await Promise.all(grupo.map(async m=>{
-      try{
-        const res=await fetch(VIDEO_BASE+encodeURIComponent(m.archivo), { method:'HEAD' });
-        if(res.ok) presentes.add(m.archivo);
-      }catch(_){ /* red caída → cuenta como ausente; el resumen lo refleja */ }
-    }));
-  }
-  return presentes;
-}
+// AQUÍ VIVÍA _admSondearMedios(), que preguntaba archivo por archivo con un HEAD
+// contra la URL PÚBLICA. Funcionaba solo mientras `hogar` fuera público, y se
+// retiró en la capa 3: sobre un bucket privado todo da 401 —exista o no— así que
+// habría dicho "0 de 30" para siempre.
+//
+// Ahora manda el listado, que es lo correcto y siempre lo fue: `list()` va por la
+// API autenticada y la policy hogar_andrea_listar se lo permite a Andrea. Antes
+// devolvía [] porque no existía ninguna policy de SELECT, y de ahí venía este
+// respaldo.
 
 async function loadContenido(){
   const cont=document.getElementById('adm-contenido-body');
@@ -10156,8 +10200,10 @@ async function loadContenido(){
         if(match) parecidos.push({real, esperado:match.archivo});
       });
     }else{
-      modo='sondeo';
-      presentes=await _admSondearMedios(esperados);
+      // El listado no trajo ninguno de nuestros medios. Ya no hay segundo camino
+      // —el sondeo por HEAD murió con el bucket privado—, así que se dice lo que
+      // pasa en vez de inventar un recuento.
+      modo='sin-listado';
     }
     cont.innerHTML=_admContenidoHTML(esperados, presentes, parecidos, modo);
   }catch(e){
@@ -10227,12 +10273,13 @@ function _admContenidoHTML(esperados, presentes, parecidos, modo){
   });
   html+='</div>';
 
-  // En modo sondeo no se puede ver el nombre real de un archivo mal nombrado.
-  if(modo==='sondeo'){
+  // Sin listado no hay recuento posible: se dice, en vez de enseñar ceros que
+  // parecerían archivos perdidos.
+  if(modo==='sin-listado'){
     html+='<p class="adm-field-hint" style="margin-top:16px;">'
-      +'Revisado archivo por archivo. Para que además se detecten archivos con el nombre '
-      +'equivocado (por ejemplo «… (1).mp4»), hace falta habilitar el listado del bucket: '
-      +'el SQL está en SQL-CONTENIDO.md.</p>';
+      +'No se pudo leer el listado del bucket, así que este recuento no es fiable. '
+      +'Suele ser que falta la policy <code>hogar_andrea_listar</code> sobre '
+      +'<code>storage.objects</code>: el SQL está en PLAN-CAPA-3.md, fase 0.</p>';
   }
   return html;
 }
