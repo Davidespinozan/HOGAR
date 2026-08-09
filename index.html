@@ -4811,17 +4811,17 @@ body.app-active { overflow: hidden; }
       <p class="app-subtitle">Elige lo que sí es posible. HOGAR se adapta.</p>
     </div>
     <div class="tiempo-grid">
-      <div class="tiempo-card" onclick="pT('5-15','Ritmo Micro')">
+      <div class="tiempo-card" onclick="iniciarPractica(this,'5-15','Ritmo Micro')">
         <div class="tiempo-rango">15<span class="min">minutos · Micro</span></div>
         <div class="tiempo-nombre">Pausa breve</div>
         <div class="tiempo-desc">Para reconectar rápido</div>
       </div>
-      <div class="tiempo-card" onclick="pT('15-30','Ritmo Base')">
+      <div class="tiempo-card" onclick="iniciarPractica(this,'15-30','Ritmo Base')">
         <div class="tiempo-rango">30<span class="min">minutos · Base</span></div>
         <div class="tiempo-nombre">Práctica completa</div>
         <div class="tiempo-desc">El ritmo ideal del día a día</div>
       </div>
-      <div class="tiempo-card" onclick="pT('30-45','Ritmo Profundo')">
+      <div class="tiempo-card" onclick="iniciarPractica(this,'30-45','Ritmo Profundo')">
         <div class="tiempo-rango">45<span class="min">minutos · Profundo</span></div>
         <div class="tiempo-nombre">Inmersión total</div>
         <div class="tiempo-desc">Cuando hay espacio para más</div>
@@ -7949,11 +7949,55 @@ function appendActionCard(time, rhy, ritmo, minutos){
     +'<div class="action-arrow">→</div>';
   chat.appendChild(card);
   setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'center'}), 120);
+  // AQUÍ empieza la precarga. Es el primer instante en que se saben la práctica y
+  // la duración, y quedan unos segundos de lectura antes de que pulse.
+  precargarFirmaPractica(sP, time);
 }
 
 // Disparado por click en action-card
 function pickTimeGo(time, rhy){
-  pT(time, rhy);
+  iniciarPractica(document.getElementById('dash-action-card'), time, rhy);
+}
+
+/** Arranca la práctica cuidando el estado del botón que la disparó.
+ *
+ *  Sirve a los dos caminos: la tarjeta del chat y las tres del check-in clásico.
+ *  En el clásico no hay precarga posible —la duración se elige justo al pulsar—
+ *  así que ahí siempre se firma en el momento, y este aviso es lo único que
+ *  explica la espera.
+ *
+ *  EL AVISO SE RETRASA 150 ms A PROPÓSITO. Con la firma precargada la respuesta
+ *  es casi inmediata, y enseñar "Preparando…" para quitarlo al fotograma
+ *  siguiente es un parpadeo feo. Si tarda, se ve; si no, no llega a aparecer.
+ *
+ *  El bloqueo sí es inmediato: evita el doble clic, que lanzaría dos prácticas. */
+async function iniciarPractica(el, time, rhy){
+  // .label es la tarjeta del chat; .tiempo-nombre, las tres del check-in clásico.
+  const etiqueta = el ? el.querySelector('.label, .tiempo-nombre') : null;
+  const textoPrevio = etiqueta ? etiqueta.textContent : '';
+  let avisoPuesto=false;
+  let temporizador=null;
+  if(el){
+    el.style.pointerEvents='none';
+    el.style.opacity='0.65';
+    temporizador=setTimeout(()=>{
+      avisoPuesto=true;
+      if(etiqueta) etiqueta.textContent='PREPARANDO TU PRÁCTICA…';
+    }, 150);
+  }
+  try{
+    await pT(time, rhy);
+  }finally{
+    // En finally y no al final del try: pT() tiene salidas tempranas —el muro de
+    // acceso, sin vídeo— y sin esto la tarjeta se quedaría apagada para siempre,
+    // sin forma de reintentar.
+    if(temporizador) clearTimeout(temporizador);
+    if(el){
+      el.style.pointerEvents='';
+      el.style.opacity='';
+      if(avisoPuesto && etiqueta) etiqueta.textContent=textoPrevio;
+    }
+  }
 }
 
 // Reset completo del chat al volver al dashboard
@@ -8335,7 +8379,68 @@ const FIRMAR_PRACTICA_FN='/.netlify/functions/firmar-practica';
  *  el servidor al no poder firmarlo, que es quien de verdad lo sabe. Antes lo
  *  adivinaba el navegador con un HEAD, y con el bucket privado esa lectura deja de
  *  distinguir: todo daría 401. */
+// ── PRECARGA DE LA FIRMA ────────────────────────────────────────────────────
+//
+// Firmar tarda un viaje de red, y hasta ahora ese viaje ocurría DESPUÉS del clic:
+// se pulsaba "empezar", se esperaba, y solo entonces se abría la pantalla. El
+// retraso se veía.
+//
+// Ahora se pide en cuanto aparece la tarjeta, que es el primer momento en que se
+// saben la práctica Y la duración. Cuando llega el clic, normalmente ya está.
+//
+// UNA SOLA ENTRADA, NUNCA VARIAS. Si cambia de duración, la nueva precarga pisa a
+// la anterior: no se firman las tres opciones "por si acaso". Firmar de más sería
+// pedirle al servidor trabajo que nadie va a usar, y multiplicar por tres las
+// direcciones válidas que existen en un momento dado.
+let _firmaPrecargada=null;   // { clave, promesa, cuando }
+
+// 30 minutos, muy por debajo de las 4 horas que dura la firma. No es por la
+// caché: es para que a quien deje la tarjeta abierta media tarde y pulse al final
+// le quede margen de sobra para una práctica de 45 minutos. Con 4 horas justas,
+// una firma vieja podría caducar a mitad y cortarle el vídeo.
+const FIRMA_PRECARGA_MS=30*60*1000;
+
+function _claveFirma(practica, time){ return practica+'|'+_durMin(time); }
+
+/** Pide la firma por adelantado. No devuelve nada ni avisa de errores: si falla,
+ *  el clic la vuelve a pedir y ahí sí se avisa. Nunca deja a nadie sin vídeo. */
+function precargarFirmaPractica(practica, time){
+  if(!VIDEO_SLUG[practica]) return;
+  // Sin acceso confirmado no se precarga: sería pedir 403 en segundo plano. Con
+  // el acceso desconocido (null) sí se intenta, igual que hace el muro.
+  if(U && U.acceso===false) return;
+  const clave=_claveFirma(practica, time);
+  if(_firmaPrecargada && _firmaPrecargada.clave===clave) return;   // ya en marcha
+  _firmaPrecargada={
+    clave: clave,
+    cuando: Date.now(),
+    // Se guarda la PROMESA, no el resultado: si el clic llega mientras el viaje
+    // sigue en vuelo, se espera a ése en vez de lanzar un segundo.
+    promesa: _firmarPractica(practica, time).catch(()=>null)
+  };
+}
+
+/** Devuelve la firma precargada si sirve, o null. Solo vale una que se haya
+ *  pedido para ESTA práctica y ESTA duración, y que no esté vieja. */
+async function _tomarFirmaPrecargada(practica, time){
+  const p=_firmaPrecargada;
+  if(!p) return null;
+  if(p.clave!==_claveFirma(practica, time)) return null;
+  if(Date.now()-p.cuando > FIRMA_PRECARGA_MS) return null;
+  const r=await p.promesa;
+  // Solo se aprovecha una firma BUENA. Un fallo —o un "falta el vídeo"— se vuelve
+  // a preguntar en el clic: así el error se decide con información fresca y con
+  // la usuaria delante para verlo.
+  return (r && r.falta!==true && r.video) ? r : null;
+}
+
 async function pedirUrlsPractica(practica, time){
+  const lista=await _tomarFirmaPrecargada(practica, time);
+  if(lista){ console.log('[HOGAR media] firma precargada aprovechada'); return lista; }
+  return _firmarPractica(practica, time);
+}
+
+async function _firmarPractica(practica, time){
   if(!VIDEO_SLUG[practica]) return null;
   try{
     if(!window.sb) return null;
