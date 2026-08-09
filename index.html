@@ -3676,6 +3676,11 @@ body.app-active { overflow: hidden; }
    editor de Landing, que es de otro paso. */
 .adm-acc-sub{ display:block; font-family:'Montserrat',sans-serif; font-size:.78rem;
   font-weight:300; color:#9a7d6c; margin-top:4px; line-height:1.4; }
+/* Segunda línea del acordeón: el CONTEO, debajo del subtítulo descriptivo.
+   Conserva los ids adm-acc-sub-* que ya escribían los cargadores, así que
+   _admAccSub() y sus llamadas no se tocan: solo cambió dónde se pinta. */
+.adm-acc-meta{ display:block; font-family:'Montserrat',sans-serif; font-size:.72rem;
+  font-weight:600; letter-spacing:.04em; color:var(--terracota); margin-top:3px; }
 
 /* Cards internas: mismo borde y misma sombra que Inicio, Usuarias y Planes. */
 
@@ -3692,12 +3697,12 @@ body.app-active { overflow: hidden; }
 #adm-view-contenido .adm-med-fila{ border-bottom-color:#f2e8dd; }
 
 /* Notas: el estado activo en el verde del sistema. */
-#adm-view-contenido .adm-nota-estado.si{ background:#e4f0e2; color:#4a8a5a; }
-#adm-view-contenido .adm-nota-estado.no{ background:#f2e8dd; color:#9a7d6c; }
-#adm-view-contenido .adm-nota-orden{ color:#b0654a; }
+#adm-view-lodices .adm-nota-estado.si{ background:#e4f0e2; color:#4a8a5a; }
+#adm-view-lodices .adm-nota-estado.no{ background:#f2e8dd; color:#9a7d6c; }
+#adm-view-lodices .adm-nota-orden{ color:#b0654a; }
 
 /* Textos: cabecera de cada práctica y etiquetas de campo. */
-#adm-view-contenido .adm-tx-titulo{ color:#3a2820; font-weight:600; font-size:15px;
+#adm-view-lodices .adm-tx-titulo{ color:#3a2820; font-weight:600; font-size:15px;
   border-bottom-color:#f2e8dd; }
 
 /* Campos de edición: mismo input que Planes y el buscador de Usuarias. */
@@ -4290,28 +4295,28 @@ body.app-active { overflow: hidden; }
 .adm-tx-card textarea{ min-height:70px; }
 
 /* ===== EDITOR DEL CUESTIONARIO ===== */
-#adm-view-cuestionario .adm-cuest-emos{ display:flex; flex-wrap:wrap; gap:8px; }
-#adm-view-cuestionario .adm-cuest-emo{ padding:9px 15px; border-radius:100px; cursor:pointer;
+#adm-view-lodices .adm-cuest-emos{ display:flex; flex-wrap:wrap; gap:8px; }
+#adm-view-lodices .adm-cuest-emo{ padding:9px 15px; border-radius:100px; cursor:pointer;
   font-family:'Montserrat',sans-serif; font-size:12px; font-weight:600;
   background:transparent; border:1px solid rgba(200,175,160,.7); color:var(--texto-medio);
   transition:background .2s,color .2s,border-color .2s; }
-#adm-view-cuestionario .adm-cuest-emo:hover{ border-color:#c66b41; color:#c66b41; }
-#adm-view-cuestionario .adm-cuest-emo.activa{ background:linear-gradient(135deg,#c66b41,#b05730);
+#adm-view-lodices .adm-cuest-emo:hover{ border-color:#c66b41; color:#c66b41; }
+#adm-view-lodices .adm-cuest-emo.activa{ background:linear-gradient(135deg,#c66b41,#b05730);
   border-color:transparent; color:#fff; }
 /* Cada opción de p1, con su rama debajo: es lo que hace visible a dónde lleva. */
-#adm-view-cuestionario .adm-cuest-op{ border-left:2px solid #f0ddd0; padding:2px 0 2px 14px; margin:14px 0; }
-#adm-view-cuestionario .adm-cuest-rama{ font-family:'Montserrat',sans-serif; font-size:.76rem;
+#adm-view-lodices .adm-cuest-op{ border-left:2px solid #f0ddd0; padding:2px 0 2px 14px; margin:14px 0; }
+#adm-view-lodices .adm-cuest-rama{ font-family:'Montserrat',sans-serif; font-size:.76rem;
   color:var(--texto-medio); margin-top:-4px; line-height:1.45; }
-#adm-view-cuestionario .adm-cuest-rama em{ color:#a0522d; font-style:italic; }
-#adm-view-cuestionario .adm-cuest-rama-bloque{ border-top:1px solid #f2e8dd; padding-top:14px; margin-top:16px; }
-#adm-view-cuestionario .adm-cuest-rama-tit{ font-family:'Montserrat',sans-serif; font-size:11px;
+#adm-view-lodices .adm-cuest-rama em{ color:#a0522d; font-style:italic; }
+#adm-view-lodices .adm-cuest-rama-bloque{ border-top:1px solid #f2e8dd; padding-top:14px; margin-top:16px; }
+#adm-view-lodices .adm-cuest-rama-tit{ font-family:'Montserrat',sans-serif; font-size:11px;
   font-weight:700; letter-spacing:.4px; color:#a0522d; margin-bottom:10px; }
-#adm-view-cuestionario textarea.adm-cuest-corto{ min-height:44px; }
-#adm-view-cuestionario .adm-field{ margin-bottom:10px; }
-#adm-view-cuestionario .adm-cuest-acciones{ display:flex; gap:10px; justify-content:flex-end;
+#adm-view-lodices textarea.adm-cuest-corto{ min-height:44px; }
+#adm-view-lodices .adm-field{ margin-bottom:10px; }
+#adm-view-lodices .adm-cuest-acciones{ display:flex; gap:10px; justify-content:flex-end;
   margin:18px 0 6px; flex-wrap:wrap; }
 @media(max-width:480px){
-  #adm-view-cuestionario .adm-cuest-acciones .adm-btn-mini{ flex:1 1 auto; }
+  #adm-view-lodices .adm-cuest-acciones .adm-btn-mini{ flex:1 1 auto; }
 }
 /* ===== LANDING — editor ===== */
 .adm-lp-precio{ font-family:'Montserrat',sans-serif; font-size:1.15rem; font-weight:600;
@@ -5156,7 +5161,7 @@ body.app-active { overflow: hidden; }
           <button type="button" class="adm-nav-item" data-adm="cobros" onclick="goAdmin('cobros')"><span class="adm-nav-label">Cobros</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
           <button type="button" class="adm-nav-item" data-adm="planes" onclick="goAdmin('planes')"><span class="adm-nav-label">Planes</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
           <button type="button" class="adm-nav-item" data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-label">Contenido</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
-          <button type="button" class="adm-nav-item" data-adm="cuestionario" onclick="goAdmin('cuestionario')"><span class="adm-nav-label">Cuestionario</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
+          <button type="button" class="adm-nav-item" data-adm="lodices" onclick="goAdmin('lodices')"><span class="adm-nav-label">Lo que dices</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
           <button type="button" class="adm-nav-item" data-adm="landing" onclick="goAdmin('landing')"><span class="adm-nav-label">Tu landing</span><span class="adm-nav-chevron" aria-hidden="true">&rsaquo;</span></button>
     </nav>
         <div class="adm-panel-foot">
@@ -5182,7 +5187,7 @@ body.app-active { overflow: hidden; }
           <button type="button" class="adm-nav-item" data-adm="cobros" onclick="goAdmin('cobros')"><span class="adm-nav-label">Cobros</span></button>
           <button type="button" class="adm-nav-item" data-adm="planes" onclick="goAdmin('planes')"><span class="adm-nav-label">Planes</span></button>
           <button type="button" class="adm-nav-item" data-adm="contenido" onclick="goAdmin('contenido')"><span class="adm-nav-label">Contenido</span></button>
-          <button type="button" class="adm-nav-item" data-adm="cuestionario" onclick="goAdmin('cuestionario')"><span class="adm-nav-label">Cuestionario</span></button>
+          <button type="button" class="adm-nav-item" data-adm="lodices" onclick="goAdmin('lodices')"><span class="adm-nav-label">Lo que dices</span></button>
           <button type="button" class="adm-nav-item" data-adm="landing" onclick="goAdmin('landing')"><span class="adm-nav-label">Tu landing</span></button>
       </nav>
         <div class="adm-panel-foot">
@@ -5435,29 +5440,42 @@ body.app-active { overflow: hidden; }
 
       <!-- Notas de Andrea (editor). Contenedor aparte para que recargar el
            inventario de medios no lo pise. -->
-      <div class="adm-acc" id="adm-acc-notas">
-        <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-notas-body" onclick="toggleAdmAcc('adm-acc-notas')">
+    </section>
+
+    <section class="adm-view" id="adm-view-lodices">
+      <div class="dash-header hogar-rise-in">
+        <div class="dash-header-top">
+          <div class="dash-meta">— ADMINISTRACIÓN</div>
+          <p class="dash-hello">Lo que</p>
+          <h1 class="dash-name">dices.</h1>
+          <hr class="dash-rule">
+        </div>
+      </div>
+
+      <div class="adm-acc" id="adm-acc-recorrido">
+        <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-cuest-body" onclick="toggleAdmAcc('adm-acc-recorrido')">
           <span class="adm-acc-titles">
-            <span class="adm-acc-eyebrow">— TUS NOTAS</span>
-            <span class="adm-acc-title">Notas del dashboard</span>
-            <span class="adm-acc-sub" id="adm-acc-sub-notas">Cargando…</span>
+            <span class="adm-acc-eyebrow">— EL RECORRIDO</span>
+            <span class="adm-acc-title">El recorrido</span>
+            <span class="adm-acc-sub">Las preguntas del cuestionario y a dónde lleva cada respuesta.</span>
+            <span class="adm-acc-meta" id="adm-acc-meta-recorrido">5 prácticas · 5 pasos cada una</span>
           </span>
           <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
         </button>
         <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
-          <div id="adm-notas-body">
-            <div class="adm-loading">Cargando tus notas…</div>
+          <div id="adm-cuest-body">
+            <div class="adm-loading">Cargando el cuestionario…</div>
           </div>
         </div></div></div>
       </div>
 
-      <!-- Textos de la voz de Andrea en las prácticas (editor). -->
       <div class="adm-acc" id="adm-acc-textos">
         <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-textos-body" onclick="toggleAdmAcc('adm-acc-textos')">
           <span class="adm-acc-titles">
             <span class="adm-acc-eyebrow">— TEXTOS DE TUS PRÁCTICAS</span>
-            <span class="adm-acc-title">Textos de las prácticas</span>
-            <span class="adm-acc-sub" id="adm-acc-sub-textos">Cargando…</span>
+            <span class="adm-acc-title">Textos de cada práctica</span>
+            <span class="adm-acc-sub">Lo que dices al elegir la emoción, al ofrecer la práctica y al cerrarla.</span>
+            <span class="adm-acc-meta" id="adm-acc-sub-textos">Cargando…</span>
           </span>
           <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
         </button>
@@ -5467,19 +5485,22 @@ body.app-active { overflow: hidden; }
           </div>
         </div></div></div>
       </div>
-    </section>
 
-    <section class="adm-view" id="adm-view-cuestionario">
-      <div class="dash-header hogar-rise-in">
-        <div class="dash-header-top">
-          <div class="dash-meta">— ADMINISTRACIÓN</div>
-          <p class="dash-hello">Tu</p>
-          <h1 class="dash-name">cuestionario.</h1>
-          <hr class="dash-rule">
-        </div>
-      </div>
-      <div id="adm-cuest-body">
-        <div class="adm-loading">Cargando el cuestionario…</div>
+      <div class="adm-acc" id="adm-acc-notas">
+        <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-notas-body" onclick="toggleAdmAcc('adm-acc-notas')">
+          <span class="adm-acc-titles">
+            <span class="adm-acc-eyebrow">— NOTAS DEL INICIO</span>
+            <span class="adm-acc-title">Notas del inicio</span>
+            <span class="adm-acc-sub">Las frases que aparecen en el inicio de tus usuarias. Cambia sola cada día.</span>
+            <span class="adm-acc-meta" id="adm-acc-sub-notas">Cargando…</span>
+          </span>
+          <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
+          <div id="adm-notas-body">
+            <div class="adm-loading">Cargando tus notas…</div>
+          </div>
+        </div></div></div>
       </div>
     </section>
 
@@ -6120,9 +6141,11 @@ function goAdmin(section){
   if(s==='inicio') _admPintarSaludo();
   if(s==='cobros') loadCobros();
   if(s==='planes') loadPlanes();
-  if(s==='contenido'){ loadContenido(); loadNotasAdmin(); loadTextosAdmin(); }
+  // Cada sección carga SOLO lo suyo. Contenido se quedó con los archivos; las
+  // notas y los textos se mudaron a "Lo que dices" junto al cuestionario.
+  if(s==='contenido') loadContenido();
+  if(s==='lodices'){ loadCuestionarioAdmin(); loadTextosAdmin(); loadNotasAdmin(); }
   if(s==='landing') loadLandingAdmin();
-  if(s==='cuestionario') loadCuestionarioAdmin();
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
   window.scrollTo({top:0,left:0,behavior:'instant'});
