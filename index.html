@@ -5605,7 +5605,7 @@ body{ background:transparent; }
 #s-checkin .app-container{
   max-width:var(--dash-ancho);
   flex:1 0 auto;
-  display:flex; flex-direction:column; justify-content:center;
+  display:flex; flex-direction:column;
   padding-top:4px;
 }
 
@@ -5616,11 +5616,28 @@ body{ background:transparent; }
    todos los huecos del paso, en vez de un margen distinto por elemento. Por eso los
    bloques de dentro van a margin:0 — si alguno conserva su margen, se suma al gap y
    ese hueco queda más grande que los demás. */
-#s-checkin{ --ci-hueco: 26px; }
+/* ── EL REPARTO VERTICAL ──────────────────────────────────────────────────
+   Antes el contenedor centraba el panel como un bloque: los cuatro elementos salían
+   juntos en el medio y quedaban dos franjas vacías arriba y abajo. Se veía apretado
+   teniendo media pantalla libre.
+
+   Ahora el panel OCUPA todo el alto disponible y reparte sus bloques con
+   justify-content:space-evenly. El gap deja de ser la separación final y pasa a ser el
+   MÍNIMO: primero se aplica, y el alto que sobra se distribuye a partes iguales entre
+   los huecos. Así en un teléfono alto el texto de Andrea, la pregunta, las opciones y
+   el botón se separan solos, y en uno corto se quedan en el mínimo sin desbordar.
+
+   El flex-shrink:0 es lo que protege el caso corto: si el contenido no cabe, el panel
+   no se comprime —lo que dejaría su parte de arriba inalcanzable— sino que crece y la
+   pantalla se desliza. */
+#s-checkin{ --ci-hueco: 22px; }
 #s-checkin .ci-paso{ display:none; }
 #s-checkin .ci-paso.on{
   display:flex; flex-direction:column;
+  flex:1 0 auto;
+  justify-content:space-evenly;
   gap:var(--ci-hueco);
+  padding-bottom:6px;
   animation:fadeUp .4s ease both;
 }
 #s-checkin .ci-paso > *{ margin:0; }
@@ -6796,6 +6813,52 @@ body{ background:transparent; }
   box-shadow:0 10px 26px rgba(140,90,60,.16);
 }
 /* La seleccionada conserva su degradado terracota: es lo que dice qué se eligió. */
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PRÁCTICA COMPLETADA (#s-done) — cierre limpio
+
+   Se fueron del marcado la banda de la cabecera, el logo y sus dos espaciadores. Aquí
+   solo queda el círculo con la palomita, la frase y el botón: es una pantalla de
+   cierre y cualquier cosa arriba le resta.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-done.on .app-nav{
+  background:none;
+  border-bottom:none;
+  min-height:0;
+  padding:calc(4px + env(safe-area-inset-top, 0px)) 20px 0;
+}
+/* El contenido, centrado en el alto que queda — la pantalla tiene poco que decir y
+   dejarlo pegado arriba la hacía parecer inacabada. */
+#s-done.on{ display:flex; flex-direction:column; }
+#s-done .app-container{
+  max-width:var(--dash-ancho);
+  flex:1 0 auto;
+  display:flex; flex-direction:column; justify-content:center;
+}
+/* EL BOTÓN, DE LADO A LADO, como el resto de la app. Tenía max-width:400px y quedaba
+   una cápsula corta en medio. */
+#s-done .volver-btn{
+  width:100%; max-width:none;
+  margin:26px 0 0;
+  padding:15px 20px;
+  border-radius:999px;
+  background:linear-gradient(100deg, var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
+  color:#fff;
+  font-size:15.5px; font-weight:600;
+  letter-spacing:0; text-transform:none;
+  box-shadow:0 14px 32px rgba(184,95,61,.36), 0 0 22px rgba(216,135,102,.20);
+}
+#s-done .volver-btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 20px 40px rgba(184,95,61,.42), 0 0 28px rgba(216,135,102,.26);
+}
+/* El enlace a historial, en texto normal y sobre la malla. */
+#s-done .completado-screen > p a{
+  font-size:13.5px !important;
+  letter-spacing:0 !important;
+  text-transform:none !important;
+  color:var(--txt-suave-malla) !important;
+}
 </style>
 </head>
 <body>
@@ -7288,7 +7351,12 @@ body{ background:transparent; }
       <h1 class="ci-titulo">Antes de empezar, ¿cómo se siente <em>tu cuerpo</em> hoy?</h1>
       <!-- pills poblados por renderEmoPills() desde EMOCIONES -->
       <div class="pills-row" id="dash-pills-emocion"></div>
-      <button id="dash-fallback-link" onclick="go('ci1')" style="display:block;margin:18px auto 0;background:none;border:none;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:var(--texto-medio);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:0;transition:color .2s;" onmouseover="this.style.color='var(--terracota)'" onmouseout="this.style.color='var(--texto-medio)'">¿No estás segura cómo te sientes? Ver opciones detalladas →</button>
+      <!-- AQUÍ ESTABA EL ENLACE "¿No estás segura cómo te sientes?", que llevaba a
+           #s-ci1, la versión detallada de las emociones. Se quitó por encargo: esas
+           cinco tarjetas ya se explican solas y el enlace metía un desvío a otra
+           pantalla en el momento en que solo hay que elegir una.
+           #s-ci1 y #s-ci2 se quedan en el documento: siguen siendo el camino que usa
+           pickEmo() cuando NO se entra desde aquí, y quitarlas es tocar lógica. -->
       <!-- REGRESAR, al pie del paso y a ancho completo. Es el mismo botón que estaba en
            la cabecera y hace lo mismo —go('dash'), o sea salir del check-in—; solo
            cambia de sitio y de tamaño. Hay una copia por paso porque los paneles se
@@ -7468,14 +7536,11 @@ body{ background:transparent; }
        div espaciador de 88px se va: existía para centrar el logo entre dos elementos.
        El texto se queda en "Salir" y no en "Regresar" a propósito — aquí no se vuelve
        atrás, se abandona una práctica a medias, y por eso llama a confirmExit(). -->
-  <!-- Solo el logo. El "← Salir" bajó al pie de la pantalla, debajo de "Terminé mi
-       práctica" y a ancho completo. Sigue llamando a confirmExit(), que es el que
-       pregunta antes de abandonar una práctica a medias. -->
-  <div class="app-nav">
-    <div class="app-nav-logo">
-      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
-    </div>
-  </div>
+  <!-- CABECERA VACÍA. El "← Salir" bajó al pie, y el logo se fue: en una pantalla cuyo
+       centro es un vídeo no aportaba nada y quedaba diminuto arriba.
+       El elemento se conserva porque su padding-top lleva la reserva del notch; sin él,
+       el rótulo de la práctica se pegaría a la barra de estado. -->
+  <div class="app-nav"></div>
   <div class="app-container practica-screen">
     <div class="practica-header">
       <div class="practica-eyebrow" id="prR">TU PRÁCTICA DE HOY</div>
@@ -7548,13 +7613,10 @@ body{ background:transparent; }
 
 <!-- DONE -->
 <div id="s-done" class="scr">
-  <div class="app-nav">
-    <div style="width:88px;"></div>
-    <div class="app-nav-logo">
-      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
-    </div>
-    <div style="width:88px;"></div>
-  </div>
+  <!-- CABECERA VACÍA: se fueron la banda, el logo y los dos espaciadores de 88px que
+       lo centraban. Esta pantalla es un cierre —círculo, frase y botón— y no necesita
+       nada arriba. Se conserva el elemento solo por la reserva del notch. -->
+  <div class="app-nav"></div>
   <div class="stickers-decorativos">
     <div class="sticker-deco sticker-3">
       <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
@@ -10574,9 +10636,6 @@ function dashSelectEstado(idx){
     }
   });
 
-  // Ocultar fallback link "¿No estás segura?"
-  const fallback=document.getElementById('dash-fallback-link');
-  if(fallback) fallback.style.display='none';
 
   // Aplicar clase .emocion-activa a screens del flow (para tintes CSS de v2)
   FLOW_SCREENS.forEach(id=>{
@@ -10766,9 +10825,6 @@ function resetDashChat(){
     p.style.color='';
   });
 
-  // Restaurar fallback link
-  const fallback=document.getElementById('dash-fallback-link');
-  if(fallback) fallback.style.display='';
 
   // Volver al primer panel
   ciMostrarPaso('emocion');
@@ -10893,12 +10949,21 @@ function renderQ(){
   // ficha del panel y el payload que se guarda—. Hay sesiones antiguas con ese texto
   // dentro y borrar la lectura las dejaría mudas. Se deja de escribir, no de leer.
 
-  // Botón Anterior — en los pasos 2 a 4. Antes llegaba al 5, que era el cierre.
-  if(curQ>1 && curQ<=Q_TOTAL_STEPS){
-    html+='<div class="q-anterior-wrap">';
-    html+='<button class="btn-saltar q-anterior" onclick="prevQ()">← Anterior</button>';
-    html+='</div>';
+  // ── EL BOTÓN DE REGRESAR, EN TODOS LOS PASOS ──
+  // Antes solo aparecía del 2 en adelante, así que el primero se quedaba sin salida
+  // desde que se le quitó el "← Volver" de la cabecera: la única forma de salir era el
+  // botón físico del navegador. Ahora está en los cuatro.
+  //
+  // DICE LO MISMO PERO NO HACE LO MISMO, y es a propósito: en el paso 1 no hay paso
+  // anterior al que volver, así que sale a la pantalla de la práctica —lo que hacía el
+  // "← Volver" que se quitó—; del 2 al 4 retrocede un paso con prevQ().
+  html+='<div class="q-anterior-wrap">';
+  if(curQ>1){
+    html+='<button class="btn-saltar q-anterior" onclick="prevQ()">Regresar</button>';
+  }else{
+    html+='<button class="btn-saltar q-anterior" onclick="go(\'prac\')">Regresar</button>';
   }
+  html+='</div>';
 
   cont.innerHTML=html;
 }
