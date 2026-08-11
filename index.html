@@ -6424,16 +6424,35 @@ body{ background:transparent; }
   padding:20px 20px 22px;
   margin-bottom:0;
 }
-/* El rótulo de la guía es un caso raro y conviene saberlo: el bloque móvil antiguo
-   pone su texto DESDE EL CSS con content, en dos pseudo-elementos —el ✦ y la palabra
-   "PARA INTEGRAR"—. Al ser content es texto, no estilo, así que quitarle las
-   versalitas obliga a reescribir la cadena. Se cambia a "Para integrar" y el resto se
-   respeta: mismo símbolo, mismo orden, misma información. */
-#s-prac.on .practica-guia-label{ margin-bottom:12px; }
+/* ── EL RÓTULO DE LA GUÍA: DOS COSAS, NO UNA ──────────────────────────────
+   Es un caso raro y me costó un intento fallido, así que queda escrito.
+
+   Su texto NO está en el marcado: el bloque móvil antiguo lo inyecta desde el CSS con
+   `content`, en dos pseudo-elementos —el ✦ y la palabra—. Al ser content es texto, no
+   estilo, así que quitarle las versalitas obliga a reescribir la cadena.
+
+   PERO REESCRIBIR LA CADENA NO BASTA, Y ESE FUE EL FALLO. La clase padre
+   .practica-guia-label lleva text-transform:uppercase y letter-spacing:3px, y un
+   pseudo-elemento HEREDA las dos cosas de su elemento. Con la cadena ya en
+   "Para integrar", el navegador la seguía pintando "PARA INTEGRAR" con el tracking
+   antiguo. Hay que apagar las dos EN EL PADRE, que es donde viven. */
+#s-prac.on .practica-guia-label{
+  margin-bottom:12px;
+  text-transform:none;
+  letter-spacing:0;
+}
 #s-prac.on .practica-guia-label::after{
   content:'Para integrar';
   font-size:13px; letter-spacing:0; font-weight:600;
+  text-transform:none;
   color:#c0663a;
+}
+/* El cuadradito del ✦ tenía radio 7px, del lenguaje anterior. Los cuadros de icono
+   pequeños de la app van a 11px —el símbolo de las cifras de Inicio, la foto de la
+   notificación de Andrea— así que se alinea. */
+#s-prac.on .practica-guia-label::before{
+  border-radius:11px;
+  width:24px; height:24px;
 }
 #s-prac.on .practica-guia p{
   font-style:normal;
@@ -6461,6 +6480,32 @@ body{ background:transparent; }
   transform:translateY(-3px);
   box-shadow:0 20px 40px rgba(184,95,61,.42), 0 0 28px rgba(216,135,102,.26);
 }
+
+/* ── LO QUE APARECE DENTRO DEL REPRODUCTOR ────────────────────────────────
+   No son controles —esos no se tocan— sino los dos paneles de texto que el
+   reproductor muestra encima del vídeo: el de "esta práctica llega pronto" cuando el
+   archivo no está, y el de error con su botón de reintentar. Los dos son superficies
+   claras dentro de la pantalla oscura, y los dos se habían quedado en versalitas.
+
+   Los encontré barriendo TODAS las clases del marcado de esta pantalla y comparando
+   qué text-transform y qué letter-spacing gana en cada una. A ojo no habrían salido:
+   solo se ven cuando falta un vídeo o falla la red. */
+#s-prac.on .vp-pendiente-eyebrow{
+  font-size:13px; font-weight:600;
+  letter-spacing:0; text-transform:none;
+}
+/* El botón de reintentar hereda de .btn, que es la clase de botón de toda la app y
+   lleva versalitas con 0.12em de tracking. Se acota a esta pantalla: .btn la usan la
+   landing y los formularios de entrar, y ahí no se toca. */
+#s-prac.on .btn{
+  letter-spacing:0; text-transform:none;
+  font-size:14.5px; font-weight:500;
+}
+/* El aviso de "toca play" y los textos del cargador: pierden la cursiva, que era el
+   recurso del lenguaje anterior para los textos de apoyo. */
+#s-prac.on .video-frame::after{ font-style:normal; font-size:13px; }
+#s-prac.on .vp-loader-txt{ font-style:normal; }
+#s-prac.on .vp-pendiente-title{ font-style:normal; font-weight:300; }
 
 @media(max-width:480px){
   #s-prac.on .app-nav{ padding:calc(8px + env(safe-area-inset-top, 0px)) 16px 4px; }
