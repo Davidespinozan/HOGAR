@@ -6646,6 +6646,156 @@ body{ background:transparent; }
   background:rgba(198,107,65,.12);
   color:#9c4a2e;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PRÁCTICA · el pie, y fuera la banda de la cabecera
+   ══════════════════════════════════════════════════════════════════════════ */
+/* LA BANDA ROSA DE ARRIBA. Se colaba porque al retirar el bloque del fondo oscuro se
+   fue con él el `background:none; border-bottom:none` que la apagaba, y la clase base
+   .app-nav volvió a mandar: fondo salmón y filo inferior. De ahí la franja y la línea
+   que se veían detrás del botón de salir. */
+#s-prac.on .app-nav{
+  background:none;
+  border-bottom:none;
+  justify-content:center;
+}
+/* SALIR, AL PIE. Baja de la cabecera a debajo de "Terminé mi práctica", a ancho
+   completo y con el mismo contorno fino que "Regresar" en el check-in. Sale de la
+   cabecera y por eso ésta se queda con el logo solo y centrado.
+   Sigue llamando a confirmExit(), que pregunta antes de abandonar una práctica a
+   medias — no es un "atrás" cualquiera. */
+#s-prac.on .prac-salir{
+  display:block; width:100%;
+  margin:12px 0 0;
+  padding:14px 16px;
+  background:none;
+  border:1.5px solid rgba(150,100,70,.3);
+  border-radius:100px;
+  font-family:'Montserrat',sans-serif;
+  font-size:14px; font-weight:500; letter-spacing:0;
+  text-transform:none; text-align:center;
+  color:var(--txt-suave-malla);
+  cursor:pointer;
+  transition:border-color .25s ease, color .25s ease;
+}
+#s-prac.on .prac-salir:hover{
+  border-color:var(--terracota); color:var(--terracota-oscuro);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CUESTIONARIO (#s-quest) — el lenguaje nuevo
+
+   El "← Volver" de la cabecera se fue del marcado: duplicaba el "Anterior" del pie,
+   que es el que retrocede paso a paso. La banda rosa también, así que la cabecera
+   queda con el logo solo y centrado.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-quest.on .app-nav{
+  background:none;
+  border-bottom:none;
+  justify-content:center;
+  padding:calc(12px + env(safe-area-inset-top, 0px)) 20px 6px;
+}
+#s-quest.on .app-nav-logo{ height:64px; opacity:.5; }
+#s-quest.on .app-nav-logo img{ filter:none; }
+#s-quest .app-container{ max-width:var(--dash-ancho); }
+#s-quest .cuestionario-progress{ margin-bottom:26px; }
+
+/* ── EL BLOQUE DE ESCRIBIR ────────────────────────────────────────────────
+   Era una caja crema opaca con un textarea de borde discontinuo dentro. El
+   discontinuo es de otro lenguaje —en toda la app no hay ni uno más— y la caja doble
+   (tarjeta dentro de tarjeta) sobraba: ahora la tarjeta ES el cristal y el campo va
+   dentro, con borde fino y continuo. */
+#s-quest .integracion-card{
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:24px;
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:18px 18px 20px;
+}
+#s-quest .integracion-input{
+  border:1px solid rgba(150,100,70,.22);
+  border-style:solid;
+  border-radius:18px;
+  background:rgba(255,255,255,.72);
+  font-style:normal;
+  font-size:16px; line-height:1.6;
+  color:#3f342c;
+  padding:16px;
+}
+#s-quest .integracion-input.integracion-grande{
+  min-height:150px; font-size:16px; padding:16px;
+}
+#s-quest .integracion-input:focus{
+  border-color:var(--terracota);
+  box-shadow:0 0 0 3px rgba(198,107,65,.14);
+}
+#s-quest .integracion-input::placeholder{
+  font-style:normal; color:var(--txt-suave);
+}
+/* La nota de "queda solo contigo" deja las versalitas y baja a texto normal. */
+#s-quest .integracion-nota{
+  font-size:12.5px; letter-spacing:0; text-transform:none;
+  color:var(--txt-suave);
+  line-height:1.45;
+}
+#s-quest .integracion-footer{ margin-top:16px; }
+
+/* ── LOS BOTONES, DE LADO A LADO ──────────────────────────────────────────
+   Los tres —terminar, saltar y anterior— pasan a ancho completo y apilados. El
+   .integracion-btns base los ponía en fila con justify-content:center, así que
+   quedaban dos cápsulas cortas en medio de la tarjeta. */
+#s-quest .integracion-btns.q-btns-col{
+  display:flex; flex-direction:column;
+  gap:10px;
+  justify-content:stretch;
+  flex-wrap:nowrap;
+}
+#s-quest .btn-guardar,
+#s-quest .btn-saltar{
+  width:100%;
+  display:block;
+  padding:14px 18px;
+  border-radius:100px;
+  font-size:14.5px; font-weight:600;
+  letter-spacing:0; text-transform:none;
+  text-align:center;
+}
+#s-quest .btn-saltar{
+  font-weight:500;
+  background:none;
+  border:1.5px solid rgba(150,100,70,.3);
+  color:var(--txt-suave);
+}
+#s-quest .btn-saltar:hover{
+  border-color:var(--terracota); color:var(--terracota-oscuro);
+}
+/* "Anterior" va fuera de la tarjeta, a ancho completo también, y sobre la malla — por
+   eso su color es el token de texto sobre malla y no el de dentro de tarjeta. */
+#s-quest .q-anterior-wrap{ margin-top:16px; }
+#s-quest .btn-saltar.q-anterior{
+  color:var(--txt-suave-malla);
+  background:none;
+}
+
+/* ── LAS TARJETAS DE RESPUESTA ────────────────────────────────────────────
+   Eran blancas opacas con radio 14. Pasan al cristal de la app. No estaban en tu
+   lista, pero comparten pantalla con el bloque de escribir y dejarlas en blanco puro
+   habría partido la pantalla en dos lenguajes. */
+#s-quest .opcion-suave{
+  background:var(--dash-vidrio) !important;
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:20px !important;
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:16px 18px !important;
+}
+#s-quest .opcion-suave:hover{
+  box-shadow:0 10px 26px rgba(140,90,60,.16);
+}
+/* La seleccionada conserva su degradado terracota: es lo que dice qué se eligió. */
 </style>
 </head>
 <body>
@@ -7263,12 +7413,13 @@ body{ background:transparent; }
 
 <!-- QUESTIONNAIRE (dynamic) - AFTER PRACTICE -->
 <div id="s-quest" class="scr">
+  <!-- Solo el logo, centrado. El "← Volver" de aquí se fue: duplicaba el "Anterior"
+       del pie, que es el que hace el retroceso paso a paso. El div espaciador de 88px
+       se va con él, o el logo quedaría descentrado. -->
   <div class="app-nav">
-    <button class="app-nav-back" onclick="go('prac')">← Volver</button>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
     </div>
-    <div style="width:88px;"></div>
   </div>
   <div class="app-container">
     <div class="cuestionario-progress" id="qProg"></div>
@@ -7317,8 +7468,10 @@ body{ background:transparent; }
        div espaciador de 88px se va: existía para centrar el logo entre dos elementos.
        El texto se queda en "Salir" y no en "Regresar" a propósito — aquí no se vuelve
        atrás, se abandona una práctica a medias, y por eso llama a confirmExit(). -->
+  <!-- Solo el logo. El "← Salir" bajó al pie de la pantalla, debajo de "Terminé mi
+       práctica" y a ancho completo. Sigue llamando a confirmExit(), que es el que
+       pregunta antes de abandonar una práctica a medias. -->
   <div class="app-nav">
-    <button class="app-nav-back" onclick="confirmExit()">← Salir</button>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
     </div>
@@ -7389,6 +7542,7 @@ body{ background:transparent; }
       <p id="rTx">Encuentra una posición cómoda. Permite que tu respiración se asiente antes de comenzar. No hay prisa.</p>
     </div>
     <button class="terminar-btn" id="terminar-btn" onclick="startQuest()">Terminé mi práctica ✦</button>
+    <button type="button" class="prac-salir" onclick="confirmExit()">Salir</button>
   </div>
 </div>
 
@@ -8165,7 +8319,11 @@ const RD={"Ritmo Suave":"La calma no es ausencia de movimiento. Es movimiento si
 // llegó a leer nunca. El que más falta hacía era el de la rama D —la de quien
 // termina peor, «se intensificó», «quedé más vacía», «se abrió más»—, que es
 // justo quien se quedaba sin cierre.
-const Q_TOTAL_STEPS = 5;
+// CUATRO PASOS, NO CINCO. El quinto era el cierre —"Para cerrar / Antes de irte"—
+// y se quitó por encargo: se había añadido después y sobraba. Al bajar este número,
+// qNext() llama a qFinish() en cuanto se responde el paso 4, y el botón "Anterior"
+// deja de ofrecerse en un paso que ya no existe.
+const Q_TOTAL_STEPS = 4;
 
 // ⚠ EDITAR ESTE ÁRBOL: QUÉ ES SEGURO Y QUÉ NO
 //
@@ -10717,44 +10875,28 @@ function renderQ(){
       html+='<textarea class="integracion-input integracion-grande" id="qTxtIn" placeholder="'+escAttr(n.placeholder||'')+'">'+escHtml(answers.p4||'')+'</textarea>';
       html+='<div class="integracion-footer">';
       html+='<p class="integracion-nota">Lo que escribes aquí queda solo contigo. No se evalúa. No se comparte.</p>';
-      html+='<div class="integracion-btns">';
+      // La clase q-btns-col los apila a ancho completo. Antes iban en fila y quedaban
+      // dos botones cortos centrados; el CSS de esa clase está en el bloque de #s-quest.
+      html+='<div class="integracion-btns q-btns-col">';
+      html+='<button class="btn-guardar" onclick="qSaveText()">Terminar práctica ✦</button>';
       html+='<button class="btn-saltar" onclick="qSkipText()">Saltar este paso</button>';
-      html+='<button class="btn-guardar" onclick="qSaveText()">Continuar ✦</button>';
       html+='</div>';
       html+='</div>';
       html+='</div>';
       html+='</div>';
     }
-  } else if(curQ===5){
-    // EL CIERRE. No pregunta nada: es lo único de todo el cuestionario que le
-    // devuelve algo a ella. El texto sale de p5[rama], así que responde a lo que
-    // acaba de contar y no es un "bien hecho" genérico.
-    //
-    // Se cae al de la rama A si faltara el de la suya: quedarse sin cierre es
-    // peor que leer uno que no encaja del todo, y ninguna rama debe terminar en
-    // una pantalla vacía.
-    const cierre=(tree.p5 && (tree.p5[path]||tree.p5.A))||'';
-    html+=qHead('Para cerrar', 'Antes de irte.');
-    html+='<div style="max-width:560px;margin:0 auto;">';
-    html+='<div class="completado-mensaje">'+escHtml(cierre)+'</div>';
-    // El textarea nace oculto detrás de un botón, no desplegado: quien no quiera
-    // escribir no debe encontrarse una página en blanco pidiéndole algo.
-    html+='<div id="qWriteSlot">'+(answers.p5write?qWriteTextareaHTML():'')+'</div>';
-    html+='<div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:6px;">';
-    if(!answers.p5write){
-      html+='<button class="btn-saltar" id="qWriteBtn" onclick="qOpenWrite()">Escribir algo antes de cerrar</button>';
-    }
-    html+='<button class="btn-guardar" onclick="qNext()">Terminar ✦</button>';
-    html+='</div>';
-    html+='</div>';
   }
+  // AQUÍ VIVÍA EL PASO 5, EL CIERRE. Pintaba "Para cerrar / Antes de irte", el texto de
+  // p5[rama], un textarea opcional detrás de un botón y el botón "Terminar ✦". Se fue
+  // entero; el paso 4 es ahora el último y su botón dice "Terminar práctica".
+  // LO QUE NO SE BORRA: los tres sitios que LEEN answers.p5write —el historial, la
+  // ficha del panel y el payload que se guarda—. Hay sesiones antiguas con ese texto
+  // dentro y borrar la lectura las dejaría mudas. Se deja de escribir, no de leer.
 
-  // Botón Anterior — en los pasos 2 a 5. En el 5 también: es el único sitio donde
-  // se lee el cierre, y volver atrás para cambiar una respuesta no debería
-  // obligarla a rehacer el cuestionario entero.
+  // Botón Anterior — en los pasos 2 a 4. Antes llegaba al 5, que era el cierre.
   if(curQ>1 && curQ<=Q_TOTAL_STEPS){
-    html+='<div style="display:flex;justify-content:center;margin-top:1.6rem;">';
-    html+='<button class="btn-saltar" onclick="prevQ()">← Anterior</button>';
+    html+='<div class="q-anterior-wrap">';
+    html+='<button class="btn-saltar q-anterior" onclick="prevQ()">← Anterior</button>';
     html+='</div>';
   }
 
@@ -10812,33 +10954,18 @@ function qNext(){
 // Retroceso
 function prevQ(){
   if(curQ>1){
-    // Si venía del cierre con algo escrito, se guarda antes de salir. Sin esto,
-    // volver atrás a cambiar una respuesta le borraría lo que acababa de
-    // escribir, y es lo más personal de todo el cuestionario.
-    if(curQ===5){
-      const wt=document.getElementById('qWriteText');
-      if(wt) answers.p5write=wt.value.trim();
-    }
+    // Ya no hay que rescatar nada al retroceder: el textarea del cierre, que era lo
+    // único que se podía perder aquí, se fue con el paso 5.
     curQ--;
     renderQ();
   }
 }
 
-// Camino D: HTML del textarea opcional de cierre (BUG 2: pre-rellenado si ya hay texto)
-function qWriteTextareaHTML(){
-  return '<textarea class="integracion-input" id="qWriteText" placeholder="Lo que quieras dejar registrado, sin editar…" style="min-height:130px;margin:0 auto 14px;display:block;max-width:520px;">'+escHtml(answers.p5write||'')+'</textarea>';
-}
+// AQUÍ VIVÍAN qWriteTextareaHTML() y qOpenWrite(), el textarea opcional del cierre.
+// Se van con el paso 5: sin él nadie las llamaba, y una función que pinta en un hueco
+// que ya no existe es una trampa para el próximo que lea esto.
 
-// Camino D: revelar textarea opcional antes de cerrar
-function qOpenWrite(){
-  const slot=document.getElementById('qWriteSlot');
-  if(!slot)return;
-  slot.innerHTML=qWriteTextareaHTML();
-  const btn=document.getElementById('qWriteBtn');
-  if(btn)btn.style.display='none';
-  const t=document.getElementById('qWriteText');
-  if(t)t.focus();
-}
+
 
 // ============================================================================
 // CONGELAR LAS PREGUNTAS EN EL MOMENTO DE RESPONDERLAS
@@ -10895,8 +11022,9 @@ function congelarQA(idx, path, a){
 
 // Cierre: registrar sesión en el historial y mostrar pantalla final
 function qFinish(){
-  const wt=document.getElementById('qWriteText');
-  if(wt) answers.p5write=wt.value.trim();
+  // Aquí se rescataba el textarea del cierre (#qWriteText). Ese campo se fue con el
+  // paso 5, así que la búsqueda no encontraba nada y la línea era código muerto.
+  // answers.p5write sigue viajando en el payload de abajo por las sesiones antiguas.
   if(U){
     U.sessions++; U.days++; U.streak++;
     const ses={
