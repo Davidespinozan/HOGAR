@@ -6905,6 +6905,69 @@ body{ background:transparent; }
 /* La rayita y el subtítulo, con su aire propio ahora que el título es una sola línea. */
 #s-admin .dash-rule{ margin:16px 0 12px; }
 #s-admin .adm-hello-sub{ font-size:15px; font-style:normal; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EDITOR DE LA LANDING · EL MARCO NO PUEDE COLAPSAR
+
+   ══ EL FALLO ══
+   De las seis fotos de la landing, en pantalla solo aparecían dos. No era que
+   faltaran controles: el alto del marco salía ÚNICAMENTE del <img> de dentro
+   —.adm-lp-marco.h img{height:150px}, y el marco sin altura propia— y cada imagen
+   lleva un onerror que la pone en display:none. Así que en cuanto una foto no estaba
+   puesta o no cargaba, el marco se quedaba en cero de alto y con él desaparecía su
+   botón "Cambiar foto", que va en position:absolute dentro.
+
+   Es decir: justo las fotos que faltaban por subir eran las que no se podían subir.
+   Las dos que sí se veían —"Tu foto" y "Tu retrato"— se salvaban por casualidad: su
+   botón vive FUERA del marco.
+
+   ══ EL ARREGLO ══
+   La altura pasa al marco, no a la imagen: aspect-ratio en las horizontales y una
+   altura fija en la vertical. La imagen se estira a lo que mida el marco. Con foto se
+   ve igual que antes; sin foto queda un recuadro vacío con su botón encima, que es lo
+   que hacía falta para poder poner la primera.
+   Y el hueco vacío dice qué le falta, en vez de ser una mancha de color.
+   ══════════════════════════════════════════════════════════════════════════ */
+#adm-view-landing .adm-lp-marco{
+  display:flex; align-items:center; justify-content:center;
+}
+#adm-view-landing .adm-lp-marco.h{ aspect-ratio:16/10; }
+#adm-view-landing .adm-lp-marco.v{ aspect-ratio:3/5; max-height:250px; }
+/* La imagen deja de mandar el alto: lo copia del marco. El !important es para las
+   cuatro reglas de height que le fija el bloque de #adm-view-landing de más arriba,
+   dos de ellas dentro de su @media. */
+#adm-view-landing .adm-lp-marco.h img,
+#adm-view-landing .adm-lp-marco.v img{
+  height:100% !important;
+  width:100%;
+}
+/* El aviso de "sin foto". Va en el marco con ::after y solo se ve cuando la imagen
+   está oculta —o sea, cuando no hay foto o no cargó—, porque la imagen la tapa. */
+#adm-view-landing .adm-lp-marco::after{
+  content:'Sin foto todavía';
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Montserrat',sans-serif;
+  font-size:12.5px; font-weight:500;
+  color:#8a6b5c;
+  pointer-events:none;
+}
+#adm-view-landing .adm-lp-marco img{ position:relative; z-index:1; }
+/* El botón, por encima del aviso. */
+#adm-view-landing .adm-lp-cambiar{ z-index:2; }
+/* La redonda de "Tu foto" no entra en nada de esto: tiene su propio tamaño fijo y su
+   botón fuera del marco, así que no puede colapsar. */
+#adm-view-landing .adm-lp-marco.redondo{ aspect-ratio:auto; }
+#adm-view-landing .adm-lp-marco.redondo::after{ content:none; }
+
+/* ── EL GUARDAR DE CADA BLOQUE DEL CUESTIONARIO ───────────────────────────
+   Al pie de cada paso, alineado a la derecha y separado con un filo para que se lea
+   como el cierre del bloque y no como un campo más. */
+#adm-view-lodices .adm-cuest-guardar-bloque{
+  display:flex; justify-content:flex-end;
+  margin-top:16px; padding-top:14px;
+  border-top:1px solid rgba(150,100,70,.14);
+}
 </style>
 </head>
 <body>
@@ -13670,6 +13733,7 @@ function _admCuestPintar(){
         +esc(((a.p2||{})[ids[i]]||{}).pregunta||'(sin pregunta)')+'</em></div>'
       +'</div>';
   });
+  h+=_admCuestGuardarAqui();
   h+='</div>';
 
   // ── Pasos 2 y 3, rama por rama
@@ -13685,6 +13749,7 @@ function _admCuestPintar(){
       });
       h+='</div>';
     });
+    h+=_admCuestGuardarAqui();
     h+='</div>';
   });
 
@@ -13701,7 +13766,7 @@ function _admCuestPintar(){
   (a.p4.D.opciones||[]).forEach((op,j)=>{
     h+=_admCuestCampo('Respuesta '+(j+1), 'p4.D.opciones.'+j+'.titulo', op.titulo, false);
   });
-  h+='</div></div>';
+  h+='</div>'+_admCuestGuardarAqui()+'</div>';
 
   // ── Paso 5: el cierre. Lo único del cuestionario que le devuelve algo a ella.
   h+='<div class="adm-tx-card hogar-rise-in"><div class="adm-tx-titulo">Paso 5 · lo que le dices al terminar</div>'
@@ -13724,6 +13789,27 @@ function _admCuestPintar(){
 
 /** Un campo. `ruta` es el camino dentro del árbol ('p2.A.opciones.0.titulo'), y es
  *  lo que devuelve el valor a su sitio sin que el editor sepa de estructuras. */
+/** Un botón "Guardar" al pie de cada bloque de preguntas.
+ *
+ *  EL PROBLEMA QUE RESUELVE: el cuestionario de una práctica son cinco bloques con
+ *  decenas de campos, y había UN solo Guardar al final de todo. Editando el paso 1 el
+ *  botón quedaba a varias pantallas de distancia, así que era fácil dar por hecho que
+ *  el cambio estaba puesto, salir de la sección y perderlo.
+ *
+ *  GUARDA TODO LO PENDIENTE, NO SOLO SU BLOQUE, y eso es a propósito: cada textarea
+ *  escribe en _admCuestArbol al teclear, y guardarCuestionarioHogar() manda ese árbol
+ *  entero por RPC. Así que pulsar cualquiera de estos botones deja a salvo todo lo
+ *  escrito hasta ese momento, en cualquier bloque. Hacerlos guardar solo su parte
+ *  habría exigido una ruta de guardado nueva y la posibilidad de perder lo demás.
+ *
+ *  Por eso el texto dice "Guardar cambios" y no "Guardar este paso": el botón no
+ *  miente sobre lo que hace. */
+function _admCuestGuardarAqui(){
+  return '<div class="adm-cuest-guardar-bloque">'
+    +'<button type="button" class="adm-btn-mini primario" onclick="guardarCuestionarioHogar(this)">Guardar cambios</button>'
+    +'</div>';
+}
+
 function _admCuestCampo(etiqueta, ruta, valor, grande){
   return '<div class="adm-field">'
     +'<label class="adm-tx-label">'+_admEsc(etiqueta)+'</label>'
@@ -13765,6 +13851,11 @@ async function guardarCuestionarioHogar(btn){
     if(error) throw error;
     _CUEST_NUBE[_admCuestEmo]=JSON.parse(JSON.stringify(_admCuestArbol));
     _admCuestMsg('Guardado. Las próximas prácticas ya usan estos textos.','ok');
+    // CONFIRMACIÓN EN EL PROPIO BOTÓN, y no solo en el aviso de arriba. Con un Guardar
+    // por bloque, el aviso puede quedar a varias pantallas de donde ella está mirando:
+    // vería el botón volver a "Guardar cambios" sin ninguna señal de que funcionó.
+    // Se marca aquí y el finally lo restaura pasado un momento.
+    if(btn){ btn.dataset.ok='1'; }
   }catch(e){
     const m=(e&&e.message)||'';
     // Los mensajes de la función vienen en español y son los que hay que enseñar:
@@ -13775,7 +13866,16 @@ async function guardarCuestionarioHogar(btn){
       _admCuestMsg(m || 'No se pudo guardar. Inténtalo de nuevo en un momento.','error');
     }
   }finally{
-    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
+    if(btn){
+      btn.disabled=false;
+      if(btn.dataset.ok){
+        delete btn.dataset.ok;
+        btn.textContent='Guardado ✓';
+        setTimeout(()=>{ btn.textContent=previo||'Guardar'; }, 1800);
+      }else{
+        btn.textContent=previo||'Guardar';
+      }
+    }
   }
 }
 
@@ -13831,8 +13931,7 @@ function _admLandingHTML(c){
   let html='<div class="adm-card-eyebrow" style="margin-bottom:14px;">— TU LANDING</div>';
   html+='<div class="adm-alert" id="adm-landing-msg"></div>';
   html+='<p class="adm-card-text" style="margin-bottom:16px;">'
-    +'El texto y las fotos de la página que ven quienes aún no entran. '
-    +'Cada foto se guarda sola al cambiarla; los textos y el precio, con Guardar.</p>';
+    +'Las fotos se guardan solas al cambiarlas. Los textos y el precio, con Guardar.</p>';
 
   // 1) Las tres fotos, cada una etiquetada con dónde se ve. Los ids de la de
   // escritorio (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS de
@@ -13853,11 +13952,10 @@ function _admLandingHTML(c){
 
   html+='<div class="adm-lp-fotos">'
     +foto('h','adm-lp-preview-img','adm-lp-file','adm-lp-subir', img,
-          'subirImagenHeroHogar','Foto para computadora','Esta es la que ven en la computadora.')
+          'subirImagenHeroHogar','Portada · computadora','')
     +foto('v','adm-lp-preview-movil','adm-lp-file-movil','adm-lp-subir-movil', imgMovil,
-          'subirFotoMovilHogar','Foto para celular','Esta es la que ven en el celular, vertical.')
+          'subirFotoMovilHogar','Portada · celular','')
     +'</div>'
-    +'<div class="adm-field-hint" style="margin-bottom:6px;">JPG, PNG o WEBP, máx. 5 MB cada una.</div>'
     // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
     // la fuente de la imagen de ESCRITORIO para Guardar; la subida escribe aquí
     // también. Las otras dos se guardan solas al subirlas, sin pasar por Guardar.
@@ -13873,13 +13971,11 @@ function _admLandingHTML(c){
   // misma imagen a dos anchos, no dos recortes. Ver _landingSetCierreImg().
   html+='<div class="adm-lp-fotos">'
     +foto('h','adm-lp-preview-trans','adm-lp-file-trans','adm-lp-subir-trans', imgTrans,
-          'subirFotoTransHogar','Foto de "Lo que empieza a cambiar"',
-          'El recuadro que acompaña a la lista de beneficios, a media página.')
+          'subirFotoTransHogar','Lo que empieza a cambiar','')
     +foto('h','adm-lp-preview-cierre','adm-lp-file-cierre','adm-lp-subir-cierre', imgCierre,
-          'subirFotoCierreHogar','Foto de "Tu espacio te espera"',
-          'El fondo grande del final, detrás del último botón. Se usa en computadora y en celular.')
+          'subirFotoCierreHogar','Tu espacio te espera','')
     +'</div>'
-    +'<div class="adm-field-hint" style="margin-bottom:16px;">Van de fondo y con texto encima, así que funcionan mejor las fotos tranquilas, sin nada importante en el centro.</div>';
+    +'<div class="adm-field-hint" style="margin-bottom:16px;">JPG, PNG o WEBP · máx. 5 MB. Llevan texto encima, así que funcionan mejor las tranquilas.</div>';
 
   // 2) La foto de Andrea del chat: redonda, como se ve de verdad.
   html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
@@ -13890,7 +13986,7 @@ function _admLandingHTML(c){
           +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
       +'</div>'
       +'<div class="adm-lp-chat-txt">'
-        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">Es la que ven tus usuarias dentro de la app: junto a tus mensajes en la práctica, en su inicio y en tu panel. Con cambiarla aquí, cambia en los tres sitios.</div>'
+        +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">La que ven tus usuarias dentro de la app.</div>'
         +'<input type="file" id="adm-lp-file-chat" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="subirFotoChatHogar(this)">'
         +'<button type="button" class="adm-btn-mini primario" id="adm-lp-subir-chat" '
           +'onclick="document.getElementById(\'adm-lp-file-chat\').click()">Cambiar foto</button>'
