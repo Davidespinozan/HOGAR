@@ -6859,6 +6859,52 @@ body{ background:transparent; }
   text-transform:none !important;
   color:var(--txt-suave-malla) !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANEL DE ANDREA · la barra superior y los títulos de sección
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* LA BARRA: menú a la izquierda, logo a la derecha, nada en el medio.
+   La rejilla pasa de tres columnas a dos porque el avatar se fue del marcado; con las
+   tres, el logo se habría quedado centrado en la columna elástica y la derecha vacía.
+   El justify-self:end es lo que lo empuja al canto. */
+#s-admin .adm-topbar{
+  grid-template-columns:auto 1fr;
+}
+#s-admin .adm-topbar-logo{
+  justify-content:flex-end;
+  justify-self:end;
+}
+#s-admin .adm-topbar-logo img{ height:42px; }
+
+/* ── LOS TÍTULOS DE SECCIÓN, EN UNA SOLA LÍNEA ────────────────────────────
+   Eran dos bloques apilados —un <p> con "Tus" y un <h1> con "usuarias."— y se leían
+   como dos cosas sueltas. Pasan a display:inline, así que fluyen en la misma línea y
+   el salto de línea del marcado hace de espacio entre palabras: "Tus usuarias."
+   No hace falta tocar el HTML de las siete secciones; basta el display.
+
+   Los dos cuerpos suben, manteniendo la proporción entre ellos: la palabra pequeña de
+   22 a 27px y la grande de su clamp anterior al de abajo. El <hr> que va después sigue
+   siendo un bloque, así que la rayita cae debajo sola.
+
+   OJO: esto vale para el saludo de Inicio y para las seis secciones a la vez, porque
+   todas usan las mismas clases. Es lo que se pidió — el mismo tamaño y el mismo
+   "corrido" en todas. */
+#s-admin .dash-hello,
+#s-admin .dash-name{
+  display:inline;
+}
+#s-admin .dash-hello{
+  font-size:clamp(21px, 6vw, 27px);
+  line-height:1.2;
+}
+#s-admin .dash-name{
+  font-size:clamp(38px, 11.5vw, 52px);
+  line-height:1.15;
+}
+/* La rayita y el subtítulo, con su aire propio ahora que el título es una sola línea. */
+#s-admin .dash-rule{ margin:16px 0 12px; }
+#s-admin .adm-hello-sub{ font-size:15px; font-style:normal; }
 </style>
 </head>
 <body>
@@ -7879,8 +7925,12 @@ body{ background:transparent; }
     <button type="button" class="adm-burger" onclick="abrirMenuAdmin()" aria-label="Abrir el menú" aria-controls="adm-drawer" aria-expanded="false" id="adm-burger">
       <span></span><span></span><span></span>
     </button>
+    <!-- AQUÍ ESTABA EL AVATAR DE ANDREA (#adm-avatar-top). Se quitó: en su propio panel
+         no le dice nada que no sepa, y ocupaba la esquina de la derecha que ahora usa el
+         logo. Sus dos hermanos —#adm-avatar-side y #adm-avatar-drawer, los del menú—
+         siguen ahí, y los dos bucles que pintan su foto y su inicial recorren los tres
+         ids con un if(el), así que no se rompen por faltar éste. -->
     <div class="adm-topbar-logo"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR"></div>
-    <div class="adm-avatar" id="adm-avatar-top" aria-hidden="true">·</div>
   </div>
 
   <!-- DRAWER — solo móvil. Mismo panel café que el sidebar, deslizando. -->
