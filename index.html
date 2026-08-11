@@ -8918,14 +8918,38 @@ function go(id){
 // ============================================
 // ÁREA ADMINISTRATIVA — navegación entre secciones (mostrar/ocultar, sin recarga)
 // ============================================
+// ══ SECCIONES DEL PANEL OCULTAS ══
+// "Contenido" se oculta de momento: Andrea todavía no puede añadir ni quitar vídeos,
+// así que era una sección que solo se podía mirar.
+//
+// SE OCULTA, NO SE BORRA, y es deliberado por dos motivos. Uno: es temporal, y volver
+// a enseñarla es sacar su nombre de esta lista —una palabra— en vez de rehacer el
+// marcado de dos menús, la vista entera y su cargador. Dos: la vista sigue existiendo
+// y funcionando, así que cuando se pueda subir vídeos no hay que reconstruir nada.
+//
+// ESTA LISTA ES LA ÚNICA FUENTE DE LA VERDAD. De aquí salen las dos cosas que hacen
+// falta: esconder el botón en los dos menús —el del escritorio y el del cajón— y
+// desviar la navegación si algo pidiera la sección de todos modos. Si el nombre
+// estuviera además escrito en el CSS o en un `if`, se desincronizarían al primer
+// cambio.
+const ADM_SECCIONES_OCULTAS = ['contenido'];
+
 function goAdmin(section){
-  const s=section||'inicio';
+  let s=section||'inicio';
+  // Desvío a inicio si piden una sección oculta. Con el botón escondido no debería
+  // pasar, pero un enlace viejo, un onclick olvidado o una llamada desde la consola
+  // dejarían el panel en una vista sin entrada de menú y sin forma de volver.
+  // Además evita que se dispare su cargador y pida datos que nadie va a ver.
+  if(ADM_SECCIONES_OCULTAS.includes(s)) s='inicio';
   const scr=document.getElementById('s-admin');
   if(scr && !scr.classList.contains('on')) go('admin');
   // Sidebar (escritorio) y drawer (móvil) son dos listas distintas de la MISMA
   // navegación: comparten data-adm, así que un solo bucle mantiene el activo
   // sincronizado en ambas y no pueden quedar diciendo cosas diferentes.
+  // El mismo bucle esconde las ocultas: recorre los dos menús, así que ninguna copia
+  // puede quedarse con el botón visible.
   document.querySelectorAll('#s-admin .adm-nav-item[data-adm]').forEach(b=>{
+    if(ADM_SECCIONES_OCULTAS.includes(b.dataset.adm)){ b.style.display='none'; return; }
     b.classList.toggle('active', b.dataset.adm===s);
   });
   cerrarMenuAdmin();          // navegar desde el drawer lo cierra
