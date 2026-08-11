@@ -2,7 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- viewport-fit=cover NO ES DECORATIVO Y HAY QUE SABER LO QUE HACE.
+     Sin él, env(safe-area-inset-*) resuelve SIEMPRE a cero en el Safari de iPhone
+     — la reserva del notch no se puede pedir, se ignore como se escriba—. O sea
+     que las cuatro reservas que ya había escritas en esta hoja (.rec-pie, la barra
+     inferior .hnav y el aire final de las tres pantallas de usuaria) llevaban
+     desde su primer día sin hacer nada.
+     A cambio, la página pasa a extenderse por debajo de la barra de estado y del
+     indicador de inicio, así que TODA cabecera pegada arriba necesita su reserva.
+     Por eso más abajo se le añade a .app-nav —que la usan todas las pantallas de
+     la app— y a la cabecera de la landing. -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>HOGAR — Regulación a través del movimiento</title>
 <meta name="description" content="Prácticas guiadas de 15, 30 o 45 minutos, según cómo te sientes hoy. Entrena con estructura, sin exigencia.">
 
@@ -16,7 +26,11 @@
      =========================================================================== -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C0673F'/%3E%3Cg fill='none' stroke='%23F5EBD9' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 30 L32 15 L51 30'/%3E%3Cpath d='M18 30 V47 H46 V30'/%3E%3Cpath d='M32 43 C24 37 23.5 30 27.5 29 C30 28.4 31.4 30.4 32 32 C32.6 30.4 34 28.4 36.5 29 C40.5 30 40 37 32 43 Z'/%3E%3C/g%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23C0673F'/%3E%3Cg fill='none' stroke='%23F5EBD9' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 30 L32 15 L51 30'/%3E%3Cpath d='M18 30 V47 H46 V30'/%3E%3Cpath d='M32 43 C24 37 23.5 30 27.5 29 C30 28.4 31.4 30.4 32 32 C32.6 30.4 34 28.4 36.5 29 C40.5 30 40 37 32 43 Z'/%3E%3C/g%3E%3C/svg%3E">
-<meta name="theme-color" content="#F5EBD9">
+<!-- El tono de la MALLA en su borde superior, medido componiendo las seis manchas en
+     el centro de arriba: #f4e3d3. Tiñe la barra de estado con la app instalada en la
+     pantalla de inicio; con un valor que no case se ve como una franja distinta
+     encima del logo. Si se cambian los alfas de --malla, este valor va detrás. -->
+<meta name="theme-color" content="#F4E3D3">
 
 <!-- ===========================================================================
      VISTA PREVIA AL COMPARTIR (WhatsApp, Instagram, Facebook, X).
@@ -714,7 +728,10 @@
      es STICKY, así que su altura se descuenta de la pantalla durante todo el
      scroll. Con 52+30 se queda en ~82 px, prácticamente lo que medía antes
      (84 px), pero con la marca ocupando su sitio en vez de flotando. */
-  .hero-scapes-header{padding:15px 16px;position:sticky;top:0;z-index:999;background:var(--salmon-claro);}
+  /* Sticky arriba del todo: con viewport-fit=cover necesita la reserva del notch
+     igual que las cabeceras de la app, o el logo de la landing queda debajo de la
+     barra de estado. */
+  .hero-scapes-header{padding:calc(15px + env(safe-area-inset-top, 0px)) 16px 15px;position:sticky;top:0;z-index:999;background:var(--salmon-claro);}
   .hero-wordmark img{height:52px;}
   .hero-header-cta{font-size:10px;padding:10px 18px;}
   /* En móvil no cabe: hamburguesa + logo + botón ya llenan el ancho, y meter
@@ -1279,11 +1296,16 @@ button, a, .ci-o, .ci-tm, .ds, .pf-s, .q-opt, .q-dot, .pp-card, .pf-i, .faq-q{
 
 body.app-active { overflow: hidden; }
 
+/* El padding-top lleva la reserva del notch porque con viewport-fit=cover la
+   cabecera arranca en el borde físico de la pantalla. Va en la clase BASE para que
+   la hereden todas las pantallas de la app —práctica, cuestionario, cierre y el
+   check-in clásico—, no solo las que se rediseñaron. Donde no hay notch, env()
+   cae a 0px y esto no cambia nada. */
 .app-nav {
   position: sticky;
   top: 0;
   z-index: 50;
-  padding: 16px 40px;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 40px 16px;
   background: var(--salmon);
   display: flex;
   justify-content: space-between;
@@ -3917,21 +3939,40 @@ body.app-active { overflow: hidden; }
    sombra. Aquí el sistema se define UNA vez, las reglas base lo usan y las
    copias por sección se retiran. Cobros se alinea solo, y el próximo retoque es
    una línea en vez de cinco. */
+/* ══ ESTOS TOKENS AHORA APUNTAN AL LENGUAJE DE LA APP DE USUARIA ══
+   El comentario de arriba decía que el sistema se centralizó aquí para que "el
+   próximo retoque sea una línea en vez de cinco". Esto es ese retoque: en vez de
+   reescribir las 358 reglas del panel, se repunta la capa de tokens y el cambio se
+   propaga solo a las 7 clases de tarjeta, los 4 tipos de campo y los 30 sitios que
+   usan los colores de texto.
+
+   El cristal y los grises son LITERALMENTE los de la app —var(--dash-*)— y no una
+   copia de sus valores, así que panel y app no pueden desincronizarse. Por eso esos
+   tokens se subieron a :root: aquí, en :root, un var() que apuntara a una variable
+   declarada dentro de #s-dash resolvería a vacío y la propiedad se caería sin avisar.
+
+   Lo que NO se toca desde aquí, a propósito, porque significa algo y no es estilo:
+   los badges de estado de las usuarias, las alertas (.ok/.warn/.error/.info), los
+   chips de contenido y el rojo de las acciones destructivas. Esos conservan su
+   paleta; si se unificaran, el panel dejaría de avisar de nada. */
 :root{
-  --adm-card-bg:#fff;
-  --adm-card-radio:20px;
-  --adm-card-borde:1px solid rgba(240,228,214,.8);
-  --adm-card-sombra:0 6px 16px rgba(61,36,24,.07);
-  --adm-card-sombra-alta:0 14px 32px rgba(61,36,24,.12);
-  --adm-eyebrow-color:#b0654a;
-  --adm-eyebrow-size:10px;
-  --adm-eyebrow-ls:2.4px;
-  --adm-texto:#3a2820;
-  --adm-texto-2:#9a7d6c;
-  --adm-campo-radio:14px;
-  --adm-campo-borde:1px solid rgba(240,228,214,.9);
-  --adm-campo-sombra:0 6px 16px rgba(61,36,24,.05);
-  --adm-foco:0 0 0 3px rgba(198,107,65,.13);
+  --adm-card-bg:var(--dash-vidrio);
+  --adm-card-radio:24px;
+  --adm-card-borde:1px solid var(--dash-vidrio-borde);
+  --adm-card-sombra:var(--dash-vidrio-sombra);
+  --adm-card-sombra-alta:0 12px 30px rgba(140,90,60,.16), 0 2px 5px rgba(140,90,60,.10);
+  /* Los rótulos dejan de ser versalitas: el tamaño sube y el tracking se va. El
+     text-transform no vive en un token —está en cada regla— así que se apaga en
+     bloque más abajo. */
+  --adm-eyebrow-color:#c0663a;
+  --adm-eyebrow-size:13px;
+  --adm-eyebrow-ls:0px;
+  --adm-texto:#3f342c;
+  --adm-texto-2:var(--txt-suave);
+  --adm-campo-radio:16px;
+  --adm-campo-borde:1px solid rgba(255,255,255,.7);
+  --adm-campo-sombra:0 2px 8px rgba(140,90,60,.07);
+  --adm-foco:0 0 0 3px rgba(198,107,65,.16);
 }
 
 /* ===== ÁREA ADMINISTRATIVA — marco de navegación (rediseño, paso 1) ==========
@@ -4338,6 +4379,2200 @@ body.app-active { overflow: hidden; }
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   REDISEÑO DE LA PANTALLA DE INICIO DE LA USUARIA  (según mockup)
+
+   TODO VA ACOTADO A #s-dash, Y ESO NO ES ESTILO: ES OBLIGATORIO.
+
+   El panel de Andrea reutiliza estas mismas clases —.dash-header, .dash-name,
+   .dash-hello, .dash-rule, .dash-meta y sobre todo .stat-tile, que además
+   construye en JS la ficha de cada usuaria—. Escribir una regla de clase a
+   secas aquí le rediseñaría el panel entero de rebote. El prefijo #s-dash es
+   la frontera entre las dos pantallas.
+
+   Va al final de la hoja a propósito: el id (100) ya gana en especificidad a
+   las reglas de clase de arriba, incluidas las del @media de móvil, pero
+   estando al final también gana cualquier empate.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* LOS TOKENS LOS COMPARTEN LAS TRES PANTALLAS DE USUARIA, no solo Inicio. Nacieron
+   en #s-dash porque el rediseño empezó ahí, y mientras vivieran solo en ese id
+   cualquier regla de Mi cuenta o de Historial que los usara resolvería a vacío y
+   la propiedad se caería sin avisar. Añadir los dos ids aquí es lo que permite que
+   las tarjetas de Mi cuenta usen LITERALMENTE el mismo cristal, y no una copia de
+   los valores que luego se desincroniza.
+   Los tokens del botón (--dash-play*) siguen abajo, en un bloque solo de #s-dash:
+   ese botón existe únicamente en Inicio. */
+#s-dash,
+#s-history,
+#s-profile,
+#s-checkin{
+  /* Serif de sistema para las cifras. NO es una fuente nueva: no se descarga
+     nada, se usa la que ya trae el aparato. Si se prefiere quedarse solo en
+     Montserrat, esta línea sola lo revierte todo. */
+  --dash-serif: Georgia, 'Times New Roman', Times, serif;
+  /* ══ EL CRISTAL, DEFINIDO UNA VEZ PARA TODAS LAS TARJETAS ══
+     La de Andrea, las dos de cifras, la del paisaje, las tres de Mi cuenta y las
+     del historial son el mismo material. Una sola definición para que no puedan
+     separarse.
+
+     AHORA SÍ ES CRISTAL DE VERDAD, y es la malla la que lo hace posible. Cuando el
+     fondo era un color plano —o un lineal casi plano— hubo que pasar la tarjeta a
+     sólida (#FFFDFA) porque translúcida se fundía con él, y con ella el
+     backdrop-filter quedó inerte: desenfocar un color plano devuelve el mismo color
+     plano. Con la malla debajo hay seis manchas que mezclar, así que el desenfoque
+     tiene material y cada tarjeta recoge el color de la zona donde cae.
+
+     El blanco al 42% es lo que deja pasar ese color sin que el texto pierda fondo.
+     El desenfoque sube a 24px y la saturación a 1.4: el blur ancho es lo que
+     convierte las manchas en un lavado de color en vez de en formas reconocibles
+     detrás del cristal, y la saturación devuelve el color que el propio blanco
+     translúcido lava.
+
+     PARA APAGARLO SI HACE FALTA: --dash-vidrio-blur a `none` deja el cristal en
+     translúcido simple, sin tocar nada más. Es el interruptor de rendimiento. */
+  /* El cristal y los dos grises se declaran en :root, no aquí. Los necesita también
+     el panel de Andrea, que no es descendiente de estas pantallas — y una variable
+     declarada en un id solo la ven sus descendientes. Ver la nota de :root. */
+  /* Dos capas: una amplia que da el flotado y una corta y pegada que define el
+     canto. Sobre malla la sombra importa menos que antes —el color de fondo ya
+     separa— pero se queda para que la tarjeta no parezca un recorte. */
+
+
+  /* ══ LOS DOS GRISES DE TEXTO SECUNDARIO, MEDIDOS CONTRA LA MALLA ══
+     Antes eran #8a7a6c y #7a6a5e y sobre la malla no llegaban: en la zona del rosa
+     vino daban 3.04 y 3.81, y la norma pide 4.5 para texto normal. No es un
+     detalle de purista — son las descripciones de las cifras, las etiquetas de los
+     campos de Mi cuenta y la línea de "Micro · 7 ago", o sea el texto más pequeño
+     de la app.
+     Son DOS y no uno porque el fondo no es el mismo: dentro de una tarjeta hay un
+     blanco al 42% que ya aclara, y sobre la malla desnuda no hay nada. */
+
+  /* UN SOLO HUECO PARA TODA LA PANTALLA. La separación entre el saludo y las
+     cifras, entre las cifras y el botón y entre el botón y el paisaje sale
+     toda de aquí. Antes cada bloque traía su margen heredado (4px / 20px /
+     32px / 24px) y se veían pegados y desiguales. Cambiar este número mueve
+     los tres huecos a la vez y NO puede volver a descuadrarlos. */
+  --dash-hueco: 34px;
+  /* Y UN SOLO ANCHO. Los cuatro bloques lo comparten, así que sus bordes
+     izquierdo y derecho caen exactamente en la misma vertical. */
+  --dash-ancho: 720px;
+
+  /* EL CUERPO DE LA CIFRA GRANDE, en un solo sitio para los tres tamaños de
+     pantalla. Manda tres cosas a la vez: el tamaño del número de sesiones, la
+     altura de la caja que alinea las etiquetas de las dos tarjetas, y —por
+     cálculo— el tamaño menor de la racha. Cambiarlo aquí las mueve las tres sin
+     poder descuadrarlas entre sí. */
+  --dash-cifra: 50px;
+
+  /* El relleno SUPERIOR de las tarjetas de cifras. Está en variable porque la
+     tarjeta de la racha le suma la compensación de su dígito menor, y ese cálculo
+     tiene que seguir cuadrando en los tres tamaños de pantalla. */
+  --dash-tile-pad: 20px;
+
+  /* EL TAMAÑO DEL DESTELLO DEL SEPARADOR, y de ahí sale también el ancho del hilo.
+     Existe para que el saludo se escale COMO CONJUNTO: al subir el cuerpo del nombre
+     hay que subir esto en la misma proporción, o el hilo y el destello se quedan
+     pequeños y el bloque deja de leerse como una firma. */
+  --dash-firma: 13px;
+
+  /* Aquí vivían --dash-fondo y --dash-fondo-fuerza, los tokens de la foto de sombras
+     de hojas. Se van con las dos capas que los usaban: la malla ocupa su sitio y ya
+     no hay ninguna imagen de fondo que nombrar. */
+}
+
+/* ── 0. EL FONDO ──────────────────────────────────────────────────────────── */
+/* El position:relative es lo que ancla el botón de Andrea en la cabecera; el fondo
+   es la malla, la misma que pinta la regla de #s-dash.on de más abajo. Se repite
+   aquí para la pantalla en reposo (sin .on), y por eso va con las dos propiedades
+   separadas: la malla es una imagen y un background-color solo la descartaría. */
+#s-dash{
+  position:relative;
+  background-color:var(--malla-base);
+  background-image:var(--malla);
+  background-repeat:no-repeat;
+}
+/* ══ AQUÍ VIVÍAN DOS CAPAS FIJAS Y ERAN EL MOTIVO DE QUE LA MALLA SE VIERA MENOS
+      EN INICIO QUE EN LAS DEMÁS PANTALLAS ══
+   Eran restos del diseño de la foto de sombras de hojas, que nunca llegó a existir:
+     · ::before  la foto (--dash-fondo, un archivo que no está) más un claro cálido.
+     · ::after   un VELO CREMA a pantalla completa, de rgba(253,246,238,.34) arriba a
+                 .62 abajo. Su trabajo era garantizar el contraste del texto pase lo
+                 que pase con una foto que no controlábamos.
+   Con la malla ese velo dejó de proteger nada y pasó a estorbar: cubría Inicio de
+   crema translúcido y le apagaba el color. Historial y Mi cuenta no lo tenían, y por
+   eso ahí la malla se veía y en Inicio casi no.
+   Las dos se van. El contraste ya no depende de un velo sino de las opacidades de la
+   malla y de los dos grises de texto, que están medidos.
+   Si algún día vuelve la idea de una foto de fondo, el sitio es éste — pero con la
+   malla puesta, no encima de ella. */
+/* Los cuatro bloques, por encima del fondo. En rigor ya lo están —viven dentro de
+   .app-container, que es z-index:2 y crea su propio contexto—, pero dejarlo escrito
+   evita que mover un bloque fuera del contenedor algún día lo mande sin avisar
+   detrás del fondo. */
+#s-dash .dash-header,
+#s-dash .dash-stats-gallery,
+#s-dash .dash-cta,
+#s-dash .dash-paisaje{ position:relative; z-index:1; }
+
+/* ── 1. SALUDO ───────────────────────────────────────────────────────────── */
+/* EN EL MOCKUP NO HAY TARJETA SALMÓN. El saludo, el destello y la frase de
+   Andrea van directamente sobre el fondo de la pantalla. Se apaga el degradado
+   y el halo circular de .dash-header, pero la clase y el marcado se quedan
+   intactos —el panel de Andrea los sigue usando con su aspecto de siempre—. */
+/* SIN PADDING LATERAL, Y ESO ES EL ARREGLO DEL DESCUADRE. Mientras el cabecero
+   tuvo 26px a cada lado, la tarjeta de Andrea —que vive dentro— salía 52px más
+   estrecha que la de las cifras, el botón y el paisaje, que son hermanos suyos
+   y miden los 720px enteros. El aire lateral de la pantalla ya lo pone el
+   .app-container de fuera; ponerlo otra vez aquí era contarlo dos veces. */
+#s-dash .dash-header{
+  max-width:var(--dash-ancho); margin:0 auto var(--dash-hueco);
+  padding:22px 0 0;
+  background:none; border-radius:0; overflow:visible;
+}
+#s-dash .dash-header::before{ display:none; }
+
+/* EL "— HOY · DÍA 7" NO ESTÁ EN EL MOCKUP Y TAMPOCO HACE FALTA: el mismo número
+   se lee dos dedos más abajo, en la cifra "— DÍAS" (las dos salen de U.days).
+   Se oculta y no se borra porque .dash-meta es de uso compartido —el panel de
+   Andrea la usa para "— ADMINISTRACIÓN" y "— FICHA DE USUARIA"— y porque hay
+   dos sitios del código que le escriben dentro por id. Volver atrás es borrar
+   esta regla. */
+#s-dash .dash-meta{ display:none; }
+
+#s-dash .dash-hello{
+  font-size:25px; font-weight:300; letter-spacing:0;
+  color:#4a4038; line-height:1.15; margin:0;
+}
+/* EL NOMBRE NO VA EN CURSIVA. La versión anterior la heredaba de .dash-name;
+   en el mockup es redonda, muy ligera y bastante más grande. El clamp evita
+   que un nombre largo se salga por el lado en un teléfono estrecho. */
+#s-dash .dash-name{
+  font-style:normal; font-weight:200;
+  font-size:clamp(46px, 17vw, 72px);
+  letter-spacing:-1.5px; line-height:1.06;
+  color:#96522e; margin:0;
+}
+/* El punto es el único acento saturado del bloque: por eso va más rojo que el
+   nombre y no en el mismo tono. */
+#s-dash .dash-name-punto{ color:#d4551f; font-style:normal; }
+
+/* El separador: dos hilos cortos con un destello de cuatro puntas en el hueco
+   del centro. El hueco lo hacen los topes del degradado (36% / 64%), y el
+   destello es un pseudo-elemento del propio <hr> — no hay marcado nuevo. */
+/* EL SEPARADOR Y SU DESTELLO CRECEN CON EL SALUDO, no por separado. El ancho del hilo
+   y el tamaño del destello salen de --dash-firma, así que subir esa variable escala el
+   conjunto —saludo, nombre, hilo y destello— manteniendo la proporción entre ellos.
+   El ×10 no es arbitrario: son los 132px de hilo y los 13px de destello que tenía
+   escritos el diseño original, o sea la proporción que ya estaba aprobada.
+   El destello se dibuja con clip-path sobre un cuadrado, y por eso su margen negativo
+   es la mitad de su lado: si se toca uno hay que tocar el otro, y con el calc() ya no
+   pueden descuadrarse. */
+#s-dash .dash-rule{
+  position:relative;
+  width:100%; max-width:calc(var(--dash-firma) * 10); height:1px;
+  background:linear-gradient(90deg,
+    rgba(150,82,46,.38) 0%,  rgba(150,82,46,.38) 34%,
+    transparent 34%,         transparent 66%,
+    rgba(150,82,46,.38) 66%, rgba(150,82,46,.38) 100%);
+  border-radius:0; margin:20px 0 24px; overflow:visible;
+}
+#s-dash .dash-rule::after{
+  content:""; position:absolute;
+  left:50%; top:50%;
+  width:var(--dash-firma); height:var(--dash-firma);
+  margin:calc(var(--dash-firma) / -2) 0 0 calc(var(--dash-firma) / -2);
+  background:var(--terracota);
+  clip-path:polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%,
+                    50% 100%, 40% 60%, 0% 50%, 40% 40%);
+  filter:drop-shadow(0 0 3px rgba(216,135,102,.5));
+}
+
+/* ── 2. LA FRASE DE ANDREA ───────────────────────────────────────────────── */
+/* Mismo cristal que las cifras y el paisaje. Antes tenía sus propios valores
+   sueltos, parecidos pero no iguales, y sobre la foto la diferencia se ve. */
+#s-dash .dash-andrea-glass{
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:24px;
+  box-shadow:0 6px 20px rgba(140,90,60,.07);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:15px 18px 15px 14px; gap:16px;
+}
+#s-dash .dash-andrea-photo{
+  width:66px; height:66px;
+  border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(140,90,60,.18);
+}
+#s-dash .dash-aside-meta{
+  font-size:11px; letter-spacing:2.8px; font-weight:600; color:#c0663a;
+}
+#s-dash .dash-aside-cita{
+  font-size:17px; font-weight:400; line-height:1.55; color:#3f342c;
+}
+/* Las comillas se ponen en CSS y NO en el texto: la frase la escribe Andrea
+   desde su panel y la inyecta JS. Si vivieran en el dato, aparecerían comillas
+   sueltas mientras la frase carga y habría que tocar la lógica para quitarlas.
+   :not(:empty) evita justamente eso — sin frase, no hay comillas huérfanas. */
+#s-dash .dash-aside-cita:not(:empty)::before{ content:'\201C'; }
+#s-dash .dash-aside-cita:not(:empty)::after{ content:'\201D'; }
+
+/* ── 3. LAS DOS CIFRAS ───────────────────────────────────────────────────── */
+/* DOS TARJETAS INDEPENDIENTES, NO UNA FILA DE TRES. Antes esto era una sola
+   tarjeta de cristal ancha con hilos verticales dentro; ahora el cristal se
+   muda a cada .stat-tile y el contenedor se queda siendo solo la rejilla que
+   las coloca y el hueco que las separa.
+
+   Las dos juntas miden --dash-ancho, igual que el botón y el paisaje: el ancho
+   lo pone el contenedor y las tarjetas se reparten lo que quede tras el hueco
+   (1fr cada una), así que los bordes exteriores caen en la misma vertical que
+   el resto de los bloques.
+
+   La tercera cifra —"días / en relación con tu cuerpo"— se quita del marcado.
+   OJO CON EL DATO, QUE NO ES EL MISMO QUE SESIONES aunque se parezca: stat-dias
+   era U.days (días desde que entró) y sesiones es el número de prácticas. Al
+   irse esta tarjeta, y estando ya oculto el "— HOY · DÍA n" del saludo, U.days
+   deja de verse en toda la pantalla de Inicio. Es lo pedido; queda dicho por si
+   algún día se echa en falta. */
+#s-dash .dash-stats-gallery{
+  grid-template-columns:repeat(2, 1fr);
+  gap:14px;
+  max-width:var(--dash-ancho); margin:0 auto var(--dash-hueco);
+  background:none; border:none; border-radius:0;
+  box-shadow:none; padding:0;
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
+/* Cada tarjeta es ahora el cristal, con las mismas cuatro propiedades que la
+   frase de Andrea y el paisaje. El padding-bottom deja sitio a la rayita del
+   pie, que va en position:absolute y no empuja al texto. */
+#s-dash .stat-tile{
+  position:relative;
+  display:block; text-align:left;
+  padding:var(--dash-tile-pad) 20px 26px;
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:24px;
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+#s-dash .stat-tile:hover{ transform:none; box-shadow:var(--dash-vidrio-sombra); }
+/* LA RAYITA DEL PIE, centrada. Es un pseudo-elemento de la tarjeta: sin marcado
+   nuevo y sin un nodo vacío que el lector de pantalla tenga que ignorar. El
+   color lo da cada tarjeta abajo — terracota la primera, rosa la segunda. */
+#s-dash .stat-tile::after{
+  content:""; position:absolute;
+  left:50%; bottom:13px; width:26px; height:2px; margin-left:-13px;
+  border-radius:2px;
+  background:currentColor;
+}
+#s-dash .stat-tile.salmon::after{ color:var(--terracota); }
+#s-dash .stat-tile.accent::after{ color:var(--rosa-vino); }
+/* ── EL SÍMBOLO DE LA ESQUINA ─────────────────────────────────────────────
+   Círculo claro arriba a la derecha con un icono de línea fina dentro: destello
+   de cuatro puntas en sesiones, hojita en la racha.
+
+   VA EN position:absolute Y NO EN EL FLUJO, y eso importa por dos motivos:
+     · La tarjeta de la racha lleva un relleno superior mayor para compensar su
+       dígito menor. Si el símbolo fuera en flujo, bajaría con ese relleno y los
+       dos círculos quedarían a distinta altura. Anclado con top/right, los dos
+       caen en el mismo punto de su tarjeta.
+     · No empuja al número ni le roba ancho, así que la cifra sigue empezando
+       pegada al borde izquierdo.
+
+   El icono hereda el color de la tarjeta por currentColor; el fondo del círculo
+   es el mismo blanco translúcido del cristal, un poco más denso para que se
+   despegue de la tarjeta que lo lleva. */
+#s-dash .stat-ico{
+  display:flex; align-items:center; justify-content:center;
+  position:absolute; top:16px; right:16px;
+  width:34px; height:34px; border-radius:50%;
+  margin:0; padding:0;
+  background:rgba(255,255,255,.5);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:0 2px 8px rgba(140,90,60,.08);
+}
+/* El trazo fino se pone AQUÍ y no en los atributos del SVG: así los dos iconos
+   comparten grosor y remates, y cambiarlo es una línea. El fill:none es
+   imprescindible — sin él un path cerrado se pinta macizo y no de línea. */
+#s-dash .stat-ico svg{
+  width:17px; height:17px;
+  fill:none; stroke:currentColor;
+  stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
+}
+#s-dash .stat-tile.salmon .stat-ico{ color:var(--terracota-oscuro); }
+/* La racha usa su rosa apagado, el mismo de su cifra: el símbolo tampoco debe
+   pesar más que el de sesiones. */
+#s-dash .stat-tile.accent .stat-ico{ color:#cf9dab; }
+/* EL NÚMERO, grande y arriba a la izquierda. CAJA AL NATURAL, sin min-height.
+
+   EL min-height CON align-items:flex-end FUE UN ERROR Y NO CONVIENE REPETIRLO.
+   La idea era buena —igualar la altura de la caja del número para que las dos
+   etiquetas cayeran a la misma altura— pero el efecto no: en sesiones empujaba el
+   dígito al fondo de su caja y lo dejaba pegado a la etiqueta, y en la racha, cuyo
+   dígito mide un 60%, sobraban 20px de caja que se veían como un hueco alrededor
+   del número. Las dos tarjetas quedaban desiguales justo en lo que se pretendía
+   igualar.
+
+   Ahora cada número ocupa lo que mide (line-height:1, así que exactamente su
+   cuerpo) y la distancia número→etiqueta es la MISMA en las dos tarjetas, que es
+   lo que se lee como "igual de compactas".
+
+   La alineación entre tarjetas se resuelve más abajo, con el relleno superior de
+   la tarjeta de la racha — espacio de la tarjeta, no caja del número. */
+#s-dash .stat-tile-num{
+  font-family:var(--dash-serif);
+  font-size:var(--dash-cifra); font-weight:300;
+  letter-spacing:-.5px; line-height:1;
+  display:block; text-align:left;
+}
+#s-dash .stat-tile.salmon .stat-tile-num{ color:var(--terracota-oscuro); }
+/* LA RACHA: MISMO CUERPO QUE SESIONES, PERO MÁS CALLADA EN COLOR Y TRAZO.
+   El cuerpo estaba al 60% y se veía más pequeño, que es lo que se ha corregido:
+   ahora las dos cifras miden lo mismo y ninguna parece un dato de segunda.
+   SE CONSERVAN EL TRAZO FINO Y EL ROSA DESATURADO, y no es un olvido: son la
+   decisión de producto que se defendió en su día — HOGAR nace de soltar la
+   autoexigencia, y un contador de días consecutivos con el mismo peso visual que
+   "prácticas habitadas" devuelve la presión por la puerta de atrás. Con el tamaño
+   igualado, el color y el peso siguen diciendo "informa, no compite" sin que la
+   cifra parezca encogida.
+   PARA IGUALARLAS DEL TODO basta borrar estas dos líneas: heredaría el peso 300 y
+   el terracota de la regla de arriba. */
+#s-dash .stat-tile.accent .stat-tile-num{
+  font-weight:200;
+  color:#cf9dab;
+}
+/* AQUÍ VIVÍA LA COMPENSACIÓN DEL RELLENO, Y SE VA CON EL CAMBIO DE TAMAÑO.
+   Mientras el dígito de la racha midió un 60%, su bloque de texto empezaba más
+   arriba que el de sesiones y había que devolverle ese hueco como relleno superior
+   para que las dos etiquetas cayeran a la misma altura. Con los dos dígitos iguales
+   la compensación sobra — y dejarla puesta era el fallo: empujaría el texto de la
+   racha 20px por debajo del de sesiones, justo el descuadre que evitaba. */
+/* LA ETIQUETA, EN NEGRITA Y EN TEXTO NORMAL, no en versalitas. El guion y las
+   mayúsculas estaban ESCRITOS en el marcado (decía "— DÍAS"), así que se
+   cambiaron ahí; aquí solo va el peso, el cuerpo y el fin del tracking.
+   OJO: el mismo texto en versalitas lo sigue construyendo tile() para la ficha
+   de usuaria del panel de Andrea, y ese camino no se toca. */
+#s-dash .stat-tile-eyebrow{
+  margin:14px 0 0; font-size:15px; letter-spacing:0;
+  font-weight:700; text-transform:none; color:#3f342c;
+}
+#s-dash .stat-tile.accent .stat-tile-eyebrow{ color:#3f342c; }
+/* La descripción, en gris y debajo. Estaba en display:none en móvil; aquí vuelve
+   y en redonda, que en el mockup no es cursiva. */
+#s-dash .stat-tile-sub{
+  display:block; font-style:normal;
+  font-size:12.5px; margin-top:5px; line-height:1.45; color:var(--txt-suave);
+}
+#s-dash .stat-tile.accent .stat-tile-sub{ color:var(--txt-suave); }
+
+/* ── 4. EL BOTÓN DE EMPEZAR ──────────────────────────────────────────────── */
+/* TODO VA DENTRO DE LA PÍLDORA, Y ESO SIMPLIFICA LA ESTRUCTURA EN VEZ DE
+   COMPLICARLA. Durante varias vueltas el círculo asomaba por el borde izquierdo,
+   y para conseguirlo la píldora tuvo que vivir en un ::before metido hacia
+   dentro —el fondo de un <button> llega siempre hasta donde llega el botón, así
+   que no había otra manera—. Con eso vino un stacking de tres hijos en z-index:1
+   para que el degradado no los tapara.
+
+   Nada de eso hace falta ahora: el degradado vuelve al propio botón y el ::before
+   y los tres z-index se han ido. Menos piezas, y ninguna posibilidad de que
+   vuelva a aparecer la franja clara del empalme, porque ya no hay empalme.
+
+   ══ EL ANILLO ES EL RELIEVE ══
+   Lo que da el volumen del mockup no es el círculo blanco: es un ANILLO NARANJA
+   MÁS CLARO alrededor, ancho, que se lee como un segundo círculo por debajo del
+   blanco. Se hace con un solo box-shadow de extensión —0 0 0 Npx— y no con un
+   elemento aparte, así que el círculo sigue siendo un único nodo.
+
+   Va en --terracota (#D88766) sobre una píldora en --terracota-oscuro (#B85F3D):
+   el mismo tono, más claro, y los dos ya estaban en la paleta del archivo. NO es
+   blanco translúcido a propósito — un blanco desatura al aclarar y el anillo se
+   iría a pastel en vez de quedarse naranja.
+
+   OJO CON LA DIFERENCIA RESPECTO A LOS ANILLOS QUE SE QUITARON HACE DOS VUELTAS:
+   aquellos eran blancos y caían sobre el JUNTURA entre el círculo y el naranja,
+   así que leían como un hueco y partían el botón en dos. Éste es naranja, va
+   entero dentro de la píldora y rodea el círculo por los cuatro lados. Mismo
+   recurso, sitio y color distintos.
+
+   ══ LAS PROPORCIONES ══
+   Tres medidas, y de ellas sale el alto del botón en vez de estar escrito aparte:
+     --dash-play          el círculo BLANCO (más pequeño que antes: era 62)
+     --dash-play-anillo   el grosor del anillo naranja claro
+     --dash-play-aire     el aire entre el anillo y el borde de la píldora
+   El relleno del botón es anillo + aire, así que el anillo queda inset por el
+   mismo aire arriba, abajo y por la izquierda, y el alto de la píldora sale de
+   44 + 2×(9+12) = 86px. El blanco ocupa 44/86 = el 51% del alto, la proporción
+   del recorte; antes era el 74% y por eso se veía grande. */
+#s-dash{
+  --dash-play: 44px;
+  --dash-play-anillo: 9px;
+  --dash-play-aire: 12px;
+  /* El inset del conjunto. El anillo es un box-shadow y NO ocupa sitio en el
+     layout, así que este relleno es lo único que le reserva hueco: si bajara de
+     --dash-play-anillo, el anillo se saldría de la píldora. */
+  --dash-play-inset: calc(var(--dash-play-anillo) + var(--dash-play-aire));
+}
+#s-dash .dash-cta{
+  justify-content:flex-start; gap:0;
+  max-width:var(--dash-ancho); margin:0 auto var(--dash-hueco);
+  padding:var(--dash-play-inset) 26px var(--dash-play-inset) var(--dash-play-inset);
+  border:none; border-radius:999px;
+  background:linear-gradient(100deg,
+    var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
+  /* El resplandor exterior: el primero cae hacia ABAJO y es el que más se ve, el
+     segundo es un halo parejo alrededor. Los dos difuminados y sin canto. */
+  box-shadow:0 16px 34px rgba(184,95,61,.34),
+             0 0 26px rgba(216,135,102,.30);
+  transition:transform .3s ease, box-shadow .3s ease;
+}
+#s-dash .dash-cta:hover{
+  transform:translateY(-3px);
+  box-shadow:0 22px 42px rgba(184,95,61,.42),
+             0 0 34px rgba(216,135,102,.40);
+}
+#s-dash .dash-cta-play{
+  flex-shrink:0;
+  width:var(--dash-play); height:var(--dash-play); border-radius:50%;
+  background:#fff;
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 0 var(--dash-play-anillo) var(--terracota);
+}
+/* El triángulo óptico va 3px a la derecha: centrado geométrico, un play se ve
+   descolocado hacia la izquierda. */
+/* El triángulo, en naranja dentro del blanco. Baja de 19 a 15px porque el círculo
+   que lo contiene bajó de 62 a 44 y a 19 se quedaba sin aire alrededor.
+   Va 2px a la derecha: centrado geométrico, un play se ve descolocado a la
+   izquierda. Usa el terracota oscuro de la píldora, no un naranja aparte. */
+#s-dash .dash-cta-play svg{
+  width:15px; height:15px; margin-left:2px; color:var(--terracota-oscuro);
+}
+/* Sin position ni z-index: ya no hay ::before que tapara a estos dos. */
+#s-dash .dash-cta-txt{
+  flex:1; text-align:center; padding:0 10px;
+  font-size:19px; font-weight:400; letter-spacing:.005em; color:#fff;
+}
+/* En el mockup la flecha va suelta, sin el círculo translúcido que tenía. */
+#s-dash .dash-cta-arrow{
+  width:auto; height:auto; border-radius:0; background:none;
+  font-size:23px; color:#fff; opacity:.95;
+}
+
+/* ── 5. EL PAISAJE ───────────────────────────────────────────────────────── */
+#s-dash .dash-paisaje{
+  max-width:var(--dash-ancho); margin:0 auto;
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:24px;
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:20px 20px 22px;
+}
+#s-dash .dash-paisaje-header{ gap:14px; align-items:center; margin-bottom:16px; }
+#s-dash .dash-paisaje-eyebrow{
+  font-size:11px; letter-spacing:2.4px; font-weight:600; color:#c0663a;
+}
+/* "paisaje" va en <em> dentro del rótulo. En versalitas la cursiva estorba. */
+#s-dash .dash-paisaje-eyebrow em{ font-style:normal; font-weight:600; }
+/* EL "EN RACHA / CONSTRUYENDO" SE OCULTA, NO SE BORRA. En su sitio va el enlace
+   a historial que pide el mockup. El elemento sigue en el DOM porque hay tres
+   puntos del código que le escriben dentro; quitarlo obligaría a tocar lógica,
+   y esta tanda es solo de aspecto. Volver atrás es borrar esta línea. */
+#s-dash .dash-paisaje-meta{ display:none; }
+#s-dash .dash-paisaje-link{
+  flex-shrink:0;
+  display:inline-flex; align-items:center; gap:5px;
+  font-size:13px; font-weight:500; color:#4a3d34;
+  text-decoration:none; white-space:nowrap;
+  transition:color .25s ease;
+}
+#s-dash .dash-paisaje-link:hover{ color:var(--terracota-oscuro); }
+#s-dash .dash-paisaje-link span{ font-size:15px; opacity:.65; }
+/* Los días sin práctica dejan de ser un aro vacío y pasan a ser un círculo
+   pálido lleno, como en el mockup. Los días CON práctica no se ven afectados:
+   su color lo pinta JS como estilo en línea, que gana a esta regla. */
+#s-dash .dash-paisaje-dot{
+  border:none; background:rgba(150,110,85,.13); max-width:18px;
+}
+
+/* ── Teléfono ────────────────────────────────────────────────────────────── */
+@media(max-width:480px){
+  /* ══ QUE INICIO CABE SIN DESLIZAR ══
+     Todo el recorte sale del AIRE Y DEL SALUDO, nunca de las tarjetas ni del
+     botón. Los cinco sitios de los que se ha quitado alto, y cuánto:
+        el relleno superior del contenedor   40 → 0    (−40)
+        el hueco entre bloques              26 → 9     (−51, son tres huecos)
+        el relleno del cabecero             18 → 4     (−14)
+        el nombre grande             17vw/máx72 → 9.5vw/máx40   (−27)
+        los márgenes del separador       16/20 → 6/10  (−20)
+        el relleno inferior del nav          2 → 0     (−2)
+     más, por debajo del pliegue: el aire final reservado a la barra 122 → 88 y la
+     propia barra un poco más baja.
+     Cuenta con estos valores, a 390px de ancho: 536px de contenido + 70 de barra =
+     606, contra los ~664 que deja Safari en un iPhone de 390×844. Sobran ~58.
+     EN UN iPhone SE (375×667, ~553px útiles) SEGUIRÁ DESLIZANDO unos 55px: para
+     que entrara ahí habría que encoger las tarjetas o el botón, y eso está vetado.
+     SI HAY QUE SEGUIR RECORTANDO, el orden es: --dash-hueco, luego el nombre,
+     luego el logo de la cabecera. Las tarjetas no. */
+  /* 9px era demasiado apretado: el contenido quedó MÁS CORTO que la pantalla y el
+     sobrante apareció como un vacío entre el paisaje y la barra. No era relleno de
+     más, era pantalla de sobra. Se devuelven 5px por hueco (15 en total) y el aire
+     reservado abajo baja a lo justo que ocupa la barra. */
+  #s-dash{ --dash-hueco:15px; --dash-firma:13px; }
+  #s-dash .app-container{ padding-top:0; }
+  #s-dash .app-nav{ padding-bottom:0; }
+  #s-dash .dash-header{ padding:4px 0 0; }
+  #s-dash .dash-hello{ font-size:22px; }
+  #s-dash .dash-name{ font-size:clamp(38px, 12vw, 50px); }
+  #s-dash .dash-rule{ margin:10px 0 16px; }
+  #s-dash .dash-andrea-glass{ padding:13px 15px 13px 12px; gap:13px; }
+  #s-dash .dash-andrea-photo{ width:58px; height:58px; border-width:2.5px; }
+  #s-dash .dash-aside-cita{ font-size:15.5px; }
+  /* Las dos tarjetas siguen lado a lado en teléfono: caben. Solo se estrecha el
+     hueco y baja el relleno y el cuerpo de la cifra. */
+  #s-dash{ --dash-cifra:40px; --dash-tile-pad:16px; }
+  #s-dash .dash-stats-gallery{ gap:10px; }
+  #s-dash .stat-tile{ padding:var(--dash-tile-pad) 15px 24px; border-radius:21px; }
+  #s-dash .stat-tile-eyebrow{ margin-top:11px; font-size:13.5px; }
+  #s-dash .stat-tile-sub{ font-size:11.5px; margin-top:4px; }
+  #s-dash .stat-tile::after{ bottom:11px; width:22px; margin-left:-11px; }
+  /* El símbolo, más pequeño y más pegado a la esquina. La tarjeta es estrecha en
+     teléfono: aun así el círculo no llega a tocar la cifra porque no ocupa sitio
+     en el flujo. */
+  #s-dash .stat-ico{ top:12px; right:12px; width:29px; height:29px; }
+  #s-dash .stat-ico svg{ width:15px; height:15px; }
+  /* El botón en teléfono. Las tres medidas bajan juntas y el relleno se recalcula
+     solo, porque sale de ellas: la píldora queda en 38 + 2×(8+10) = 74px de alto y
+     el blanco sigue ocupando el 51%, la misma proporción que en escritorio.
+     NO se toca el padding a mano: si se escribiera aquí un valor menor que el
+     grosor del anillo, el anillo se saldría de la píldora. */
+  #s-dash{ --dash-play:38px; --dash-play-anillo:8px; --dash-play-aire:10px; }
+  #s-dash .dash-cta{ padding-right:20px; }
+  #s-dash .dash-cta-play svg{ width:13px; height:13px; }
+  #s-dash .dash-cta-txt{ font-size:16.5px; padding:0 6px; }
+  #s-dash .dash-cta-arrow{ font-size:20px; }
+  #s-dash .dash-paisaje{ padding:18px 16px 20px; }
+  #s-dash .dash-paisaje-header{ gap:10px; }
+  #s-dash .dash-paisaje-eyebrow{ font-size:9.5px; letter-spacing:1.5px; }
+  #s-dash .dash-paisaje-link{ font-size:12px; }
+  #s-dash .dash-paisaje-dot{ max-width:16px; }
+}
+
+/* ── Teléfono ALTO ───────────────────────────────────────────────────────────
+   POR QUÉ ESTO VA POR ALTURA Y NO EN EL BLOQUE DE ARRIBA.
+   El aire que sobraba al final de Inicio no sobra en todos los teléfonos: existe
+   solo en los altos. En un iPhone de 390×844 Safari deja ~664px útiles y el
+   contenido ya los llena casi justo; en uno de 430×932 deja ~792 y quedaban unos
+   130px muertos entre el paisaje y la barra.
+   Si el saludo creciera y el hueco se abriera en el bloque de ancho, el teléfono
+   pequeño volvería a desbordar. Con min-height solo se reparte donde hay de
+   sobra: por debajo de 720px de alto útil no se aplica nada de esto.
+
+   Lo que crece: el saludo y el nombre (proporcionalmente, los dos), y sobre todo
+   el margen inferior del separador, que es lo que empuja hacia abajo la tarjeta de
+   Andrea y con ella las cifras, el botón y el paisaje. Más --dash-hueco, que abre
+   los tres huecos de entre bloques.
+   PARA AJUSTARLO: --dash-hueco y el margen del separador son los dos números; el
+   resto del reparto sale de ellos. */
+@media(max-width:480px) and (min-height:720px){
+  /* EL SALUDO SE COME EL HUECO QUE HABÍA DEBAJO, no espacio nuevo. Antes el margen
+     inferior del separador era de 88px: era aire muerto entre el destello y la
+     tarjeta de Andrea, y hacía que el saludo pareciera pequeño teniendo sitio de
+     sobra. Ese hueco baja a 34 y los 54px que suelta se van al cuerpo del saludo,
+     del nombre, del hilo y del destello — los cuatro a la vez, por --dash-firma. */
+  #s-dash{ --dash-hueco:30px; --dash-firma:20px; }
+  #s-dash .dash-hello{ font-size:32px; }
+  #s-dash .dash-name{ font-size:clamp(56px, 17.5vw, 80px); }
+  #s-dash .dash-rule{ margin:16px 0 34px; }
+}
+
+/* ── Escritorio ──────────────────────────────────────────────────────────── */
+@media(min-width:721px){
+  #s-dash .dash-hello{ font-size:28px; }
+  /* Una sola línea sube las dos cifras: sesiones a 58px y la racha a los 34.8px
+     que salen del cálculo. */
+  #s-dash{ --dash-cifra:58px; --dash-tile-pad:24px; --dash-firma:19px; }
+  #s-dash .stat-tile{ padding:var(--dash-tile-pad) 24px 30px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CABECERA DE LAS TRES PANTALLAS DE USUARIA — AHORA VACÍA
+
+   SE FUE LA BANDA SALMÓN Y DESPUÉS SE FUE EL LOGO. La banda cortaba el fondo en
+   horizontal justo bajo el borde superior; el logo, ya sin banda, ocupaba el sitio
+   más valioso de la pantalla para decir algo que la usuaria ya sabe. Ahora vive en
+   la primera pestaña de la barra de abajo, donde además hace de navegación.
+
+   LA .app-nav SE QUEDA AUNQUE ESTÉ VACÍA, y no es descuido: su padding-top lleva la
+   reserva del notch —el env(safe-area-inset-top)— y es el ancla del botón de Andrea.
+   Borrarla pegaría el saludo a la barra de estado del iPhone.
+
+   Va acotado a las TRES pantallas y no a .app-nav a secas, porque la misma clase la
+   usan el check-in, la práctica, el cuestionario y el cierre. El check-in CONSERVA su
+   logo a propósito: no tiene barra inferior, así que allí es lo único que sitúa a la
+   usuaria dentro de HOGAR. */
+#s-dash .app-nav,
+#s-history .app-nav,
+#s-profile .app-nav{
+  position:relative;
+  background:none; border-bottom:none;
+  /* El min-height de 38px que había aquí se va con el botón de Andrea: existía solo
+     para dejarle sitio cuando era una píldora dentro de la cabecera. Ahora la caja
+     mide su padding y nada más, o sea que es puro espaciador del notch — y el
+     contenido gana esos 38px. */
+  padding:calc(10px + env(safe-area-inset-top, 0px)) 20px 0;
+  display:flex; align-items:center; justify-content:center;
+}
+
+/* ══ EL BOTÓN "VOLVER AL PANEL" DE ANDREA ══
+   Era una píldora pequeña arriba a la derecha de la cabecera de Inicio, y solo ahí.
+   Ahora es un botón de ancho completo al principio de la columna de contenido, con el
+   mismo lenguaje que el "Cerrar sesión" de Mi cuenta —contorno fino, esquinas de
+   100px, texto centrado— y está en las TRES pantallas, siempre en el mismo sitio.
+
+   VA CON CLASE Y SIN #s-dash DELANTE porque la usan tres pantallas. El nombre lleva
+   el prefijo adm- pero NO pertenece al bloque del panel: es un botón de las pantallas
+   de usuaria que solo Andrea ve. Es el único sitio donde ese prefijo cruza la
+   frontera, y se llama así porque es a donde lleva.
+
+   NO OCUPA SITIO cuando está apagado: display:none en el marcado lo colapsa del todo,
+   y al ir en el flujo —no en position:absolute como antes— el saludo sube a ocupar su
+   hueco. Para una usuaria normal la pantalla es exactamente la de siempre. */
+.adm-volver-btn{
+  display:none;               /* estado inicial; uA() lo pone en block para Andrea */
+  width:100%;
+  margin:0 0 18px;
+  padding:13px 16px;
+  background:none;
+  border:1.5px solid rgba(150,100,70,.3);
+  border-radius:100px;
+  font-family:'Montserrat',sans-serif;
+  font-size:13.5px; font-weight:500; letter-spacing:0;
+  text-transform:none; text-align:center;
+  color:#8a6b5c;
+  cursor:pointer;
+  transition:border-color .25s ease, color .25s ease;
+}
+.adm-volver-btn:hover{
+  border-color:var(--terracota);
+  color:var(--terracota-oscuro);
+}
+
+/* Los "← Volver" de Historial y Mi cuenta se quitaron del marcado junto con el
+   div espaciador de 88px que los equilibraba. La barra de abajo lleva a Inicio
+   desde las dos, así que no se pierde ningún camino. */
+
+@media(max-width:480px){
+  #s-dash .app-nav,
+  #s-history .app-nav,
+  #s-profile .app-nav{ padding:calc(6px + env(safe-area-inset-top, 0px)) 16px 0; }
+  #s-dash .nav-actions{ right:16px; }
+}
+
+/* EL CREMA CONTINUO NO SE CONSIGUE SOLO QUITANDO LA BANDA DEL NAV.
+   El fondo de estas pantallas no era crema plano: una regla de "ambient orb
+   backgrounds" pinta TODAS las pantallas de la app con
+     linear-gradient(180deg, var(--salmon-claro) 0%, var(--crema-claro) 100%)
+   y lo hace con !important. O sea que el borde superior arrancaba en salmón claro
+   (#F8DDD0) por debajo de la banda, y quitar la banda a secas dejaba el corte
+   igual de visible, solo más suave.
+
+   EL !important DE AQUÍ ES OBLIGADO Y NO UN ATAJO: la declaración que se combate
+   lo lleva, y una declaración !important solo la puede vencer otra !important —
+   ninguna especificidad basta. Con la misma especificidad (1 id + 1 clase) manda
+   la última de la hoja, y ésta va al final.
+
+   ══ QUÉ PANTALLAS LLEVAN LA MALLA Y QUÉ PANTALLAS NO ══
+   Van TODAS las de la usuaria, incluidas las de entrar (login, alta, recuperar y
+   nueva contraseña), el check-in con sus tres pasos, el cuestionario, el cierre y
+   el muro de acceso.
+
+   QUEDAN FUERA TRES, cada una por su motivo:
+     #s-prac    la pantalla del vídeo. El vídeo es lo que importa y la malla le
+                competiría, así que ahí el fondo se apaga a oscuro y sobrio. Se
+                trata más abajo, en su propia regla.
+     #s-admin   el panel de Andrea. No es pantalla de usuaria y tiene su propio
+                lenguaje; meterle la malla sería rediseñarlo de rebote.
+     #s-landing la página pública. Tiene su propio fondo y su propio recorrido.
+
+   EL !important ES OBLIGADO Y NO UN ATAJO: la declaración que se combate —la de
+   "ambient orb backgrounds", que pinta todas las pantallas con un lineal salmón— lo
+   lleva, y una declaración !important solo la puede vencer otra !important; ninguna
+   especificidad basta. Con la misma especificidad (1 id + 1 clase) manda la última
+   de la hoja, y ésta va al final. */
+#s-signup.on,
+#s-login.on,
+#s-recover.on,
+#s-newpass.on,
+#s-dash.on,
+#s-checkin.on,
+#s-ci1.on,
+#s-ci2.on,
+#s-quest.on,
+#s-done.on,
+#s-profile.on,
+#s-history.on,
+#s-acceso.on{
+  background-color:var(--malla-base) !important;
+  background-image:var(--malla) !important;
+  background-repeat:no-repeat !important;
+}
+
+/* LA PANTALLA DEL VÍDEO, A OSCURAS. Un oscuro cálido y no un negro plano: es la
+   misma familia de la paleta (--tierra-oscuro es #5C3A28) llevada al fondo, así que
+   apaga sin sacar a la usuaria del mundo de HOGAR. El degradado radial suavísimo
+   evita que un color plano se vea barato en una pantalla grande.
+   OJO: el bloque "rediseño SOLO movil" de #s-prac le pone un fondo claro
+   (#f8ddc8→#f1e2d6) sin !important; ésta gana por llevarlo. */
+#s-prac.on{
+  background:radial-gradient(ellipse 120% 80% at 50% 0%, #2a1c15 0%, #1c1310 78%) !important;
+}
+/* OSCURECER EL FONDO OBLIGA A ACLARAR LO QUE VA ENCIMA, y esto no es un extra: sin
+   ello la pantalla del vídeo queda con su rótulo y su título en texto oscuro sobre
+   fondo oscuro, o sea ilegibles. Solo se toca lo que cae DIRECTAMENTE sobre el
+   fondo; la tarjeta blanca de la guía, el marco del vídeo y el botón de terminar
+   —que es terracota sólido con texto crema— ya funcionan sobre oscuro y se quedan
+   como están.
+   El !important de los dos primeros es para el bloque "rediseño SOLO movil" de
+   #s-prac, que les fija #c0673f y #3a2820 a esa anchura. */
+#s-prac.on .practica-eyebrow{ color:var(--salmon-rosa) !important; }
+#s-prac.on .practica-title{ color:#f3e4d6 !important; }
+/* La banda salmón de la cabecera se vería como una franja clara pegada arriba en
+   una pantalla a oscuras. Se apaga y su botón de volver pasa a contorno claro, el
+   mismo gesto que en las otras pantallas pero en negativo. */
+#s-prac.on .app-nav{
+  background:none !important;
+  border-bottom:none !important;
+}
+#s-prac.on .app-nav-back{
+  background:none !important;
+  border:1px solid rgba(255,255,255,.28);
+  color:#e8d5c6;
+  box-shadow:none !important;
+}
+#s-prac.on .app-nav-logo img{ filter:brightness(0) invert(1); opacity:.5; }
+
+/* ══ LA FRANJA DE OTRO COLOR ENCIMA DEL LOGO ══
+   El degradado vive en la pantalla, que es position:fixed. Detrás de ella está el
+   <body>, que seguía pintado con el crema de siempre (--crema, #F5EBD9). En la
+   zona del notch —donde con viewport-fit=cover el sistema deja ver lo que hay
+   debajo mientras el navegador ajusta— asomaba ese crema, y contra un degradado
+   que arriba va casi blanco se leía como una franja de otro color.
+
+   Se arregla por los dos sitios a la vez, que es lo único que lo cierra del todo:
+     · el degradado se pinta también en el <html>. El fondo del <html> es el del
+       LIENZO del navegador: cubre la ventana entera, el área del notch y el rebote
+       del scroll. Y el <body> pasa a transparente para dejarlo ver — traía el crema
+       viejo escrito y era justo lo que asomaba.
+     · y la etiqueta theme-color, que es la que tiñe la barra de estado cuando la
+       app va instalada en la pantalla de inicio, pasa del crema viejo al tono que
+       tiene el degradado en su borde superior.
+
+   LAS PARADAS VIVEN EN :root Y NO EN LAS PANTALLAS, por lo dicho arriba: el <html>
+   es antepasado de todo y las variables no heredan hacia arriba.
+
+   ══════════════════════════════════════════════════════════════════════════
+   EL DEGRADADO DE MALLA
+   ══════════════════════════════════════════════════════════════════════════
+   Sustituye al degradado lineal. La diferencia no es de intensidad sino de tipo:
+   un lineal va de A a B y siempre se lee como una transición; una malla son varias
+   manchas radiales que se mezclan y no tiene dirección, así que se lee como luz.
+
+   SEIS MANCHAS, Y NINGÚN COLOR NUEVO. Los seis salen de la paleta que ya existe;
+   lo verifiqué uno a uno contra el bloque :root de arriba:
+     --salmon       #F4C8B8   arriba a la izquierda, la más presente
+     --rosa-vino    #C77789   arriba a la derecha
+     --terracota    #D88766   a media altura, derecha
+     --salmon-rosa  #E8A99A   abajo a la izquierda
+     --sage         #C5CDB0   abajo al centro, el único frío — muy bajo, para que
+                              rompa el monotono cálido sin desentonar
+     --crema-claro  #FAF3E5   en el centro, y hace de aclarado: abre un hueco de luz
+                              en medio para que las manchas no se junten en el
+                              centro y saturen justo donde va el contenido
+   Se escriben en rgba() y no con var() porque un radial-gradient necesita el color
+   CON su alfa, y no se puede meter alfa en un token hexadecimal sin color-mix() —
+   que aquí, en seis capas grandes, es coste de cálculo sin ninguna ganancia. El hex
+   de cada línea es el mismo del token que la nombra.
+
+   EL COLOR BASE VA EN background-color Y LAS MANCHAS EN background-image, separados
+   a propósito: así ninguna mancha necesita ser opaca y el crema se ve por debajo de
+   todas, que es lo que quita los bordes entre ellas.
+
+   ══ LAS OPACIDADES SALIERON DE MEDIR EL CONTRASTE, NO DE AJUSTAR A OJO ══
+   La malla se subió de intensidad hasta el límite que aguanta el texto, y el límite
+   se calculó: un script compone las seis capas en el centro de cada mancha —el punto
+   más saturado que existe—, le pone encima el blanco al 42% de la tarjeta cuando
+   corresponde, y mide el ratio WCAG de cada color de texto.
+
+   Quien manda es SIEMPRE el mismo punto: la mancha de terracota (78%,62%). Y el
+   texto que primero se cae no es el gris pequeño sino el NOMBRE GRANDE en #96522e:
+   siendo terracota sobre terracota, es el que menos margen tiene. Con la mancha de
+   rosa vino a .52 quedaba en 3.06 sobre el mínimo de 3.0 — pasaba por 0.06, que no
+   es margen. Bajarla a .44 lo deja en 3.26 sin que el conjunto pierda fuerza.
+
+   Ratios en el peor punto con los valores de abajo:
+     nombre grande #96522e ....... 3.26  (mínimo 3.0, texto grande)
+     gris en tarjeta #655749 ..... 5.00  (mínimo 4.5)
+     gris sobre malla #504235 .... 5.31  (mínimo 4.5)
+     saludo #4a4038 .............. 5.54
+     texto de Andrea #5a4a3e ..... 6.07
+     texto oscuro #3f342c ........ 8.67
+
+   PARA AJUSTARLA: el alfa de cada mancha manda cuánto pesa, el segundo tope
+   (transparent 4x%) cuánto se extiende. SUBIR ALFAS SE COME EL CONTRASTE, y el
+   primero que se rompe es el nombre de la usuaria, que es lo más visible de la app.
+   Si se sube alguna, hay que volver a medir. */
+:root{
+  --malla-base: var(--crema);
+  /* ══ EL CRISTAL Y LOS GRISES DE TEXTO, PARA TODA LA APP ══
+     Vivían dentro de #s-dash y compañía, y ahí solo los veían esas pantallas. El
+     panel de Andrea no es descendiente de ninguna, así que para darle el mismo
+     lenguaje había dos caminos: copiar los valores —y que se desincronicen al
+     primer retoque— o subirlos aquí. Subidos aquí, panel y app comparten
+     literalmente el mismo cristal. */
+  --dash-vidrio: rgba(255,255,255,.42);
+  --dash-vidrio-borde: rgba(255,255,255,.62);
+  --dash-vidrio-sombra: 0 6px 20px rgba(140,90,60,.10), 0 1px 3px rgba(140,90,60,.07);
+  --dash-vidrio-blur: blur(24px) saturate(1.4);
+  --txt-suave: #655749;        /* dentro de tarjeta — contraste medido 5.00 */
+  --txt-suave-malla: #504235;  /* directo sobre la malla — medido 5.31 */
+
+  --malla:
+    radial-gradient(circle at 12% 8%,   rgba(244,200,184,1) 0%,   transparent 48%),
+    radial-gradient(circle at 88% 14%,  rgba(199,119,137,.44) 0%, transparent 45%),
+    radial-gradient(circle at 78% 62%,  rgba(216,135,102,.54) 0%, transparent 42%),
+    radial-gradient(circle at 8% 72%,   rgba(232,169,154,.68) 0%, transparent 46%),
+    radial-gradient(circle at 45% 95%,  rgba(197,205,176,.42) 0%, transparent 44%),
+    radial-gradient(circle at 55% 38%,  rgba(250,243,229,.70) 0%, transparent 50%);
+}
+/* El <html> es el lienzo del navegador: cubre la ventana entera, el área del notch
+   y el rebote del scroll. El <body> transparente para dejarlo ver.
+   background-attachment:fixed NO se usa —está roto de años en el Safari de iPhone—:
+   las pantallas son position:fixed y pintan su propia copia, así que la malla ya se
+   queda quieta mientras el contenido se desliza por dentro. */
+html{
+  background-color:var(--malla-base);
+  background-image:var(--malla);
+  background-repeat:no-repeat;
+}
+body{ background:transparent; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   BARRA DE NAVEGACIÓN INFERIOR DE LA USUARIA  (según mockup)
+
+   NO ES NAVEGACIÓN NUEVA. Las tres pantallas ya existían y ya se llegaba a
+   ellas; esto solo baja a la barra los dos accesos que vivían arriba a la
+   derecha en la cabecera de Inicio. Cada pestaña llama al MISMO go() que
+   llamaban esos botones, con el mismo argumento. No hay estado propio, ni
+   listeners, ni una función de más: si algún día cambia go(), la barra cambia
+   con él sin tocarla.
+
+   Y NO LLEVA IDS, A PROPÓSITO. El marcado está repetido en las tres pantallas
+   —#s-dash, #s-history y #s-profile— porque así funciona el resto del archivo:
+   cada .scr trae su propia copia de .app-nav en lugar de compartir una. Repetir
+   la barra tiene una ventaja concreta aquí: la pestaña activa va escrita en el
+   marcado de cada pantalla, así que no hace falta que nadie la sincronice al
+   navegar y no puede quedarse marcando la pantalla equivocada. Con ids se
+   rompería —tres copias del mismo id y getElementById empieza a escribir en la
+   invisible, sin dar error—; con clases no.
+
+   Va sin acotar a un id de pantalla porque sirve a tres. El prefijo hnav- es
+   nuevo en el archivo y no lo usa nadie más, ni el panel de Andrea.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.hnav{
+  /* Fija abajo y SEPARADA DE LOS BORDES, como en el mockup: por eso left/right
+     con margen en vez de pegada de lado a lado. El env() del fondo es para el
+     indicador de inicio del iPhone; con el fallback en 0px no molesta donde no
+     existe. Mismo patrón que ya usa el archivo en .rec-pie. */
+  position:fixed; z-index:60;
+  left:14px; right:14px;
+  bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+  max-width:520px; margin:0 auto;
+  display:flex; align-items:stretch;
+  padding:7px;
+  border-radius:30px;
+  background:rgba(255,255,255,.62);
+  border:1px solid rgba(255,255,255,.72);
+  box-shadow:0 10px 34px rgba(140,90,60,.16), 0 2px 8px rgba(140,90,60,.07);
+  -webkit-backdrop-filter:blur(18px) saturate(1.2);
+  backdrop-filter:blur(18px) saturate(1.2);
+}
+/* Cada pestaña es un <button> real: llega por tabulador y lo anuncia el lector
+   de pantalla como botón, que es lo que hace. */
+.hnav-tab{
+  flex:1 1 0; min-width:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px;
+  position:relative;
+  padding:8px 4px 9px;
+  border:none; border-radius:23px;
+  background:none; cursor:pointer;
+  font-family:'Montserrat',sans-serif;
+  font-size:11.5px; font-weight:500; letter-spacing:0;
+  color:#7c6a5d;
+  transition:color .25s ease, background-color .25s ease;
+}
+/* Iconos de línea fina: el grosor lo pone el stroke-width del trazo y el color
+   lo hereda de la pestaña por currentColor, así el activo se tiñe solo. */
+.hnav-tab svg{
+  width:23px; height:23px;
+  fill:none; stroke:currentColor;
+  stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round;
+}
+.hnav-tab:hover{ color:#4a3d34; }
+/* LA PESTAÑA ACTIVA: fondo más claro, texto en terracota y el puntito debajo. */
+/* LA PESTAÑA ACTIVA TIENE QUE CONTRASTAR CONTRA LA BARRA, NO CONTRA EL FONDO.
+   Estaba en rgba(255,255,255,.72) sobre una barra en rgba(255,255,255,.62): diez
+   centésimas de alfa de diferencia, y encima translúcida, así que lo que se veía
+   dependía de lo que hubiera detrás en cada pantalla — en Inicio se distinguía
+   algo porque debajo caen las tarjetas y el paisaje, y en Mi cuenta, con crema
+   plano detrás, desaparecía.
+   El blanco casi opaco quita esa dependencia: se ve igual en las tres pantallas
+   pase lo que pase por debajo. La sombrita la despega de la barra. */
+.hnav-tab.on{
+  color:var(--terracota-oscuro);
+  background:rgba(255,255,255,.94);
+  box-shadow:0 2px 8px rgba(140,90,60,.14);
+  font-weight:600;
+}
+.hnav-tab.on::after{
+  content:""; position:absolute;
+  left:50%; bottom:2px; width:4px; height:4px; margin-left:-2px;
+  border-radius:50%;
+  background:var(--terracota-oscuro);
+}
+
+/* ══ LA PRIMERA PESTAÑA ES LA MARCA ══
+   Dice HOGAR con la casita en vez de "Inicio", y hace exactamente lo mismo: el mismo
+   go('dash') y el mismo estado activo. El logo deja de ser decoración en la cabecera
+   y pasa a ser navegación, que era el problema de fondo.
+
+   ══ SOBRE LA CASITA: ES UN REDIBUJO, Y CONVIENE SABERLO ══
+   Primero se usó la del favicon del propio documento, pensando que era el logo. NO LO
+   ES: el favicon es un redibujo simplificado que se hizo en su día y se separa del
+   logo real en dos cosas que se ven a simple vista — el tejado no tiene aleros (las
+   líneas mueren en las paredes en vez de sobresalir) y el corazón es pequeño y flota
+   en el centro, cuando en el logo es grande, sus lóbulos casi tocan las paredes y su
+   punta baja hasta la línea del suelo.
+
+   Los trazos de aquí están ajustados al logo de verdad, midiendo proporciones sobre
+   la imagen: aleros que sobresalen un 10% por cada lado, corazón del 54% del ancho y
+   del 58% del alto de la casa, y su punta apoyada en el suelo.
+
+   SIGUE SIENDO UN REDIBUJO. Para que sea EXACTAMENTE el logo hace falta el archivo
+   vectorial (SVG, AI o PDF); de un PNG no se pueden sacar trazos. Mientras no esté,
+   esto es lo más cerca que se puede llegar a mano.
+
+   Las dos rarezas de la regla, que parecen erratas y no lo son:
+     · El viewBox es "1 9 62 46" y no "0 0 24 24" como los otros dos iconos. El dibujo
+       está sobre una rejilla de 64 y la casa ocupa solo una parte; recortar el viewBox
+       a su caja real es lo que la deja del mismo tamaño óptico que el calendario y la
+       persona. No es cuadrado a propósito —la casa es más ancha que alta— y con el
+       preserveAspectRatio por omisión el SVG se ajusta y se centra sin deformarse.
+     · El stroke-width es 4.1 y no el 1.6 de los demás. No es un grosor distinto, es
+       el MISMO grosor: a 23px, un trazo de 1.6 sobre rejilla de 24 se dibuja a 1.53px,
+       y para clavar esos mismos 1.53px sobre una rejilla de 62 hacen falta 4.1. Si se
+       cambia el viewBox, este número va detrás. */
+.hnav .hnav-tab-marca svg{ stroke-width:4.1; }
+/* La palabra, en versalitas pequeñas. Es la única etiqueta en mayúsculas de la barra
+   —las otras dos son texto normal— y eso es deliberado: es un nombre propio, no una
+   sección. */
+/* Los selectores llevan .hnav delante a propósito: el @media de teléfono que hay más
+   abajo fija .hnav-tab{font-size:10.5px}, y con la misma especificidad ganaría por ir
+   después. Con dos clases esta regla manda siempre. */
+.hnav .hnav-tab-marca{
+  text-transform:uppercase;
+  letter-spacing:1.5px;
+  font-weight:600;
+  font-size:10px;
+}
+.hnav .hnav-tab-marca.on{ font-weight:700; }
+/* SI "HOGAR" NO CABE, SE QUITA EL ESPACIADO ANTES DE TOCAR EL CUERPO, por encargo:
+   el tracking es lo primero que sobra y reducir la letra desemparejaría esta pestaña
+   de las otras dos. Con cinco letras a 10px el problema solo puede aparecer en
+   pantallas muy estrechas, así que el ajuste va en un @media aparte y no toca nada
+   por encima de 360px. */
+@media(max-width:360px){
+  .hnav .hnav-tab-marca{ letter-spacing:.4px; }
+}
+/* EL AIRE DEL FINAL DE LA PANTALLA. Sin esto la barra, que es fija, se queda
+   encima del último bloque y lo tapa. Se lo damos al contenedor de las tres
+   pantallas que la llevan, y solo a ésas.
+   76px = los ~62 que mide la barra + los 8 que la separan del borde + 6 de respiro.
+   Antes eran 122 y luego 88; ese exceso es lo que se veía como un vacío al final de
+   Inicio, porque la barra tapa 70 y el resto quedaba a la vista.
+   MÁS DE 76 NO HACE FALTA y menos taparía el último bloque en las pantallas que sí
+   deslizan (Historial y Mi cuenta). El env() ya SÍ suma algo: hasta que se añadió
+   viewport-fit=cover a la etiqueta viewport resolvía a cero. */
+#s-dash .app-container,
+#s-history .app-container,
+#s-profile .app-container{
+  padding-bottom:calc(76px + env(safe-area-inset-bottom, 0px));
+}
+@media(max-width:480px){
+  /* La barra baja un poco de alto y se acerca al borde: son ~8px que le quitamos
+     al espacio que Inicio necesita para caber sin deslizar. */
+  .hnav{ left:10px; right:10px; bottom:calc(8px + env(safe-area-inset-bottom, 0px)); padding:5px; border-radius:26px; }
+  .hnav-tab{ font-size:10.5px; padding:5px 2px 6px; }
+  .hnav-tab svg{ width:21px; height:21px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   MI CUENTA (#s-profile) — el lenguaje de Inicio
+
+   NO SE REPITEN VALORES: las tarjetas usan los mismos tokens --dash-vidrio* que
+   las cifras de Inicio, que por eso se subieron a un selector compartido arriba.
+   Si mañana cambia el cristal en Inicio, cambia aquí solo.
+
+   Todo acotado a #s-profile. Las clases .perfil-* hoy solo se usan en esta
+   pantalla, pero .app-eyebrow, .app-title, .app-subtitle y .btn las comparten el
+   check-in, el cuestionario y media app: sin el id delante, esto rediseñaría
+   pantallas que nadie ha pedido tocar.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* Mismo ancho que Inicio, PERO SU PROPIO HUECO.
+   Usar --dash-hueco aquí era un error de bulto por dos motivos. El de fondo: Inicio
+   tiene cinco bloques pequeños y Mi cuenta tres grandes, y el mismo hueco que
+   respira bien entre cinco tarjetas de cifras deja tres tarjetas altas flotando. Y
+   el mecánico: el recorte de --dash-hueco a 14px en móvil está escrito sobre
+   #s-dash, así que Mi cuenta se quedaba con los 34px del valor base incluso en
+   teléfono — de ahí que se viera MUCHO más suelta que Inicio.
+   Con su propio token, cada pantalla ajusta su ritmo sin arrastrar a la otra. */
+#s-profile{ --perfil-hueco: 16px; }
+#s-profile .app-container{ max-width:var(--dash-ancho); }
+#s-profile .perfil-section{ margin-bottom:var(--perfil-hueco); }
+
+/* 1) LAS TARJETAS: el cristal de Inicio, propiedad por propiedad. Eran
+   --crema-claro sólido, radio 16, sin borde y sin sombra. */
+#s-profile .perfil-section{
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:24px;
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:var(--dash-tile-pad) 20px;
+}
+/* Las filas de dentro: el separador baja de opacidad para no cortar el cristal
+   con una línea más oscura que su propio borde. */
+#s-profile .perfil-field{ border-bottom:1px solid rgba(150,100,70,.14); }
+
+/* 2) FUERA LAS VERSALITAS. Los seis rótulos que se veían en mayúsculas con
+   tracking —"DATOS PERSONALES", "NOMBRE", "EMAIL", "MI ACCESO", "PLAN",
+   "EDITAR"— más el "TU ESPACIO" de arriba, el "CERRAR SESIÓN" del pie y el
+   "ACTIVAR MI ACCESO" del botón, que estaban en el mismo caso.
+   Las mayúsculas venían del CSS (text-transform), no del marcado, así que se
+   apagan aquí y el texto escrito no se toca.
+   El título de sección y la etiqueta de campo toman EXACTAMENTE el cuerpo, el
+   peso y el color que usa Inicio en la etiqueta y la descripción de sus cifras. */
+#s-profile .perfil-section-title{
+  font-size:15px; font-weight:700;
+  letter-spacing:0; text-transform:none;
+  color:#3f342c;
+  margin-bottom:6px;
+}
+#s-profile .perfil-field-label{
+  font-size:12.5px; font-weight:400;
+  letter-spacing:0; text-transform:none;
+  color:var(--txt-suave);
+  margin-bottom:2px;
+}
+#s-profile .perfil-field-value{
+  font-size:17px; font-weight:400; color:#3f342c;
+}
+#s-profile .perfil-field-edit{
+  font-size:13px; font-weight:500;
+  letter-spacing:0; text-transform:none;
+  color:var(--terracota-oscuro);
+  padding:7px 12px;
+}
+#s-profile .perfil-field-edit:hover{
+  background:rgba(255,255,255,.6); color:var(--terracota-oscuro);
+}
+#s-profile .app-eyebrow{
+  font-size:13px; font-weight:500;
+  letter-spacing:0; text-transform:none;
+  color:#c0663a;
+  margin-bottom:6px;
+}
+#s-profile .perfil-logout{
+  font-size:13.5px; font-weight:500;
+  letter-spacing:0; text-transform:none;
+  border-color:rgba(150,100,70,.3);
+}
+#s-profile .btn{
+  letter-spacing:0; text-transform:none;
+  font-size:15px; font-weight:500;
+}
+/* EL BADGE DEL ACCESO SE QUEDA EN VERSALITAS, Y ES DELIBERADO. No es un rótulo
+   decorativo: dice si el acceso está activo, tiene dos estados con colores
+   propios y comparte paleta a propósito con el badge del panel de Andrea para
+   que "activa" se lea igual en los dos lados. Bajarlo a texto normal lo
+   convertiría en una frase más y lo desincronizaría del panel. */
+
+/* 3) EL TÍTULO, a la izquierda y en el peso ligero de Inicio, exactamente como el de
+   Historial: comparten la clase .hist-cabecera y el mismo clamp, así que si se ajusta
+   uno se ajusta el otro. El tamaño ya no viene en línea —se quitó del marcado junto
+   con el círculo, el rótulo y el subtítulo—, así que se define aquí.
+   La regla de .app-subtitle se fue con el subtítulo. */
+#s-profile .app-title{
+  font-size:clamp(34px, 10.8vw, 46px);
+  font-weight:300; letter-spacing:-1px;
+  color:#96522e; margin:0;
+}
+#s-profile .app-title em{
+  font-style:normal; font-weight:300; color:#96522e;
+}
+
+@media(max-width:480px){
+  /* En teléfono se aprieta más todavía, y también el relleno interno y el aire de
+     las filas: son las tres tarjetas más altas de la app y es donde más se nota. */
+  #s-profile{ --perfil-hueco:11px; }
+  #s-profile .perfil-section{ padding:14px 16px; border-radius:21px; }
+  #s-profile .perfil-section-title{ margin-bottom:2px; }
+  #s-profile .perfil-field{ padding:11px 0; }
+  #s-profile .perfil-field-value{ font-size:16px; }
+  #s-profile .perfil-logout{ margin-top:16px; padding:13px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHECK-IN (#s-checkin) — sin formato de chat
+
+   NI UNA LÍNEA SOBRE .pill, .pill-ico, .pill-tx, .pill-nm NI .pill-ds. Las
+   tarjetas de emoción y de duración se quedan exactamente como estaban, con sus
+   colores por :nth-child y sus iconos. Aquí solo se define el marco: los tres
+   paneles, el título, la píldora de lo elegido y el texto de Andrea.
+
+   Las clases del chat —.dash-chat-section, .dash-chat-messages, .msg-row,
+   .bubble, .msg-avatar, .dash-chat-eyebrow— se quedan definidas más arriba en la
+   hoja pero ya no las usa nadie: eran exclusivas de esta pantalla. No las borro en
+   esta tanda para no mezclar la limpieza con el cambio.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* La cabecera, como en las otras: sin banda salmón y el logo apagado. Aquí SÍ se
+   queda el "← Salir", que es la única salida —esta pantalla no lleva barra
+   inferior—, pero pasa a contorno fino sobre el crema. */
+/* ── LA CABECERA ──────────────────────────────────────────────────────────
+   Sin banda: el fondo sube sin corte. El botón a la izquierda y el logo a la
+   DERECHA, en la misma línea — el reparto lo hace el justify-content:space-between
+   de la clase base, y por eso el marcado se quedó con solo esos dos hijos.
+   El logo baja de 64px a 26px y sube su transparencia: aquí no es la marca de la
+   pantalla —esa función se la llevó la barra inferior de la app— sino una firma
+   discreta en la esquina. */
+#s-checkin .app-nav{
+  background:none; border-bottom:none;
+  padding:calc(12px + env(safe-area-inset-top, 0px)) 20px 6px;
+  flex-shrink:0;
+}
+#s-checkin .app-nav-logo{ height:26px; opacity:.34; }
+#s-checkin .app-nav-logo img{ filter:none; }
+#s-checkin .app-nav-back{
+  background:none;
+  border:1px solid rgba(150,100,70,.34);
+  color:#8a6b5c;
+  font-size:11.5px; font-weight:500; letter-spacing:.3px;
+  text-transform:none;
+  padding:7px 14px;
+  transition:border-color .25s ease, color .25s ease;
+}
+#s-checkin .app-nav-back:hover{
+  background:none;
+  border-color:var(--terracota); color:var(--terracota-oscuro);
+}
+
+/* ── EL CENTRADO VERTICAL ─────────────────────────────────────────────────
+   El contenido se apelotonaba arriba y sobraba media pantalla abajo. Ahora la
+   cabecera se queda pegada arriba y TODO lo demás se centra en el hueco que queda.
+
+   Son tres piezas y las tres hacen falta:
+     · la pantalla pasa a columna flexible (la cabecera arriba, el contenedor debajo),
+     · el contenedor toma el alto que sobre y centra su contenido,
+     · y el panel activo reparte sus bloques con un hueco único.
+
+   EL flex:1 0 auto NO ES CAPRICHO. Con `flex:1` (que implica shrink:1) un panel más
+   alto que la pantalla se comprimiría y su parte de arriba quedaría inalcanzable,
+   porque el scroll vive en la pantalla y no en el contenedor. Con shrink:0 el
+   contenedor nunca baja de lo que mide su contenido: si cabe, se centra; si no,
+   crece y la pantalla se desliza con normalidad. */
+#s-checkin.on{
+  display:flex;
+  flex-direction:column;
+}
+#s-checkin .app-container{
+  max-width:var(--dash-ancho);
+  flex:1 0 auto;
+  display:flex; flex-direction:column; justify-content:center;
+  padding-top:4px;
+}
+
+/* LOS TRES PANELES. Se turnan: solo el que lleva .on está en el flujo. Es display y
+   no visibility ni opacity a propósito — un panel oculto no debe ocupar alto ni dejar
+   sus botones alcanzables por tabulador.
+   El gap es lo que da los "espaciados regulares entre bloques": una sola medida para
+   todos los huecos del paso, en vez de un margen distinto por elemento. Por eso los
+   bloques de dentro van a margin:0 — si alguno conserva su margen, se suma al gap y
+   ese hueco queda más grande que los demás. */
+#s-checkin{ --ci-hueco: 26px; }
+#s-checkin .ci-paso{ display:none; }
+#s-checkin .ci-paso.on{
+  display:flex; flex-direction:column;
+  gap:var(--ci-hueco);
+  animation:fadeUp .4s ease both;
+}
+#s-checkin .ci-paso > *{ margin:0; }
+
+/* EL TÍTULO, centrado y en el peso ligero del saludo de Inicio. La cursiva del <em>
+   se conserva. */
+#s-checkin .ci-titulo{
+  font-family:'Montserrat',sans-serif;
+  font-weight:200; font-style:normal;
+  font-size:clamp(25px, 6.4vw, 34px);
+  line-height:1.25; letter-spacing:-.5px;
+  color:#4a4038;
+  text-align:center;
+  max-width:19em; margin:0 auto;
+}
+#s-checkin .ci-titulo em{
+  font-style:italic; font-weight:300; color:#96522e;
+}
+
+/* ── LA NOTIFICACIÓN DE ANDREA ────────────────────────────────────────────
+   El lenguaje de una notificación de iOS: un recuadro de cristal, la foto cuadrada
+   pequeña a la izquierda, el nombre al lado, la hora a la derecha, y el mensaje
+   debajo en texto normal. Sustituye al texto suelto en cursiva.
+   La cursiva se va A PROPÓSITO: en una notificación el mensaje es texto llano, y la
+   cursiva era lo que lo hacía parecer una cita literaria en vez de algo que Andrea
+   te acaba de decir. */
+#s-checkin .ci-noti{
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:20px;
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:13px 15px 14px;
+}
+#s-checkin .ci-noti-cab{
+  display:flex; align-items:center; gap:9px;
+  margin-bottom:8px;
+}
+/* El avatar hereda de .msg-avatar la foto que Andrea sube desde su panel; aquí solo
+   se le cambia el tamaño y se le quita el círculo. El border-radius de 11px sobre
+   34px es la esquina redondeada de un icono de app, no un círculo. */
+#s-checkin .ci-noti-foto{
+  width:34px; height:34px;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.7);
+}
+#s-checkin .ci-noti-nombre{
+  font-family:'Montserrat',sans-serif;
+  font-size:13.5px; font-weight:700; letter-spacing:0;
+  color:#3f342c;
+}
+/* La hora empuja a la derecha con el margin auto: así no hace falta un
+   justify-content en el contenedor que descolocaría el nombre respecto a la foto. */
+#s-checkin .ci-noti-hora{
+  margin-left:auto;
+  font-family:'Montserrat',sans-serif;
+  font-size:11.5px; font-weight:400;
+  color:var(--txt-suave);
+}
+#s-checkin .ci-noti-msg{
+  font-family:'Montserrat',sans-serif;
+  font-style:normal; font-weight:400;
+  font-size:15px; line-height:1.5;
+  color:#3f342c;
+}
+#s-checkin .ci-noti-msg em{
+  font-style:normal; font-weight:600; color:#96522e;
+}
+
+/* ── LA TARJETA DE LA PRÁCTICA (paso 3) ───────────────────────────────────
+   Deja de ser una barra horizontal con una flecha al final y pasa a tener presencia:
+   cuatro líneas centradas y un botón de ancho completo. Conserva el degradado
+   terracota y gana una sombra amplia.
+
+   LA REGLA BASE #s-checkin .action-card SIGUE ARRIBA en la hoja y es la que pone el
+   degradado; aquí se la reescribe a columna. Va DESPUÉS, así que gana por orden con
+   la misma especificidad — no hace falta !important.
+
+   El clic vive en la tarjeta entera, no en el botón: "Empezar" es un <span> con
+   aspecto de botón y no un <button> de verdad, para no meter un elemento interactivo
+   dentro de otro. Así toda la superficie responde y #dash-action-card sigue siendo
+   el nodo que pickTimeGo() apaga mientras carga. */
+#s-checkin .action-card{
+  display:flex; flex-direction:column; align-items:stretch;
+  /* La regla base la dejaba en space-between para repartir barra y flecha. En columna
+     eso no hace nada porque la tarjeta mide lo que mide su contenido, pero se anula
+     para que no reaparezca si algún día se le fija un alto. */
+  justify-content:flex-start;
+  gap:0;
+  text-align:center;
+  padding:22px 20px 18px;
+  border-radius:26px;
+  box-shadow:0 16px 38px rgba(184,95,61,.34), 0 0 26px rgba(216,135,102,.22);
+  margin-top:0;
+}
+#s-checkin .action-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 22px 46px rgba(184,95,61,.40), 0 0 32px rgba(216,135,102,.28);
+}
+/* El rótulo. Es el único sitio del rediseño donde se conservan las versalitas, y es
+   deliberado: aquí funcionan como antetítulo de una sola línea, no como etiqueta de
+   formulario. Y la clase no se puede renombrar — iniciarPractica() le escribe
+   "PREPARANDO TU PRÁCTICA…" encima mientras carga. */
+#s-checkin .action-card .label{
+  font-family:'Montserrat',sans-serif;
+  font-size:10.5px; font-weight:700;
+  letter-spacing:2.2px; text-transform:uppercase;
+  color:rgba(255,255,255,.72);
+  margin-bottom:10px;
+}
+#s-checkin .action-card .title{
+  font-family:'Montserrat',sans-serif;
+  font-style:italic; font-weight:300;
+  font-size:clamp(28px, 8vw, 38px);
+  line-height:1.15; letter-spacing:-.5px;
+  color:#fff;
+  margin-bottom:6px;
+}
+#s-checkin .action-card .meta{
+  font-family:'Montserrat',sans-serif;
+  font-size:12.5px; font-weight:400;
+  color:rgba(255,255,255,.78);
+  margin-bottom:18px;
+}
+/* El botón blanco de ancho completo. */
+#s-checkin .ci-empezar{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  width:100%;
+  padding:14px 18px;
+  border-radius:999px;
+  background:#fff;
+  box-shadow:0 4px 14px rgba(140,50,25,.18);
+  font-family:'Montserrat',sans-serif;
+  font-size:15.5px; font-weight:600; letter-spacing:0;
+  color:var(--terracota-oscuro);
+}
+/* El triángulo, un punto más pequeño que el texto y en el mismo terracota. */
+#s-checkin .ci-empezar-play{ font-size:11px; line-height:1; }
+
+@media(max-width:480px){
+  #s-checkin{ --ci-hueco:20px; }
+  #s-checkin .app-nav{ padding:calc(8px + env(safe-area-inset-top, 0px)) 16px 4px; }
+  #s-checkin .app-nav-logo{ height:23px; }
+  #s-checkin .ci-noti-msg{ font-size:14.5px; }
+  #s-checkin .action-card{ padding:19px 17px 16px; border-radius:23px; }
+  #s-checkin .ci-empezar{ padding:13px 16px; font-size:15px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHECK-IN · PASO 1 — LAS EMOCIONES EN CUADRÍCULA
+
+   Los cinco rectángulos apilados pasan a cuadrícula de dos columnas. La quinta
+   —Tensa— cae sola en la tercera fila, en la primera columna y con el mismo ancho
+   que las demás: eso lo hace la propia cuadrícula sin ninguna regla especial, y
+   por eso NO hay aquí un :nth-child(5) que la centre ni la estire. Si algún día
+   alguien le pone grid-column:1/-1 "para que no quede sola", eso es exactamente
+   lo que se pidió no hacer.
+
+   TODAS LAS REGLAS VAN CON #s-checkin DELANTE. No es adorno: el bloque
+   "rediseño SOLO movil" de más arriba tiene reglas
+   #dash-pills-emocion .pill:nth-child(n) —especificidad 1 id + 2 clases— y sin el
+   id de la pantalla delante las mías perderían. Con él suman 2 ids y ganan
+   siempre, en los dos tamaños.
+
+   LO QUE NO SE TOCA: el id del contenedor, el orden de los hijos, los SVG y el
+   cuadradito de color con su degradado. Solo cambia que el icono va ENCIMA del
+   nombre en vez de al lado, y que la tarjeta es de cristal.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin #dash-pills-emocion{
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:12px;
+  padding-left:0;
+  margin-top:0;
+}
+/* La tarjeta: cristal de Inicio y contenido en columna centrada. */
+#s-checkin #dash-pills-emocion .pill{
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  text-align:center;
+  gap:10px;
+  padding:16px 12px 15px;
+  border-radius:20px;
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+#s-checkin #dash-pills-emocion .pill-tx{
+  align-items:center;
+  text-align:center;
+  gap:0;
+}
+#s-checkin #dash-pills-emocion .pill-nm{
+  font-size:15px; font-weight:600; line-height:1.25;
+}
+
+/* LA SOMBRA TEÑIDA POR EMOCIÓN. Es el detalle que pone el color en la tarjeta sin
+   que la tarjeta sea de color: el cristal es el mismo en las cinco y lo que cambia
+   es el color que proyecta debajo.
+   Los cinco tonos son los de EMOCIONES, los mismos que ya usan el icono y el texto
+   de cada una — no hay ningún color nuevo. Dos capas por tarjeta: una amplia que da
+   el tinte y una corta que define el canto.
+   OJO: estas reglas van por POSICIÓN, igual que los colores del icono. Reordenar los
+   hijos del contenedor desemparejaría la sombra de su emoción. */
+#s-checkin #dash-pills-emocion .pill:nth-child(1){ box-shadow:0 7px 20px rgba(216,135,102,.30), 0 1px 3px rgba(216,135,102,.22); }
+#s-checkin #dash-pills-emocion .pill:nth-child(2){ box-shadow:0 7px 20px rgba(199,119,137,.30), 0 1px 3px rgba(199,119,137,.22); }
+#s-checkin #dash-pills-emocion .pill:nth-child(3){ box-shadow:0 7px 20px rgba(139,90,60,.28),  0 1px 3px rgba(139,90,60,.20); }
+#s-checkin #dash-pills-emocion .pill:nth-child(4){ box-shadow:0 7px 20px rgba(199,119,137,.30), 0 1px 3px rgba(199,119,137,.22); }
+#s-checkin #dash-pills-emocion .pill:nth-child(5){ box-shadow:0 7px 20px rgba(184,95,61,.30),  0 1px 3px rgba(184,95,61,.22); }
+
+/* EL CUADRADITO DEL ICONO, IGUAL QUE ESTABA. Estas medidas son copia de las del
+   bloque móvil y están aquí por un motivo concreto: allí solo existen por debajo de
+   480px, así que sin esto el cuadrado de color desaparecería en pantallas anchas y
+   la cuadrícula se vería con el icono desnudo. Los degradados de cada emoción siguen
+   viniendo de ese bloque; aquí solo se fija la caja. */
+#s-checkin #dash-pills-emocion .pill-ico{
+  flex-shrink:0;
+  width:44px; height:44px;
+  border-radius:13px;
+  display:flex; align-items:center; justify-content:center;
+}
+#s-checkin #dash-pills-emocion .pill .pill-ico svg{
+  width:24px; height:24px; background:none; padding:0; border-radius:0;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHECK-IN · PASO 2 — LAS DURACIONES EN CÍRCULOS
+
+   Tres columnas iguales. El círculo lleva dentro el reloj y el número; el nombre y
+   la descripción van fuera, debajo.
+   El aspect-ratio es lo que lo mantiene redondo sin escribir una altura: el ancho
+   lo reparte la cuadrícula y el alto lo copia. Con una altura fija en px, en una
+   pantalla estrecha el "círculo" se volvería un óvalo.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin #dash-pills-tiempo{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:10px;
+  padding-left:0;
+  margin-top:0;
+}
+#s-checkin #dash-pills-tiempo .pill{
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:10px;
+  padding:0;
+  background:none;
+  border:none;
+  box-shadow:none;
+  border-radius:0;
+}
+/* EL CÍRCULO. Es .pill-ico, que en la versión de filas era un cuadrado de color;
+   ahora es el cristal de Inicio en redondo. */
+#s-checkin #dash-pills-tiempo .pill-ico{
+  width:100%; max-width:104px;
+  aspect-ratio:1;
+  height:auto;
+  border-radius:50%;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:2px;
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+#s-checkin #dash-pills-tiempo .pill .pill-ico svg{
+  width:19px; height:19px;
+  background:none; padding:0; border-radius:0;
+  opacity:.8;
+}
+/* El número, grande y en peso ligero; "min" pequeñito y pegado. Van dentro del mismo
+   <span> para que se muevan juntos y el "min" no se descuelgue en otra línea. */
+#s-checkin .ci-dur-num{
+  display:flex; align-items:baseline; gap:2px;
+  font-family:var(--dash-serif);
+  font-size:30px; font-weight:300; line-height:1;
+  letter-spacing:-.5px;
+}
+#s-checkin .ci-dur-min{
+  font-family:'Montserrat',sans-serif;
+  font-size:10px; font-weight:500; letter-spacing:0;
+}
+/* Debajo del círculo: el nombre en cursiva y la descripción en texto normal — no en
+   versalitas, que es lo que eran. */
+#s-checkin #dash-pills-tiempo .pill-tx{
+  align-items:center; text-align:center; gap:1px;
+}
+#s-checkin #dash-pills-tiempo .pill-nm{
+  font-style:italic; font-weight:500;
+  font-size:15px; letter-spacing:0;
+  text-transform:none;
+}
+#s-checkin #dash-pills-tiempo .pill-ds{
+  display:block;
+  font-style:normal; font-weight:400;
+  font-size:11.5px; line-height:1.35;
+  letter-spacing:0; text-transform:none;
+  color:var(--txt-suave-malla);
+}
+/* La sombra teñida, como en el paso 1. Los tres tonos son los que ya llevaban estas
+   opciones en su texto: terracota medio, terracota oscuro y tierra. */
+#s-checkin #dash-pills-tiempo .pill:nth-child(1) .pill-ico{ box-shadow:0 7px 20px rgba(198,107,65,.30), 0 1px 3px rgba(198,107,65,.20); }
+#s-checkin #dash-pills-tiempo .pill:nth-child(2) .pill-ico{ box-shadow:0 7px 20px rgba(181,88,54,.30),  0 1px 3px rgba(181,88,54,.20); }
+#s-checkin #dash-pills-tiempo .pill:nth-child(3) .pill-ico{ box-shadow:0 7px 20px rgba(156,74,46,.30),  0 1px 3px rgba(156,74,46,.20); }
+/* El color del reloj y del número sigue al de cada duración, que ya estaba definido
+   para el nombre en el bloque de arriba. */
+#s-checkin #dash-pills-tiempo .pill:nth-child(1) .pill-ico{ color:#c66b41; }
+#s-checkin #dash-pills-tiempo .pill:nth-child(2) .pill-ico{ color:#b55836; }
+#s-checkin #dash-pills-tiempo .pill:nth-child(3) .pill-ico{ color:#9c4a2e; }
+
+@media(max-width:360px){
+  #s-checkin #dash-pills-emocion{ gap:9px; }
+  #s-checkin #dash-pills-emocion .pill{ padding:13px 8px 12px; }
+  #s-checkin #dash-pills-tiempo{ gap:7px; }
+  #s-checkin .ci-dur-num{ font-size:26px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   HISTORIAL (#s-history) — el lenguaje de Inicio
+
+   ══ POR QUÉ CASI TODO LLEVA !important AQUÍ ══
+   Esta pantalla arrastra un bloque anterior titulado "rediseño SOLO movil
+   (<=480px)" que le da OTRO lenguaje visual por debajo de 480px, y que usa
+   !important en ocho declaraciones. Mientras siga ahí, la única forma de imponer un
+   solo lenguaje para los dos tamaños es responder con !important: una declaración
+   !important solo la vence otra !important, la especificidad no cuenta.
+   Se neutraliza lo que estorba —fondo, borde, radio, sombra, relleno, márgenes y
+   cuerpos de letra— y SE RESPETA lo que significa algo:
+     · el icono de color de cada emoción (sus degradados por .emo-*),
+     · el color del rótulo de la emoción,
+     · y el verde de "Completada ✓", que es el único verde de la app.
+   Lo limpio de verdad sería borrar ese bloque; eso es otra tanda.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+#s-history{ --hist-hueco: 12px; }
+#s-history .app-container{ max-width:var(--dash-ancho) !important; }
+
+/* LAS TARJETAS: los mismos tokens que las de Inicio, sin excepción. Eran blancas
+   opacas con radio 16 y otra sombra. El relleno y el margen ya no vienen en línea
+   —se los quitamos a histCard()—, así que aquí solo hay que ganarle al bloque
+   móvil. */
+#s-history .hist-card{
+  position:relative;
+  background:var(--dash-vidrio) !important;
+  border-radius:24px !important;
+  box-shadow:var(--dash-vidrio-sombra) !important;
+  padding:18px 18px 16px !important;
+  margin:0 0 var(--hist-hueco) !important;
+  text-align:left;
+  overflow:hidden;
+}
+#s-history .hist-card:hover{
+  transform:none;
+  box-shadow:var(--dash-vidrio-sombra) !important;
+}
+/* LA FRANJA DE LA EMOCIÓN, en un ::before y no en un border-left.
+   El color entra por --hist-emo, que histCard() escribe en línea en cada tarjeta.
+   Una variable en línea no la puede pisar el `border:none !important` del bloque
+   móvil, que es lo que hasta ahora borraba esta franja en teléfono. Y siendo un
+   pseudo-elemento tampoco pelea con el borde de token de la tarjeta. */
+#s-history .hist-card::before{
+  content:""; position:absolute;
+  left:0; top:0; bottom:0; width:4px;
+  background:var(--hist-emo, var(--terracota));
+}
+#s-history .hist-card{
+  border:1px solid var(--dash-vidrio-borde) !important;
+  /* El desenfoque nunca lo tuvieron estas tarjetas: se quedaron fuera cuando se
+     unificaron. Con la malla debajo ya tiene sentido.
+     OJO CON EL RENDIMIENTO AQUÍ, que es distinto del resto: Inicio tiene cuatro
+     tarjetas y Mi cuenta tres, número fijo; el historial tiene UNA POR SESIÓN, así
+     que a una usuaria con meses de práctica le salen decenas de capas con
+     backdrop-filter en una lista que se desliza. Es el primer sitio donde recortar
+     si va a trompicones — está explicado al final del bloque. */
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+
+/* EL TÍTULO, A LA IZQUIERDA Y EN PESO 200, como el saludo de Inicio. Ya no hay
+   rótulo encima ni subtítulo debajo: el título basta. El !important es para el
+   font-size:30px del bloque móvil. */
+/* La usan las DOS pantallas: Historial y Mi cuenta. Un solo bloque de título para
+   las dos, para que no puedan divergir. */
+#s-history .hist-cabecera,
+#s-profile .hist-cabecera{ text-align:left; margin-bottom:16px; }
+/* EL PESO SUBE DE 200 A 300, en los dos títulos. A 200 el trazo era tan fino que el
+   título se perdía contra la malla — el saludo de Inicio aguanta el 200 porque va a
+   56-75px, pero estos van a 34-46 y ahí el mismo peso se diluye.
+   El <em> sube con él: si se queda en 200, la palabra en color se vería más fina que
+   el resto de su propio título. */
+#s-history .app-title{
+  font-size:clamp(34px, 10.8vw, 46px) !important;
+  font-weight:300; letter-spacing:-1px;
+  color:#96522e; margin:0;
+}
+#s-history .app-title em{ font-style:normal; font-weight:300; color:#96522e; }
+/* La rayita decorativa bajo el título es de otro lenguaje: en Inicio no hay nada
+   parecido. */
+#s-history .app-title::after{ display:none !important; }
+
+/* LOS FILTROS, EN UNA SOLA FILA DESLIZABLE. Eran seis cápsulas en versalitas que se
+   partían en dos filas y se comían media pantalla.
+   nowrap + overflow-x:auto es lo que las mantiene en una línea; sin el nowrap, el
+   flex-wrap:wrap de la clase base las vuelve a partir.
+
+   ══ LA CÁPSULA CORTADA A MEDIA PALABRA ══
+   La fila se desbordaba DENTRO del contenedor, así que la cuarta cápsula quedaba
+   partida justo en el borde del relleno: se leía como un fallo de maquetación y no
+   como "hay más, desliza". Dos arreglos que van juntos:
+
+     · SANGRADO A LOS BORDES. Márgenes negativos del ancho del relleno del
+       contenedor y ese mismo relleno devuelto por dentro. La fila pasa a ir de canto
+       a canto de la pantalla, que es como se comporta un carrusel en iOS: la cápsula
+       no se corta contra un borde interior, se va por el filo de la pantalla. La
+       primera sigue alineada con el título porque el padding-left lo compensa.
+     · DESVANECIDO A LA DERECHA. Una máscara que apaga los últimos 26px indica que
+       la fila sigue, en lugar de dejar un tajo limpio. Se declara con las dos
+       variantes porque Safari la quiere con prefijo.
+
+   El scroll-padding y el -webkit-overflow-scrolling son para que el arrastre con el
+   dedo se sienta nativo y no deje media cápsula asomando al soltar. */
+#s-history .historial-filters{
+  flex-wrap:nowrap !important;
+  justify-content:flex-start !important;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+  margin:0 -20px 16px !important;
+  padding:0 20px;
+  scroll-padding-left:20px;
+  -webkit-mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 26px), transparent 100%);
+  mask-image:linear-gradient(90deg, #000 0, #000 calc(100% - 26px), transparent 100%);
+}
+#s-history .historial-filters::-webkit-scrollbar{ display:none; }
+#s-history .filter-chip{
+  flex-shrink:0;
+  font-size:13px !important;
+  letter-spacing:0 !important;
+  text-transform:none !important;
+  font-weight:500;
+  padding:8px 15px !important;
+}
+
+/* ── LA TARJETA, MÁS COMPACTA ─────────────────────────────────────────────
+   El objetivo es que entren cuatro en un iPhone en vez de dos. Lo que se recorta
+   es relleno, el icono y los espacios de la línea inferior; los textos bajan poco
+   para que sigan leyéndose. */
+#s-history .hist-emo-icon{
+  width:38px !important; height:38px !important;
+  border-radius:11px !important;
+}
+#s-history .hist-id{ gap:11px !important; }
+/* EL RÓTULO DE LA EMOCIÓN, EN TEXTO NORMAL. Lo pinta .app-eyebrow, que es una
+   clase compartida, así que se acota a la tarjeta: el título de pantalla ya no la
+   usa, pero sí el check-in y el cuestionario, y ahí no se toca.
+   El color lo siguen dando las reglas .emo-* del bloque móvil. */
+#s-history .hist-card .app-eyebrow{
+  font-size:12.5px !important;
+  letter-spacing:0 !important;
+  text-transform:none !important;
+  font-weight:600;
+  margin-bottom:1px !important;
+}
+#s-history .hist-id .estado-name{
+  font-size:16.5px !important; font-weight:400;
+  color:#3f342c !important; margin-bottom:1px !important;
+}
+/* El !important no es por gusto: el bloque móvil tiene una regla
+   `.hist-id .estado-name + div` —que apunta a esta misma línea por posición, no por
+   clase— con font-size y color en !important. Sin responder igual, ganaría ella. */
+#s-history .hist-meta{
+  font-size:12.5px !important; color:var(--txt-suave) !important;
+}
+
+/* "COMPLETADA ✓" PASA A UN CÍRCULO VERDE CON EL CHECK. El verde se conserva —es el
+   único de la app y significa "hecho"— pero deja de ocupar media cabecera. El
+   significado no se pierde para un lector de pantalla: histCard() le pone
+   aria-label="Completada". */
+#s-history .dh-tag{
+  flex-shrink:0;
+  width:24px !important; height:24px !important;
+  padding:0 !important;
+  border-radius:50% !important;
+  display:flex; align-items:center; justify-content:center;
+  background:#e4efdc !important;
+  color:#5f8348 !important;
+  border:1px solid rgba(95,131,72,.22);
+  font-size:13px !important; font-weight:700;
+  letter-spacing:0 !important;
+}
+
+/* "VER MI REFLEXIÓN ↓" EN TEXTO NORMAL. Y la línea que la separa se pega más al
+   contenido: era 14+13px de aire, ahora 9+8. */
+#s-history .hist-toggle,
+#s-history .hist-sin{
+  margin-top:9px !important;
+  padding-top:8px !important;
+  font-size:12.5px !important;
+  letter-spacing:0 !important;
+  text-transform:none !important;
+  font-weight:500;
+}
+
+/* El vacío: era una caja de borde discontinuo, de otro lenguaje. */
+#s-history .historial-empty-state{
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:24px;
+  box-shadow:var(--dash-vidrio-sombra);
+  padding:40px 28px;
+}
+#s-history .historial-empty-state h3{
+  font-style:normal; font-weight:300;
+  font-size:19px; color:#4a4038;
+}
+#s-history .historial-empty-state p{ font-size:14px; color:var(--txt-suave); }
+
+@media(max-width:480px){
+  #s-history{ --hist-hueco:9px; }
+  #s-history .hist-cabecera,
+  #s-profile .hist-cabecera{ margin-bottom:12px; }
+  #s-history .hist-card{ padding:12px 13px 11px !important; border-radius:19px !important; }
+  /* El sangrado sigue al relleno del contenedor, que en teléfono es 20px (viene del
+     @media de 768px de .app-container). Si ese relleno cambia, este número va
+     detrás o la primera cápsula se desalinea del título. */
+  #s-history .historial-filters{ margin:0 -20px 13px !important; padding:0 20px; }
+  #s-history .hist-emo-icon{ width:34px !important; height:34px !important; border-radius:10px !important; }
+  #s-history .hist-id{ gap:10px !important; }
+  #s-history .historial-empty-state{ padding:30px 20px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   PANEL DE ANDREA (#s-admin) — EL MISMO LENGUAJE VISUAL QUE LA APP
+
+   El panel se quedó con el aspecto anterior mientras la app de usuaria cambiaba, y
+   esto lo alinea. SOLO ASPECTO: no se toca una sola cadena de texto, ni un dato, ni
+   una llamada, ni la estructura de ninguna vista.
+
+   EL TRABAJO PESADO NO ESTÁ AQUÍ, ESTÁ EN LOS TOKENS. Más arriba, el bloque :root de
+   --adm-* pasó a apuntar a var(--dash-*), y con eso las 7 clases de tarjeta, los 4
+   tipos de campo y los ~30 sitios que usan los colores de texto se alinearon solos.
+   Este bloque solo cubre lo que no cabía en un token: el fondo, el desenfoque de las
+   tarjetas, las versalitas y el marco de navegación.
+
+   LO QUE SE RESPETA A PROPÓSITO, porque significa algo:
+     · los badges de estado de las usuarias (activa / revisar / cancelada),
+     · las alertas .ok / .warn / .error / .info,
+     · los chips de contenido y los avisos de medios que faltan,
+     · el rojo de las acciones destructivas (.adm-btn-mini.peligro),
+     · y el degradado terracota de la pestaña activa del menú, que es lo que dice
+       dónde estás.
+   Unificar esos colores dejaría el panel sin capacidad de avisar.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1) EL FONDO: la misma malla que la app. Tenía un lineal crema propio, también con
+   !important porque pelea con el degradado salmón global. Se mantiene el !important
+   por lo mismo. */
+#s-admin.on{
+  background-color:var(--malla-base) !important;
+  background-image:var(--malla) !important;
+  background-repeat:no-repeat !important;
+}
+
+/* 2) LAS TARJETAS: los tokens ya les dieron el relleno, el borde, el radio y la
+   sombra del cristal. Aquí solo falta el desenfoque, que no cabe en un token porque
+   son dos propiedades y una lleva prefijo. Son las siete clases que consumen
+   --adm-card-bg, ni una más. */
+#s-admin .adm-kpi,
+#s-admin .adm-uso-card,
+#s-admin .adm-u-card,
+#s-admin .adm-card,
+#s-admin .adm-med-card,
+#s-admin .adm-nota,
+#s-admin .adm-tx-card{
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+
+/* 3) FUERA LAS VERSALITAS. Eran veinte reglas repartidas por seis vistas y el
+   text-transform va en cada una, no en un token, así que se apagan en bloque.
+   El cuerpo y el color ya vienen de --adm-eyebrow-*, que se repuntaron arriba: de
+   10px con 2.4px de tracking a 13px sin tracking.
+   NO ENTRA .adm-u-badge NI .adm-alert: esos siguen en versalitas porque son
+   etiquetas de estado, no rótulos de sección — la misma excepción que se hizo con el
+   badge de acceso en Mi cuenta. */
+#s-admin .adm-section-title,
+#s-admin .adm-card-eyebrow,
+#s-admin .adm-acc-eyebrow,
+#s-admin .adm-kpi-eyebrow,
+#s-admin .adm-field label,
+#s-admin .adm-tx-label,
+#s-admin .adm-nota-orden,
+#s-admin .adm-btn-mini,
+#s-admin .adm-u-ver,
+#s-admin .adm-uso-card h4,
+#s-admin .adm-med-card-tit,
+#s-admin .adm-med-faltan-tit,
+#s-admin .adm-lp-foto-tit,
+#s-admin .adm-lp-cambiar,
+#s-admin .adm-lp-ver,
+#s-admin .adm-lp-precio-lab,
+#s-admin .adm-precio-hero-eyebrow,
+.acm-label,
+.bc-label,
+.bc-cuenta-label{
+  text-transform:none !important;
+  letter-spacing:0 !important;
+}
+/* Los rótulos de sección son los títulos del panel: peso 700 y tamaño de etiqueta,
+   igual que "sesiones" en Inicio. */
+#s-admin .adm-section-title{
+  font-size:15px !important; font-weight:700; color:#3f342c;
+}
+/* Los eyebrow de tarjeta se quedan un punto por debajo: son subtítulos dentro de una
+   tarjeta, no encabezados de sección. */
+#s-admin .adm-card-eyebrow,
+#s-admin .adm-acc-eyebrow,
+#s-admin .adm-kpi-eyebrow{
+  font-size:13px !important; font-weight:600;
+}
+/* Las etiquetas de campo, en gris pequeño como las de Mi cuenta. */
+#s-admin .adm-field label,
+#s-admin .adm-tx-label,
+.acm-label,
+.bc-label,
+.bc-cuenta-label{
+  font-size:12.5px !important; font-weight:400 !important;
+  color:var(--txt-suave) !important;
+}
+/* Los botones pequeños dejan de gritar. El .peligro conserva su rojo: solo pierde
+   las mayúsculas. */
+#s-admin .adm-btn-mini,
+#s-admin .adm-u-ver,
+#s-admin .adm-lp-cambiar,
+#s-admin .adm-lp-ver{
+  font-size:12.5px !important; font-weight:500;
+}
+
+/* 4) LOS NÚMEROS GRANDES, con la serif de la app. Las cifras del panel ya estaban en
+   peso 200 —eso coincidía— pero en Montserrat, mientras las de Inicio son serif. Con
+   esto las métricas de Andrea y las de la usuaria se leen como la misma familia.
+   Se aplica solo a las CIFRAS, no al texto: .adm-num-texto es la variante que mete
+   una frase en el hueco de un número y ahí la serif quedaría fuera de lugar. */
+#s-admin .adm-kpi-num:not(.adm-num-texto),
+#s-admin .adm-med-num,
+#s-admin .adm-precio-hero-num,
+#s-admin .adm-lp-precio{
+  font-family:var(--dash-serif);
+  letter-spacing:-.5px;
+}
+
+/* 5) EL MARCO DE NAVEGACIÓN. La barra superior era un tostado opaco (#f0e0d0) que
+   sobre la malla se lee como un parche plano. Pasa a cristal, igual que la barra
+   inferior de la app. El sidebar y el drawer de escritorio se quedan café: son la
+   navegación del panel y su contraste es lo que los separa del contenido. */
+#s-admin .adm-topbar{
+  background:rgba(255,255,255,.62);
+  border-bottom:1px solid var(--dash-vidrio-borde);
+  box-shadow:0 4px 18px rgba(140,90,60,.10);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  /* La reserva del notch, que le faltaba: con viewport-fit=cover esta barra arranca
+     en el borde físico de la pantalla igual que las de la app. */
+  padding-top:calc(12px + env(safe-area-inset-top, 0px));
+}
+/* La hamburguesa, en el mismo cristal que la barra en vez de blanco opaco. */
+#s-admin .adm-burger{
+  background:rgba(255,255,255,.72);
+  box-shadow:0 2px 8px rgba(140,90,60,.10);
+}
+
+/* 6) LOS CAMPOS. El radio y el borde vienen del token; aquí el relleno pasa a
+   translúcido para que también se apoyen en la malla en vez de flotar en blanco. */
+#s-admin .adm-field input,
+#s-admin .adm-field textarea,
+#s-admin .adm-nota textarea,
+#s-admin .adm-tx-card textarea,
+#s-admin .adm-filters input,
+#s-admin .adm-filters select{
+  background:rgba(255,255,255,.72);
+}
+
+/* 7) El saludo de la vista de inicio del panel usa .dash-header y compañía, las
+   mismas clases que Inicio. Se le da el peso ligero y la alineación a la izquierda
+   que tienen ahora el saludo de la usuaria y los títulos de Historial y Mi cuenta.
+   OJO: va con #s-admin delante porque esas clases las comparte con #s-dash, y sin el
+   id rediseñaría Inicio de rebote. */
+#s-admin .dash-header{
+  background:none; border-radius:0; overflow:visible;
+}
+#s-admin .dash-header::before{ display:none; }
+#s-admin .dash-name{
+  font-style:normal; font-weight:200; letter-spacing:-1px;
+  color:#96522e;
+}
+#s-admin .dash-hello{ font-weight:300; color:#4a4038; }
+#s-admin .dash-meta{
+  text-transform:none; letter-spacing:0;
+  font-size:13px; font-weight:500; color:#c0663a;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LA PANTALLA DE LA PRÁCTICA (#s-prac) — EL LENGUAJE NUEVO, TRADUCIDO A OSCURO
+
+   Se había quedado con el aspecto anterior. Va al final de la hoja y sin @media a
+   propósito: el bloque "rediseño SOLO movil" de #s-prac que hay más arriba tiene sus
+   propias reglas por debajo de 480px, y desde aquí se le gana por orden con la misma
+   especificidad — un solo lenguaje para los dos tamaños, sin !important.
+
+   ══ POR QUÉ NO ES UNA COPIA DEL RESTO ══
+   Esta pantalla tiene el fondo OSCURO porque se pidió así, con un motivo: el vídeo es
+   lo que importa y la malla le competiría. Así que el lenguaje se traduce, no se
+   copia: los MATERIALES son los mismos —cristal, desenfoque, borde blanco fino,
+   esquinas de 24, rótulos en texto normal, títulos en peso ligero— pero los valores
+   de texto se invierten donde el fondo es oscuro.
+
+   LA TARJETA DE LA GUÍA SE QUEDA CLARA, y esa es la decisión menos obvia del bloque.
+   El --dash-vidrio de la app es blanco al 42%, que sobre el crema da una tarjeta
+   luminosa; sobre este oscuro daría un gris medio y habría que invertir su texto a
+   claro. Se prefiere subir el blanco al 92%: la tarjeta se lee como la misma hoja de
+   papel que en Inicio o Mi cuenta —mismo borde, mismo radio, mismo desenfoque— y su
+   texto sigue siendo oscuro. Es lo que mantiene la coherencia con el resto de la app;
+   un cristal gris translúcido se vería como otra cosa.
+
+   SI ALGÚN DÍA SE QUIERE LA MALLA AQUÍ, es una línea: borrar la regla de #s-prac.on
+   del bloque del fondo y añadir este id a la lista de pantallas con malla. Entonces
+   habría que devolver este bloque a los valores claros. */
+
+#s-prac{ --prac-papel: rgba(255,255,255,.92); }
+
+/* ── La cabecera ─────────────────────────────────────────────────────────── */
+#s-prac.on .app-nav{
+  padding:calc(12px + env(safe-area-inset-top, 0px)) 20px 6px;
+  min-height:0;
+}
+/* El logo baja a 26px y se aclara: sobre oscuro va en negativo, apagado, como firma
+   en la esquina. El invert es lo que lo vuelve claro sin necesitar otro archivo. */
+#s-prac.on .app-nav-logo{ height:26px; }
+#s-prac.on .app-nav-logo img{ filter:brightness(0) invert(1); opacity:.42; }
+#s-prac.on .app-nav-back{
+  font-size:11.5px; font-weight:500; letter-spacing:.3px;
+  text-transform:none;
+  border-radius:100px; padding:7px 14px;
+}
+
+/* ── El título ───────────────────────────────────────────────────────────── */
+/* El rótulo deja las versalitas. OJO CON LO QUE DICE: el marcado trae "TU PRÁCTICA DE
+   HOY" pero pT() se lo sobreescribe con "Ritmo Micro · 15 min", así que es una línea
+   de datos y en texto normal se lee mejor que en mayúsculas espaciadas. */
+#s-prac.on .practica-eyebrow{
+  font-size:13px !important;
+  letter-spacing:0 !important;
+  text-transform:none;
+  font-weight:500;
+  color:var(--salmon-rosa) !important;
+  margin-bottom:6px;
+}
+/* El título, en el peso ligero de la app y sin cursiva — la cursiva es el recurso de
+   los títulos de la práctica en la tarjeta del check-in, y repetirla aquí la gasta. */
+#s-prac.on .practica-title{
+  font-style:normal;
+  font-weight:200;
+  font-size:clamp(28px, 8vw, 40px) !important;
+  letter-spacing:-1px; line-height:1.15;
+  color:#f3e4d6 !important;
+}
+#s-prac.on .practica-header{ margin-bottom:22px; }
+
+/* ── El marco del vídeo ──────────────────────────────────────────────────── */
+/* Transparente y sin sombra: sobre el oscuro, el marco crema de la regla base se veía
+   como una bandeja clara alrededor del vídeo. El radio sube al de la app. */
+#s-prac.on .video-frame{
+  background:transparent;
+  padding:0;
+  box-shadow:none;
+  margin-bottom:26px;
+}
+#s-prac.on .video-container{ border-radius:24px; overflow:hidden; }
+/* El botón de play grande, con el cristal de la app en vez de blanco casi opaco. */
+#s-prac.on .video-play-btn{
+  background:rgba(255,255,255,.9);
+  border:none;
+  color:var(--terracota-oscuro);
+  box-shadow:0 8px 24px rgba(0,0,0,.28);
+}
+
+/* ── La tarjeta de la guía ───────────────────────────────────────────────── */
+#s-prac.on .practica-guia{
+  background:var(--prac-papel);
+  border:1px solid var(--dash-vidrio-borde);
+  border-left:none;
+  border-radius:24px;
+  box-shadow:0 10px 30px rgba(0,0,0,.22);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  padding:20px 20px 22px;
+  margin-bottom:0;
+}
+/* El rótulo de la guía es un caso raro y conviene saberlo: el bloque móvil antiguo
+   pone su texto DESDE EL CSS con content, en dos pseudo-elementos —el ✦ y la palabra
+   "PARA INTEGRAR"—. Al ser content es texto, no estilo, así que quitarle las
+   versalitas obliga a reescribir la cadena. Se cambia a "Para integrar" y el resto se
+   respeta: mismo símbolo, mismo orden, misma información. */
+#s-prac.on .practica-guia-label{ margin-bottom:12px; }
+#s-prac.on .practica-guia-label::after{
+  content:'Para integrar';
+  font-size:13px; letter-spacing:0; font-weight:600;
+  color:#c0663a;
+}
+#s-prac.on .practica-guia p{
+  font-style:normal;
+  font-size:15.5px; line-height:1.6;
+  color:#3f342c;
+}
+
+/* ── El botón de terminar ────────────────────────────────────────────────── */
+/* Pasa al mismo lenguaje que el botón de empezar de Inicio: píldora de 999, degradado
+   terracota, texto normal y sombra amplia. Era un rectángulo de radio corto con el
+   texto en versalitas espaciadas. */
+#s-prac.on .terminar-btn{
+  max-width:none;
+  margin:26px 0 0;
+  padding:15px 20px;
+  border-radius:999px;
+  background:linear-gradient(100deg, var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
+  color:#fff;
+  font-size:15.5px; font-weight:600;
+  letter-spacing:0; text-transform:none;
+  box-shadow:0 14px 32px rgba(184,95,61,.36), 0 0 22px rgba(216,135,102,.20);
+}
+#s-prac.on .terminar-btn:hover{
+  background:linear-gradient(100deg, var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
+  transform:translateY(-3px);
+  box-shadow:0 20px 40px rgba(184,95,61,.42), 0 0 28px rgba(216,135,102,.26);
+}
+
+@media(max-width:480px){
+  #s-prac.on .app-nav{ padding:calc(8px + env(safe-area-inset-top, 0px)) 16px 4px; }
+  #s-prac.on .app-nav-logo{ height:23px; }
+  #s-prac.on .practica-header{ margin-bottom:18px; }
+  #s-prac.on .video-frame{ margin-bottom:22px; }
+  #s-prac.on .practica-guia{ padding:17px 17px 19px; border-radius:21px; }
+  #s-prac.on .terminar-btn{ margin-top:22px; padding:14px 18px; font-size:15px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EL MENÚ DEL PANEL DE ANDREA — DE CAFÉ OSCURO A CRISTAL
+
+   En la pasada del panel dejé esto fuera a propósito, con el argumento de que el
+   contraste del café era lo que separaba la navegación del contenido. Era un error de
+   criterio: sobre la malla, un bloque café macizo no se lee como "esto es el menú",
+   se lee como un resto del diseño anterior. La separación la puede dar el cristal
+   igual que la da en la barra inferior de la app.
+
+   ══ UN SOLO SITIO PARA LOS DOS MENÚS ══
+   .adm-panel es la clase que comparten el sidebar de escritorio (.adm-side) y el
+   cajón de móvil (.adm-drawer), y es la que traía el degradado café. Cambiándola,
+   cambian los dos y no pueden divergir.
+
+   ══ LO QUE OBLIGA A TOCAR MÁS DE UNA REGLA ══
+   El menú era claro SOBRE oscuro, así que al aclarar el fondo hay que invertir todo
+   lo que vivía dentro: el color de los enlaces, el nombre y el rol de Andrea, los
+   bordes de separación, los hover y el logo —que llevaba un brightness(0) invert(1)
+   para volverse blanco y ahora tiene que volver a su tinta original—. Son once
+   reglas y están todas aquí abajo; si se deja alguna, queda texto casi blanco sobre
+   cristal casi blanco, o sea invisible.
+
+   ══ LO QUE NO SE TOCA ══
+   El degradado terracota de .adm-nav-item.active. Es lo que dice DÓNDE ESTÁS, y
+   funciona igual de bien sobre claro que sobre oscuro porque su texto es blanco
+   sobre terracota. Y el rojo del enlace de salir, que es una acción con consecuencia.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* El material: el mismo cristal de las tarjetas, un punto más denso porque aquí hay
+   texto pequeño encima y el menú tiene que sostenerse como superficie propia. */
+#s-admin .adm-panel{
+  background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+/* El sidebar se separa del contenido con un filo claro en vez de con su propio color. */
+#s-admin .adm-side{
+  border-right:1px solid var(--dash-vidrio-borde);
+  box-shadow:2px 0 20px rgba(140,90,60,.07);
+}
+/* El cajón de móvil conserva su esquina redonda grande y gana la sombra de la app. */
+#s-admin .adm-drawer{
+  border-right:1px solid var(--dash-vidrio-borde);
+  box-shadow:16px 0 48px rgba(140,90,60,.20);
+}
+/* El velo de detrás del cajón deja de ser marrón oscuro: sobre la malla, un velo
+   cálido y claro apaga el contenido sin ensuciar el color. */
+#s-admin .adm-drawer-overlay{
+  background:rgba(120,80,55,.28);
+}
+
+/* El logo vuelve a su tinta: el filter lo volvía blanco para el fondo café. */
+#s-admin .adm-panel-logo img{ filter:none; opacity:.5; }
+
+/* Andrea: su nombre y su rol, invertidos. */
+#s-admin .adm-perfil{ border-bottom-color:rgba(150,100,70,.16); }
+#s-admin .adm-perfil-nombre{ color:#3f342c; }
+#s-admin .adm-perfil-rol{ color:var(--txt-suave); }
+
+/* Los enlaces del menú. El reposo pasa a texto oscuro; el hover, a un velo cálido
+   translúcido en vez de un aclarado sobre café. */
+#s-admin .adm-nav-item{ color:#4a3d34; }
+/* EL HOVER NO USA --terracota-oscuro Y ESO ES A PROPÓSITO. Sobre este cristal
+   (rgb 248,235,227 compuesto en la zona más oscura de la malla) el #B85F3D del token
+   da un contraste de 3.79, por debajo del 4.5 que pide la norma para texto normal —
+   y estos enlaces van a 15px. El #9c4a2e lo sube a 5.24. Es el mismo terracota, un
+   paso más oscuro; el token se queda para donde el fondo es más claro. */
+#s-admin .adm-nav-item:hover{
+  background:rgba(198,107,65,.10);
+  color:#9c4a2e;
+}
+/* El chevron es un componente gráfico, no texto, así que le basta un 3.0 — pero el
+   #b39c8c original daba 2.23 sobre el cristal y se perdía. El #9c8271 da 3.08. */
+#s-admin .adm-nav-chevron{ color:#9c8271; }
+/* El activo NO se toca en color —sigue siendo el degradado terracota— pero su sombra
+   se ajusta al fondo claro, que la del café se perdía. */
+#s-admin .adm-nav-item.active{
+  box-shadow:0 6px 16px rgba(184,95,61,.28);
+}
+
+/* El pie del menú: cerrar sesión y compañía. */
+#s-admin .adm-panel-foot{ border-top-color:rgba(150,100,70,.16); }
+#s-admin .adm-panel-link{ color:#4a3d34; }
+#s-admin .adm-panel-link:hover{
+  background:rgba(198,107,65,.10);
+  color:#9c4a2e;
+}
+/* El de salir conserva su rojo, que es una acción con consecuencia; solo se oscurece
+   para que se lea sobre claro — el #d88a6a estaba calculado contra el café. */
+#s-admin .adm-panel-link.salir{ color:#b5432e; }
+#s-admin .adm-panel-link.salir:hover{
+  background:rgba(181,67,46,.10);
+  color:#9c3a2e;
+}
+
+/* La X de cerrar el cajón. El #8a6b5c daba 4.15 sobre este cristal y se queda a un
+   pelo del 4.5; #7a5c4d lo sube a 5.02. */
+#s-admin .adm-panel-close{ color:#7a5c4d; }
+#s-admin .adm-panel-close:hover{
+  background:rgba(198,107,65,.12);
+  color:#9c4a2e;
+}
 </style>
 </head>
 <body>
@@ -4647,33 +6882,41 @@ body.app-active { overflow: hidden; }
 <!-- DASHBOARD -->
 <div id="s-dash" class="scr">
   <div class="app-nav">
-    <div class="app-nav-logo">
-      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
-    </div>
     <div class="nav-actions">
-      <button id="nav-admin-btn" class="nav-icon-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;width:auto;border-radius:100px;padding:0 16px;font-family:'Montserrat',sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;">← Volver al panel</button>
-      <button class="nav-icon-btn" onclick="go('history')" title="Mi historial">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <path d="M3 8H21M3 16H21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <circle cx="7" cy="8" r="1.5" fill="currentColor"/>
-          <circle cx="7" cy="16" r="1.5" fill="currentColor"/>
-        </svg>
-      </button>
-      <button class="nav-icon-btn" onclick="go('profile')" title="Mi perfil">
-        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-          <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-          <path d="M4 21C4 16.5 7.5 14 12 14C16.5 14 20 16.5 20 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-      </button>
+      <!-- ESTE BOTÓN NO SE VA CON LOS OTROS DOS, Y NO ES UN OLVIDO. Es la ÚNICA
+           salida de Andrea de vuelta a su panel desde las pantallas de usuaria:
+           nace en display:none y uA() lo enciende solo si esAdmin(U.email). Si
+           se quitara, entrando con su cuenta se quedaría encerrada aquí sin más
+           camino que recargar. Para una usuaria normal nunca se enciende, así
+           que su cabecera queda COMPLETAMENTE VACÍA — el logo se mudó a la primera
+           pestaña de la barra de abajo y los dos iconos que había aquí, historial y
+           perfil, se bajaron a esa misma barra en su día. Ninguno se duplica: allí
+           llaman al mismo go() que llamaban aquí. -->
+      <!-- AQUÍ ESTABA EL BOTÓN "Volver al panel" de Andrea, como píldora pequeña a la
+           derecha y solo en esta pantalla. Se movió al principio de la columna de
+           contenido de las TRES pantallas de usuaria, con ancho completo. Ver la nota
+           que acompaña a cada copia. -->
+      <!-- Avatar muerto: display:none fijo, nunca se enciende. Se queda porque
+           uA() le escribe la inicial dentro por id junto al del panel. -->
       <div class="av" id="a0" onclick="go('profile')" style="display:none;"></div>
     </div>
   </div>
   <div class="app-container">
+    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
+         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo
+         colapsa del todo, no queda un hueco donde debería estar el botón—.
+         VA CON CLASE Y NO CON ID, y eso es obligatorio ahora: hay tres copias, una por
+         pantalla, y un getElementById solo encontraría la primera; las otras dos se
+         quedarían invisibles para Andrea. uA() las recorre con querySelectorAll. -->
+    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">← Volver al panel</button>
     <div class="dash-header">
       <div class="dash-header-top">
         <div class="dash-meta" id="dash-meta">— HOY · DÍA 1</div>
         <p class="dash-hello" id="dash-hello">Hola,</p>
-        <h1 class="dash-name"><span id="user-name">Andrea</span>.</h1>
+        <!-- El punto va envuelto aparte para poder pintarlo en terracota sin
+             arrastrar el nombre. #user-name no se toca: es donde escribe el
+             nombre la carga de sesión. -->
+        <h1 class="dash-name"><span id="user-name">Andrea</span><span class="dash-name-punto">.</span></h1>
         <hr class="dash-rule">
         <!-- Reconocimiento de la práctica de hoy. Oculto de nacimiento: lo
              enciende pintarReconocimientoHoy() cuando hi[0] es de hoy. -->
@@ -4696,72 +6939,216 @@ body.app-active { overflow: hidden; }
         </div>
       </div>
     </div>
+    <!-- DOS CIFRAS, NO TRES. Se quitó la tarjeta de "días / en relación con tu
+         cuerpo" (era #stat-dias, o sea U.days). Los dos sitios del código que le
+         escribían dentro están guardados con if($('stat-dias')), así que no dan
+         error al no encontrarla.
+
+         EL ORDEN DE ESTOS TRES DIVS ES EL ORDEN QUE SE VE, y antes no lo era: la
+         etiqueta iba primero en el marcado y subía al sitio del número por el
+         order:2 que le pone la clase base en flexbox. Ahora la tarjeta es
+         display:block, order no hace nada, y el marcado va en el orden real
+         —número, etiqueta, descripción—, que además es el que lee en voz alta un
+         lector de pantalla. Si algún día vuelve el flexbox aquí, ojo con eso. -->
     <div class="dash-stats-gallery">
-      <div class="stat-tile">
-        <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5H20.5M8.5 3V6.5M15.5 3V6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
-        <div class="stat-tile-eyebrow">— DÍAS</div>
-        <div class="stat-tile-num" id="stat-dias">0</div>
-        <div class="stat-tile-sub">en relación con tu cuerpo</div>
-      </div>
       <div class="stat-tile salmon">
-        <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="6" rx="2.7" ry="3.5" stroke="currentColor" stroke-width="2"/><ellipse cx="12" cy="18" rx="2.7" ry="3.5" stroke="currentColor" stroke-width="2"/><ellipse cx="6" cy="12" rx="3.5" ry="2.7" stroke="currentColor" stroke-width="2"/><ellipse cx="18" cy="12" rx="3.5" ry="2.7" stroke="currentColor" stroke-width="2"/></svg></div>
-        <div class="stat-tile-eyebrow">— SESIONES</div>
+        <!-- Destello de cuatro puntas. Los atributos de trazo NO van aquí: el
+             grosor y los remates los pone #s-dash .stat-ico svg, para que los dos
+             símbolos de la fila no puedan quedar con distinto grosor. -->
+        <div class="stat-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2l1.9 6.9 6.9 1.9-6.9 1.9L12 20.8l-1.9-6.9L3.2 12l6.9-1.9z"/></svg></div>
         <div class="stat-tile-num" id="stat-sesiones">0</div>
+        <div class="stat-tile-eyebrow">sesiones</div>
         <div class="stat-tile-sub">prácticas habitadas</div>
       </div>
       <div class="stat-tile accent">
-        <div class="stat-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3C12 3 6 7.5 6 13.5C6 17.6 8.7 21 12 21C15.3 21 18 17.6 18 13.5C18 11 16.5 9 16.5 9C16.5 9 16 11 14 11C14 11 15 6.5 12 3Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></div>
-        <div class="stat-tile-eyebrow">— EN RACHA</div>
+        <!-- Hojita: el contorno y el nervio central. Sustituye a la llama que
+             había, que era el icono de "racha" de toda la vida y empujaba justo
+             la lectura de logro que esta tarjeta evita a propósito. -->
+        <div class="stat-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 19.8C4.8 11.4 11 5 19.6 4.6c.4 8.6-6 14.8-14.8 15.2z"/><path d="M4.8 19.8 15.4 9.2"/></svg></div>
         <div class="stat-tile-num" id="stat-racha">0</div>
+        <div class="stat-tile-eyebrow">días en racha</div>
         <div class="stat-tile-sub">días consecutivos</div>
       </div>
     </div>
     <!-- Única puerta al check-in. El texto lo cambia pintarReconocimientoHoy(). -->
     <button class="dash-cta" onclick="go('checkin')">
+      <!-- Círculo de play, puramente decorativo: aria-hidden para que el lector
+           de pantalla anuncie solo el texto del botón y no un icono suelto. -->
+      <span class="dash-cta-play" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6c0 .9 1 1.5 1.8 1L20.5 13c.7-.5.7-1.5 0-2L9.8 4.2C9 3.7 8 4.3 8 5.2z"/></svg>
+      </span>
       <span class="dash-cta-txt" id="dash-cta-txt">Empezar mi práctica</span>
       <span class="dash-cta-arrow">→</span>
     </button>
     <div class="dash-paisaje" id="dash-paisaje">
       <div class="dash-paisaje-header">
         <span class="dash-paisaje-eyebrow">Tu <em>paisaje</em> · últimos 14 días</span>
+        <!-- El "EN RACHA / CONSTRUYENDO" sigue aquí pero oculto por CSS: hay tres
+             puntos del código que le escriben dentro y quitarlo sería tocar lógica.
+             AQUÍ ESTABA TAMBIÉN EL ENLACE "Ver historial", y se ha ido: llevaba al
+             mismo sitio que la pestaña Historial de la barra inferior, así que era un
+             segundo acceso al mismo destino ocupando espacio dentro de la tarjeta. Con
+             la barra puesta, sobra. Sus reglas CSS quedan sin uso pero no las borro en
+             esta tanda para no mezclar limpieza con cambio. -->
         <span class="dash-paisaje-meta" id="dash-paisaje-meta">EN RACHA</span>
       </div>
       <div class="dash-paisaje-dots" id="dash-paisaje-dots"></div>
     </div>
   </div>
+  <!-- BARRA INFERIOR. Copia de Inicio: la pestaña marcada es la primera.
+       Va FUERA de .app-container y dentro de la pantalla, porque es fija y no
+       debe heredar el ancho ni el padding del contenedor. Cada botón llama al
+       mismo go() que llamaban los dos iconos que había arriba en la cabecera.
+       Sin ids: las otras dos pantallas llevan esta misma barra y tres copias del
+       mismo id romperían cualquier getElementById. -->
+  <nav class="hnav" aria-label="Secciones de HOGAR">
+    <button type="button" class="hnav-tab hnav-tab-marca on" onclick="go('dash')" aria-current="page" aria-label="HOGAR · Inicio">
+      <svg viewBox="1 9 62 46" aria-hidden="true"><path d="M4 31 L32 12 L60 31"/><path d="M10 27 V52 H54 V27"/><path d="M32 50 C24 44 17 38 17 32 C17 27 21 25 24.5 26.5 C27.5 27.8 30.5 31 32 34 C33.5 31 36.5 27.8 39.5 26.5 C43 25 47 27 47 32 C47 38 40 44 32 50 Z"/></svg>
+      HOGAR
+    </button>
+    <button type="button" class="hnav-tab" onclick="go('history')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5H20.5M8.5 3V6.5M15.5 3V6.5"/></svg>
+      Historial
+    </button>
+    <button type="button" class="hnav-tab" onclick="go('profile')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.6c0-4 3.2-6.7 7.2-6.7s7.2 2.7 7.2 6.7"/></svg>
+      Mi cuenta
+    </button>
+  </nav>
 </div>
 
-<!-- CHECK-IN CONVERSACIONAL — el chat con Andrea, a pantalla completa.
-     El bloque de abajo VIVÍA DENTRO DE #s-dash y se movió aquí tal cual: mismos
-     ids, mismas clases, mismo contenido. Los ids importan y no son decorativos —
-     #dash-chat-messages lo busca appendChatMsg() y #dash-pills-emocion lo llena
-     renderEmoPills() y lo colorea el CSS por :nth-child. Renombrarlos obliga a
-     tocar ambos sitios. Y tiene que haber UNO SOLO en todo el documento: dos
-     copias y getElementById empieza a escribir en el invisible, sin dar error. -->
+<!-- CHECK-IN — elegir cómo se siente y cuánto tiempo tiene, en tres pasos.
+     YA NO ES UN CHAT. Tenía forma de mensajería —globo de Andrea con avatar, globo
+     de la usuaria, y todo apilándose hacia abajo— y ahora son tres paneles que se
+     turnan. Los textos son los mismos y salen de la base igual que antes.
+
+     Los ids de aquí abajo importan y no son decorativos:
+       #dash-pills-emocion  lo llena renderEmoPills() y lo COLOREA el CSS por
+                            :nth-child, así que el orden de sus hijos es dato.
+       #dash-pills-tiempo   igual, con sus tres tarjetas por :nth-child.
+       #dash-action-card    lo busca pickTimeGo() para apagar la tarjeta al pulsar.
+       #ci-*                los huecos que rellena el JS y vacía resetDashChat().
+     Renombrar cualquiera obliga a tocar los dos sitios. Y tiene que haber UNO SOLO
+     de cada en todo el documento: con dos copias, getElementById empieza a escribir
+     en la invisible, sin dar error. -->
 <div id="s-checkin" class="scr">
+  <!-- El botón a la izquierda y el logo a la derecha, en la misma línea. El div
+       espaciador de 88px que había se va con el cambio: existía para centrar el logo
+       entre dos elementos, y ahora estorba — con él, el logo quedaría en el medio. El
+       reparto lo hace el justify-content:space-between de la clase base. -->
   <div class="app-nav">
-    <button class="app-nav-back" onclick="go('dash')">← Salir</button>
+    <button class="app-nav-back" onclick="go('dash')">← Regresar</button>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
     </div>
-    <div style="width:88px;"></div>
   </div>
   <div class="app-container">
-    <div class="dash-chat-section">
-      <div class="dash-chat-eyebrow">TU MOMENTO</div>
-      <div class="dash-chat-messages" id="dash-chat-messages">
-        <div class="msg-row" id="dash-msg-emocion">
-          <div class="msg-avatar"></div>
-          <div class="bubble">
-            <p>Antes de empezar, ¿cómo se siente <em>tu cuerpo</em> hoy?</p>
-            <div class="bubble-meta">ANDREA · AHORA</div>
-          </div>
+    <!-- ══ TRES PANELES, UNA SOLA PANTALLA ══
+         Cada paso es un .ci-paso y solo uno lleva .on. Se turnan con CSS, así que
+         "pasar al paso 2" es cambiar de clase y lo anterior desaparece.
+
+         VAN DENTRO DE #s-checkin Y NO SON PANTALLAS .scr APARTE, Y ESO NO ES
+         COMODIDAD: pickEmo() y pickTime() deciden si van por el camino
+         conversacional o por el clásico preguntando si #s-checkin está .on. Con
+         una .scr nueva para el paso 2, al elegir duración #s-checkin ya no
+         estaría activa, pickTime() se iría por pT() y se saltaría
+         dashSelectTiempo() entero — sin error, solo comportándose distinto.
+
+         LOS DOS CONTENEDORES DE TARJETAS NO SE TOCAN. #dash-pills-emocion y
+         #dash-pills-tiempo conservan su id y sus hijos en el mismo orden porque
+         el color y el icono de cada tarjeta los asignan reglas :nth-child() —
+         líneas ~2313 y ~2370—. Renombrar el contenedor, envolver las tarjetas o
+         colar un hermano dentro descoloca los colores sin avisar. -->
+
+    <!-- ── PASO 1: EMOCIÓN ──────────────────────────────────────────────── -->
+    <section class="ci-paso on" data-paso="emocion">
+      <!-- Era un globo con avatar y sello "ANDREA · AHORA". Mismo texto, ahora
+           como título. La cursiva de "tu cuerpo" se conserva. -->
+      <h1 class="ci-titulo">Antes de empezar, ¿cómo se siente <em>tu cuerpo</em> hoy?</h1>
+      <!-- pills poblados por renderEmoPills() desde EMOCIONES -->
+      <div class="pills-row" id="dash-pills-emocion"></div>
+      <button id="dash-fallback-link" onclick="go('ci1')" style="display:block;margin:18px auto 0;background:none;border:none;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:var(--texto-medio);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:0;transition:color .2s;" onmouseover="this.style.color='var(--terracota)'" onmouseout="this.style.color='var(--texto-medio)'">¿No estás segura cómo te sientes? Ver opciones detalladas →</button>
+    </section>
+
+    <!-- ── PASO 2: DURACIÓN ─────────────────────────────────────────────── -->
+    <section class="ci-paso" data-paso="tiempo">
+      <!-- LA RESPUESTA DE ANDREA, EN FORMATO NOTIFICACIÓN. El id del párrafo NO cambia
+           —#ci-resp-andrea— porque es donde escribe dashSelectEstado() y donde vacía
+           resetDashChat(); lo que cambia es lo que lo envuelve.
+           EL AVATAR REUTILIZA LA CLASE .msg-avatar del chat que se quitó, y eso no es
+           pereza: _landingSetFotoAndrea() inyecta una regla
+           `.msg-avatar{background-image:...!important}` con la foto real que Andrea
+           sube desde su panel. Usando esa clase, la foto llega aquí sin una línea de
+           JS nueva y sin que puedan quedar dos Andreas distintas. El CSS solo le
+           cambia el tamaño y la redondea menos, para que sea cuadrada. -->
+      <div class="ci-noti">
+        <div class="ci-noti-cab">
+          <span class="msg-avatar ci-noti-foto"></span>
+          <span class="ci-noti-nombre">Andrea</span>
+          <span class="ci-noti-hora">ahora</span>
         </div>
-        <!-- pills poblados por renderEmoPills() desde EMOCIONES -->
-        <div class="pills-row" id="dash-pills-emocion"></div>
-        <button id="dash-fallback-link" onclick="go('ci1')" style="display:block;margin:18px auto 0;background:none;border:none;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:var(--texto-medio);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:0;transition:color .2s;" onmouseover="this.style.color='var(--terracota)'" onmouseout="this.style.color='var(--texto-medio)'">¿No estás segura cómo te sientes? Ver opciones detalladas →</button>
+        <p class="ci-noti-msg" id="ci-resp-andrea"></p>
       </div>
-    </div>
+      <h1 class="ci-titulo">¿Cuánto tiempo tienes <em>ahora</em>?</h1>
+      <!-- LAS TRES DURACIONES, EN CÍRCULOS. El número se sube DENTRO del círculo y por
+           eso la descripción ya no dice "15 min · un respiro breve": el minutaje
+           estaría dos veces en la misma tarjeta.
+           EL RELOJ DE CADA UNA MARCA UNA HORA DISTINTA y ya lo hacía: la aguja de la
+           hora apunta a las 12 en las tres y la de los minutos a las 3, las 6 y las 9
+           — y cuarto, y media, menos cuarto. Cuanto más larga la duración, más abierto
+           el ángulo. No se veía porque el icono era diminuto; ahora es grande.
+           NO SE TOCA el id del contenedor ni el orden de los hijos: sus colores los
+           asigna el CSS por :nth-child, y dashSelectTiempo() localiza la elegida
+           leyendo el onclick. -->
+      <div class="pills-row" id="dash-pills-tiempo">
+        <div class="pill" onclick="pickTime('5-15','Ritmo Micro')">
+          <div class="pill-ico">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5"/><path d="M12 12h3.5"/></svg>
+            <span class="ci-dur-num">15<span class="ci-dur-min">min</span></span>
+          </div>
+          <div class="pill-tx"><span class="pill-nm">Micro</span><span class="pill-ds">un respiro breve</span></div>
+        </div>
+        <div class="pill" onclick="pickTime('15-30','Ritmo Base')">
+          <div class="pill-ico">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5"/><path d="M12 12v3.5"/></svg>
+            <span class="ci-dur-num">30<span class="ci-dur-min">min</span></span>
+          </div>
+          <div class="pill-tx"><span class="pill-nm">Base</span><span class="pill-ds">tiempo para asentarte</span></div>
+        </div>
+        <div class="pill" onclick="pickTime('30-45','Ritmo Profundo')">
+          <div class="pill-ico">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5"/><path d="M12 12h-3.5"/></svg>
+            <span class="ci-dur-num">45<span class="ci-dur-min">min</span></span>
+          </div>
+          <div class="pill-tx"><span class="pill-nm">Profundo</span><span class="pill-ds">sin prisa, con tiempo</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PASO 3: LA PROPUESTA ─────────────────────────────────────────── -->
+    <section class="ci-paso" data-paso="lista">
+      <!-- LA RESPUESTA DE ANDREA, EN FORMATO NOTIFICACIÓN. El id del párrafo NO cambia
+           —#ci-resp-andrea— porque es donde escribe dashSelectEstado() y donde vacía
+           resetDashChat(); lo que cambia es lo que lo envuelve.
+           EL AVATAR REUTILIZA LA CLASE .msg-avatar del chat que se quitó, y eso no es
+           pereza: _landingSetFotoAndrea() inyecta una regla
+           `.msg-avatar{background-image:...!important}` con la foto real que Andrea
+           sube desde su panel. Usando esa clase, la foto llega aquí sin una línea de
+           JS nueva y sin que puedan quedar dos Andreas distintas. El CSS solo le
+           cambia el tamaño y la redondea menos, para que sea cuadrada. -->
+      <div class="ci-noti">
+        <div class="ci-noti-cab">
+          <span class="msg-avatar ci-noti-foto"></span>
+          <span class="ci-noti-nombre">Andrea</span>
+          <span class="ci-noti-hora">ahora</span>
+        </div>
+        <p class="ci-noti-msg" id="ci-confirm-andrea"></p>
+      </div>
+      <!-- Aquí entra la .action-card, que es la que arranca la práctica. Se pinta
+           igual que antes y conserva su id: pickTimeGo() la busca por
+           #dash-action-card para apagarla mientras carga. -->
+      <div id="ci-accion"></div>
+    </section>
   </div>
 </div>
 
@@ -4837,12 +7224,15 @@ body.app-active { overflow: hidden; }
 
 <!-- PRACTICE -->
 <div id="s-prac" class="scr">
+  <!-- Botón a la izquierda, logo pequeño a la derecha, igual que en el check-in. El
+       div espaciador de 88px se va: existía para centrar el logo entre dos elementos.
+       El texto se queda en "Salir" y no en "Regresar" a propósito — aquí no se vuelve
+       atrás, se abandona una práctica a medias, y por eso llama a confirmExit(). -->
   <div class="app-nav">
     <button class="app-nav-back" onclick="confirmExit()">← Salir</button>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
     </div>
-    <div style="width:88px;"></div>
   </div>
   <div class="app-container practica-screen">
     <div class="practica-header">
@@ -4952,19 +7342,26 @@ body.app-active { overflow: hidden; }
 
 <!-- PROFILE -->
 <div id="s-profile" class="scr">
-  <div class="app-nav">
-    <button class="app-nav-back" onclick="go('dash')">← Volver</button>
-    <div class="app-nav-logo">
-      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
-    </div>
-    <div style="width:88px;"></div>
-  </div>
+  <!-- CABECERA VACÍA, igual que en Historial: el logo se mudó a la barra de abajo y
+       el "← Volver" se fue en su día porque la barra ya lleva a Inicio. Se conserva
+       el elemento solo por la reserva del notch. -->
+  <div class="app-nav"></div>
   <div class="app-container perfil-screen" style="margin:0 auto;">
-    <div style="text-align:center;margin-bottom:30px;">
-      <div class="perfil-avatar" id="perfil-avatar">A</div>
-      <span class="app-eyebrow">Tu espacio</span>
-      <h1 class="app-title" style="font-size:36px;margin-bottom:8px;">Mi <em>perfil</em>.</h1>
-      <p class="app-subtitle" style="font-size:16px;">Aquí puedes actualizar lo que necesites.</p>
+    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
+         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo
+         colapsa del todo, no queda un hueco donde debería estar el botón—.
+         VA CON CLASE Y NO CON ID, y eso es obligatorio ahora: hay tres copias, una por
+         pantalla, y un getElementById solo encontraría la primera; las otras dos se
+         quedarían invisibles para Andrea. uA() las recorre con querySelectorAll. -->
+    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">← Volver al panel</button>
+    <!-- SOLO EL TÍTULO, a la izquierda, como en Mi historial. Se fueron el círculo
+         con la inicial, el rótulo "Tu espacio" y el subtítulo: los tres se comían la
+         mitad de la pantalla antes de llegar al primer dato.
+         Se reutiliza .hist-cabecera —la clase que ya hace esto en Historial— para que
+         las dos pantallas compartan el mismo bloque de título y no puedan separarse.
+         "Mi cuenta" y no "Mi perfil": es como se llama la pestaña de la barra. -->
+    <div class="hist-cabecera">
+      <h1 class="app-title">Mi <em>cuenta</em>.</h1>
     </div>
     <div class="perfil-section">
       <div class="perfil-section-title">Datos personales</div>
@@ -5051,22 +7448,47 @@ body.app-active { overflow: hidden; }
          invitar a hacer, pero los términos la prometen y tiene que estar. -->
     <button type="button" class="perfil-borrar" onclick="abrirBorrarCuenta()">Borrar mi cuenta</button>
   </div>
+  <!-- BARRA INFERIOR. Misma que en Inicio; aquí la pestaña marcada es la tercera.
+       Lo único que cambia entre las tres copias es dónde está la clase .on y el
+       aria-current. -->
+  <nav class="hnav" aria-label="Secciones de HOGAR">
+    <button type="button" class="hnav-tab hnav-tab-marca" onclick="go('dash')" aria-label="HOGAR · Inicio">
+      <svg viewBox="1 9 62 46" aria-hidden="true"><path d="M4 31 L32 12 L60 31"/><path d="M10 27 V52 H54 V27"/><path d="M32 50 C24 44 17 38 17 32 C17 27 21 25 24.5 26.5 C27.5 27.8 30.5 31 32 34 C33.5 31 36.5 27.8 39.5 26.5 C43 25 47 27 47 32 C47 38 40 44 32 50 Z"/></svg>
+      HOGAR
+    </button>
+    <button type="button" class="hnav-tab" onclick="go('history')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5H20.5M8.5 3V6.5M15.5 3V6.5"/></svg>
+      Historial
+    </button>
+    <button type="button" class="hnav-tab on" onclick="go('profile')" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.6c0-4 3.2-6.7 7.2-6.7s7.2 2.7 7.2 6.7"/></svg>
+      Mi cuenta
+    </button>
+  </nav>
 </div>
 
 <!-- HISTORIAL EXPANDIDO (nuevo, parte de Camino A+) -->
 <div id="s-history" class="scr">
-  <div class="app-nav">
-    <button class="app-nav-back" onclick="go('dash')">← Volver</button>
-    <div class="app-nav-logo">
-      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
-    </div>
-    <div style="width:88px;"></div>
-  </div>
+  <!-- CABECERA VACÍA, Y ESO ES LO QUE SE QUIERE. El logo se fue a la primera
+       pestaña de la barra de abajo, así que aquí no queda nada que mostrar. El
+       elemento se conserva porque sigue haciendo un trabajo: reservar el hueco del
+       notch (su padding-top lleva el env(safe-area-inset-top)). Borrarlo pegaría el
+       título a la barra de estado. -->
+  <div class="app-nav"></div>
   <div class="app-container" style="max-width:800px;">
-    <div style="text-align:center;margin-bottom:30px;">
-      <span class="app-eyebrow">Tu archivo</span>
-      <h1 class="app-title" style="font-size:40px;">Mi <em>historial</em>.</h1>
-      <p class="app-subtitle" style="font-size:16px;">Cada práctica que has hecho. Para releerte sin juicio.</p>
+    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
+         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo
+         colapsa del todo, no queda un hueco donde debería estar el botón—.
+         VA CON CLASE Y NO CON ID, y eso es obligatorio ahora: hay tres copias, una por
+         pantalla, y un getElementById solo encontraría la primera; las otras dos se
+         quedarían invisibles para Andrea. uA() las recorre con querySelectorAll. -->
+    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">← Volver al panel</button>
+    <!-- SOLO EL TÍTULO. Se fueron el rótulo "Tu archivo" y el subtítulo, y con
+         ellos los estilos en línea del bloque —el text-align:center y los
+         font-size— para que el CSS pueda alinearlo a la izquierda sin pelear con
+         !important. La clase .hist-cabecera es nueva y solo la usa esto. -->
+    <div class="hist-cabecera">
+      <h1 class="app-title">Mi <em>historial</em>.</h1>
     </div>
     <div class="historial-filters" id="historial-filters">
       <div class="filter-chip active" onclick="filtrarHistorial(this,'todos')">Todas</div>
@@ -5078,6 +7500,21 @@ body.app-active { overflow: hidden; }
     </div>
     <div id="historial-full-content"></div>
   </div>
+  <!-- BARRA INFERIOR. Misma que en Inicio; aquí la pestaña marcada es la segunda. -->
+  <nav class="hnav" aria-label="Secciones de HOGAR">
+    <button type="button" class="hnav-tab hnav-tab-marca" onclick="go('dash')" aria-label="HOGAR · Inicio">
+      <svg viewBox="1 9 62 46" aria-hidden="true"><path d="M4 31 L32 12 L60 31"/><path d="M10 27 V52 H54 V27"/><path d="M32 50 C24 44 17 38 17 32 C17 27 21 25 24.5 26.5 C27.5 27.8 30.5 31 32 34 C33.5 31 36.5 27.8 39.5 26.5 C43 25 47 27 47 32 C47 38 40 44 32 50 Z"/></svg>
+      HOGAR
+    </button>
+    <button type="button" class="hnav-tab on" onclick="go('history')" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5H20.5M8.5 3V6.5M15.5 3V6.5"/></svg>
+      Historial
+    </button>
+    <button type="button" class="hnav-tab" onclick="go('profile')">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20.6c0-4 3.2-6.7 7.2-6.7s7.2 2.7 7.2 6.7"/></svg>
+      Mi cuenta
+    </button>
+  </nav>
 </div>
 
 <!-- ===== ACCESO — la ve quien inició sesión pero aún no ha activado su acceso.
@@ -7126,9 +9563,20 @@ async function _authInit(){
   }catch(_){}
 }
 function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
-  // Botón "Panel" solo para Andrea (UX; la seguridad real vive en RLS del servidor)
-  const ab=document.getElementById('nav-admin-btn');
-  if(ab) ab.style.display = esAdmin(U.email) ? 'flex' : 'none';
+  // Botón "Volver al panel", solo para Andrea (UX; la seguridad real vive en las
+  // policies RLS del servidor — esto no protege nada, solo evita enseñar una puerta
+  // que no le sirve a una usuaria normal).
+  //
+  // SON TRES BOTONES Y NO UNO: hay una copia en Inicio, otra en Historial y otra en
+  // Mi cuenta, para que Andrea lo encuentre siempre en el mismo sitio. Antes era un
+  // único #nav-admin-btn en la cabecera de Inicio y se buscaba con getElementById;
+  // con tres copias eso solo habría encendido la primera y las otras dos se habrían
+  // quedado invisibles para ella. De ahí el cambio a clase + querySelectorAll.
+  //
+  // 'block' y no 'flex': el botón pasó de píldora a bloque de ancho completo, y el
+  // texto lo centra el text-align del CSS.
+  const verPanel = esAdmin(U.email) ? 'block' : 'none';
+  document.querySelectorAll('.adm-volver-btn').forEach(b=>{ b.style.display = verPanel; });
 }
 // Saludo según hora LOCAL del dispositivo. Sin coma — la HTML añade el nombre.
 function _greetingByTime(){
@@ -7177,12 +9625,24 @@ async function precargarNotasHogar(){
 
 // Pinta la nota del día. Vive aparte de uD() para poder repintar cuando la
 // precarga termina después del primer render.
+// LAS COMILLAS LAS PONE EL CSS, AQUÍ NO. Antes esta función envolvía la frase en
+// comillas rectas y el CSS le añadía las curvas encima, así que en Inicio salía
+// la frase con dos parejas: ""Tu cuerpo no necesita que lo corrijas."". Una sola
+// fuente de la verdad: #s-dash .dash-aside-cita::before/::after.
+// El recorte de abajo es la red de seguridad por el otro lado — hay notas
+// guardadas en Supabase que YA vienen entrecomilladas, y sin quitarlas volvería
+// la pareja doble por la puerta de la base de datos.
 function pintarNotaDelDia(){
   const el=document.getElementById('dash-aside-cita');
   if(!el) return;
   const arr=notasHogar();
   if(!arr || !arr.length) return;
-  el.textContent='"'+arr[_dailyNoteIndex(arr)]+'"';
+  const txt=String(arr[_dailyNoteIndex(arr)]||'')
+    .trim()
+    .replace(/^["'“”«‘’]+/,'')
+    .replace(/["'“”»‘’]+$/,'')
+    .trim();
+  el.textContent=txt;
 }
 
 // ============================================
@@ -7826,39 +10286,35 @@ function pickEmo(idx){
   }
 }
 
-// Helper: agregar burbuja al chat con animación
-function appendChatMsg(side, html, meta){
-  const chat=document.getElementById('dash-chat-messages');
-  if(!chat) return null;
-  const row=document.createElement('div');
-  row.className = (side==='right') ? 'msg-row right' : 'msg-row';
-  row.style.animation='fadeUp .4s ease forwards';
-  row.style.opacity='0';
-  if(side==='right'){
-    row.innerHTML='<div class="bubble right"><p>'+html+'</p>'+(meta?'<div class="bubble-meta">'+meta+'</div>':'')+'</div>';
-  } else {
-    // Avatar solo una vez por grupo: si el último mensaje también fue de Andrea, se omite
-    const rows=chat.querySelectorAll('.msg-row');
-    const prev=rows.length?rows[rows.length-1]:null;
-    const grouped=prev && !prev.classList.contains('right');
-    if(grouped) row.classList.add('grouped');
-    const avatar=grouped?'<div class="msg-avatar-spacer"></div>':'<div class="msg-avatar"></div>';
-    row.innerHTML=avatar+'<div class="bubble"><p>'+html+'</p>'+(meta?'<div class="bubble-meta">'+meta+'</div>':'')+'</div>';
-  }
-  chat.appendChild(row);
-  setTimeout(()=>row.scrollIntoView({behavior:'smooth',block:'nearest'}), 80);
-  return row;
+// Muestra uno de los tres paneles del check-in y esconde los otros dos.
+//
+// Es la única forma de cambiar de paso: así no puede quedar más de uno visible ni
+// ninguno, que es lo que pasaría encendiendo y apagando clases a mano en cada
+// sitio. El scroll vuelve arriba porque el paso nuevo empieza por su título y sin
+// esto se entraría a media pantalla, heredando el scroll del paso anterior.
+function ciMostrarPaso(paso){
+  document.querySelectorAll('#s-checkin .ci-paso').forEach(s=>{
+    s.classList.toggle('on', s.dataset.paso===paso);
+  });
+  window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 
-// Flow conversacional EMOCIÓN (alineado v2 dashSelectEstado)
+// Flow EMOCIÓN. Antes abría una cascada de cuatro burbujas con setTimeout a
+// 300/1400/2600/3400ms que simulaba a Andrea escribiendo. Ya no hay chat, así que
+// el texto sale directo y de una vez.
+//
+// QUITAR ESOS setTimeout ARREGLA ADEMÁS UN FALLO LATENTE: no estaban protegidos,
+// así que saliendo de la pantalla a media cascada seguían disparando y escribían
+// dentro de un contenedor ya invisible.
 function dashSelectEstado(idx){
   if(window._dashStep && window._dashStep!=='emocion') return;
   window._dashStep='tiempo';
 
-  const emoLabel=EMO_LABELS[idx];
   const emoKey=EMO_KEYS[idx];
 
-  // Marcar pill emoción seleccionada con texto-oscuro + deshabilitar otras
+  // Marcar pill emoción seleccionada con texto-oscuro + deshabilitar otras.
+  // Se conserva tal cual aunque el paso 1 quede oculto: es el estado que
+  // resetDashChat() sabe deshacer, y quitarlo desemparejaría las dos funciones.
   const pillsEmo=document.querySelectorAll('#dash-pills-emocion .pill');
   pillsEmo.forEach((p,i)=>{
     p.style.pointerEvents='none';
@@ -7881,37 +10337,13 @@ function dashSelectEstado(idx){
     if(s) s.classList.add('emocion-activa');
   });
 
-  // Cascada de 4 burbujas con timings v2
-  setTimeout(()=>appendChatMsg('right','Hoy estoy <em>'+emoLabel+'</em>.','TÚ · AHORA'), 300);
-  setTimeout(()=>appendChatMsg('left', respAndreaHogar(emoKey), 'ANDREA · AHORA'), 1400);
-  setTimeout(()=>appendChatMsg('left','¿Cuánto tiempo tienes <em>ahora</em>?','ANDREA · AHORA'), 2600);
-  setTimeout(()=>appendTiempoPills(), 3400);
-}
+  // La píldora de "Hoy estás <emoción>" se quitó: la emoción ya se entiende por el
+  // texto de Andrea y por el color de la tarjeta que acaba de pulsar. Con ella se va
+  // el único uso que tenía emoLabel aquí.
+  const resp=document.getElementById('ci-resp-andrea');
+  if(resp) resp.innerHTML=respAndreaHogar(emoKey);
 
-// Inyectar pills de tiempo con SVGs de reloj
-function appendTiempoPills(){
-  const chat=document.getElementById('dash-chat-messages');
-  if(!chat) return;
-  const pills=document.createElement('div');
-  pills.className='pills-row';
-  pills.id='dash-pills-tiempo';
-  pills.style.animation='fadeUp .35s ease forwards';
-  pills.style.opacity='0';
-  pills.innerHTML=
-    '<div class="pill" onclick="pickTime(\'5-15\',\'Ritmo Micro\')">'
-    +  '<div class="pill-ico"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5"/><path d="M12 12h3.5"/></svg></div>'
-    +  '<div class="pill-tx"><span class="pill-nm">Micro</span><span class="pill-ds">15 min · Un respiro breve</span></div>'
-    +'</div>'
-    +'<div class="pill" onclick="pickTime(\'15-30\',\'Ritmo Base\')">'
-    +  '<div class="pill-ico"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5"/><path d="M12 12v3.5"/></svg></div>'
-    +  '<div class="pill-tx"><span class="pill-nm">Base</span><span class="pill-ds">30 min · Tiempo para asentarte</span></div>'
-    +'</div>'
-    +'<div class="pill" onclick="pickTime(\'30-45\',\'Ritmo Profundo\')">'
-    +  '<div class="pill-ico"><svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5"/><path d="M12 12h-3.5"/></svg></div>'
-    +  '<div class="pill-tx"><span class="pill-nm">Profundo</span><span class="pill-ds">45 min · Sin prisa, con tiempo</span></div>'
-    +'</div>';
-  chat.appendChild(pills);
-  setTimeout(()=>pills.scrollIntoView({behavior:'smooth',block:'nearest'}), 100);
+  ciMostrarPaso('tiempo');
 }
 
 // Pick tiempo: detecta from-dash y delega al flow conversacional o al tradicional pT()
@@ -7947,31 +10379,49 @@ function dashSelectTiempo(time, rhy){
     }
   });
 
-  // Cascada de 3: confirmación usuario + propuesta Andrea + action card
-  setTimeout(()=>appendChatMsg('right','Tengo <em>'+minutos+' minutos</em>.','TÚ · AHORA'), 300);
-  setTimeout(()=>appendChatMsg('left', (confirmAndreaHogar(PRACTICE_TO_EMO[sP]) || ('Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.')),'ANDREA · AHORA'), 1400);
-  setTimeout(()=>appendActionCard(time, rhy, ritmo, minutos), 2400);
+  // Tercer panel: la duración elegida como píldora, la propuesta de Andrea en
+  // cursiva y la tarjeta de acción. Mismos textos que las tres burbujas que había
+  // aquí, y sin los setTimeout de 300/1400/2400ms que las escalonaban.
+  // La píldora de "Tengo <n> minutos" se quitó: la duración se lee en la tarjeta de
+  // la práctica, justo debajo. `minutos` sigue usándose ahí.
+  const conf=document.getElementById('ci-confirm-andrea');
+  if(conf) conf.innerHTML=(confirmAndreaHogar(PRACTICE_TO_EMO[sP]) || ('Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.'));
+
+  appendActionCard(time, rhy, ritmo, minutos);
+  ciMostrarPaso('lista');
 }
 
-// Action card final que dispara go('prac')
+// La tarjeta que arranca la práctica. Ahora entra en #ci-accion, del tercer panel,
+// en vez de al final del chat. Todo lo demás se conserva: la clase .action-card
+// —que es la que le da el aspecto y recibe el tinte de #s-checkin.emocion-activa—,
+// el id #dash-action-card —que pickTimeGo() busca para apagarla mientras carga— y
+// la llamada final a precargarFirmaPractica().
 function appendActionCard(time, rhy, ritmo, minutos){
-  const chat=document.getElementById('dash-chat-messages');
-  if(!chat) return;
+  const cont=document.getElementById('ci-accion');
+  if(!cont) return;
+  cont.innerHTML='';
   const card=document.createElement('div');
   card.className='action-card';
   card.id='dash-action-card';
   card.style.animation='fadeUp .4s ease forwards';
   card.style.opacity='0';
   card.setAttribute('onclick',"pickTimeGo('"+time+"','"+rhy+"')");
+  // LA TARJETA DEJA DE SER UNA BARRA CON FLECHA. Cuatro líneas centradas: rótulo,
+  // nombre de la práctica en grande, duración, y el botón blanco de ancho completo.
+  // Se va el .action-arrow, que era la flecha de la barra.
+  // LA CLASE .label SE CONSERVA Y NO ES CASUAL: iniciarPractica() la busca para
+  // cambiar su texto a "PREPARANDO TU PRÁCTICA…" mientras carga, y la restaura
+  // después. Renombrarla dejaría a la usuaria sin ese aviso.
+  // El clic sigue en la tarjeta entera y no en el botón: así toda la superficie
+  // responde, y #dash-action-card sigue siendo el nodo que pickTimeGo() apaga.
   card.innerHTML=
-    '<div>'
-    +'<div class="label">— EMPEZAR PRÁCTICA</div>'
-    +'<div class="title">Práctica de <em>'+sP+'</em></div>'
-    +'<div class="meta">'+minutos+' min · '+ritmo+' · volver al cuerpo sin entender</div>'
-    +'</div>'
-    +'<div class="action-arrow">→</div>';
-  chat.appendChild(card);
-  setTimeout(()=>card.scrollIntoView({behavior:'smooth',block:'center'}), 120);
+    '<div class="label">TU PRÁCTICA DE HOY</div>'
+    +'<div class="title">'+sP+'</div>'
+    +'<div class="meta">'+minutos+' min · '+ritmo+'</div>'
+    +'<span class="ci-empezar"><span class="ci-empezar-play">▶</span> Empezar</span>';
+  cont.appendChild(card);
+  // Ya no hay scrollIntoView: el panel entra desde arriba y la tarjeta se ve sin
+  // moverse. Antes hacía falta porque la tarjeta caía al fondo de una conversación.
   // AQUÍ empieza la precarga. Es el primer instante en que se saben la práctica y
   // la duración, y quedan unos segundos de lectura antes de que pulse.
   precargarFirmaPractica(sP, time);
@@ -8023,16 +10473,24 @@ async function iniciarPractica(el, time, rhy){
   }
 }
 
-// Reset completo del chat al volver al dashboard
+// Reset completo del check-in al entrar. Lo llama go('checkin').
+//
+// BORRA POR SELECTOR, NO POR POSICIÓN. Antes decía
+//   while(chat.children.length > 3) chat.removeChild(chat.lastChild)
+// o sea "quita todo menos los tres primeros hijos", contando nodos. Funcionaba
+// mientras el marcado tuviera exactamente esa forma, y cualquier retoque —añadir
+// un texto, envolver algo— o borraba contenido de verdad o dejaba nodos viejos.
+// Ahora se vacía cada hueco por su id, que no depende del orden ni del número de
+// hermanos.
 function resetDashChat(){
   window._dashStep='emocion';
-  // Quitar TODOS los nodos inyectados (conservar los 2 iniciales: msg-row + pills-row emoción)
-  const chat=document.getElementById('dash-chat-messages');
-  if(chat){
-    while(chat.children.length>3){
-      chat.removeChild(chat.lastChild);
-    }
-  }
+
+  // Los dos huecos que rellenan dashSelectEstado() y dashSelectTiempo(), más el de
+  // la tarjeta. Eran cuatro: los dos de las píldoras se fueron con ellas. Vaciarlos importa: si quedara texto del intento anterior, se
+  // vería un fotograma al volver a entrar, antes de elegir emoción.
+  ['ci-resp-andrea','ci-confirm-andrea','ci-accion']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=''; });
+
   // Reset visual de pills emoción
   const pillsEmo=document.querySelectorAll('#dash-pills-emocion .pill');
   pillsEmo.forEach(p=>{
@@ -8041,9 +10499,28 @@ function resetDashChat(){
     p.style.background='';
     p.style.color='';
   });
+
+  // LAS DE TIEMPO TAMBIÉN, Y ESTO ES NUEVO Y OBLIGATORIO. Antes estas tarjetas las
+  // inyectaba appendTiempoPills() y el while() de arriba las destruía enteras al
+  // salir, así que sus estilos en línea se iban con ellas. Ahora son marcado fijo
+  // y sobreviven a la visita: sin este bucle, la segunda vez que alguien entrara al
+  // check-in se encontraría la duración anterior ya marcada y, peor,
+  // pointerEvents:none en las tres — el paso 2 quedaría muerto y sin forma de
+  // avanzar.
+  document.querySelectorAll('#dash-pills-tiempo .pill').forEach(p=>{
+    p.style.pointerEvents='';
+    p.style.opacity='';
+    p.style.background='';
+    p.style.color='';
+  });
+
   // Restaurar fallback link
   const fallback=document.getElementById('dash-fallback-link');
   if(fallback) fallback.style.display='';
+
+  // Volver al primer panel
+  ciMostrarPaso('emocion');
+
   // Quitar clase .emocion-activa de TODAS las screens del flow
   FLOW_SCREENS.forEach(id=>{
     const s=document.getElementById(id);
@@ -8716,6 +11193,25 @@ async function pT(time,rhy){
   _pracGen++;
   if(pend) pend.style.display='none';
   if(tBtn) tBtn.style.display='';
+
+  // ══ SE NAVEGA AQUÍ Y NO AL FINAL, Y ESO ARREGLA UN FALLO REAL ══
+  // El go('prac') estaba en la última línea de esta función, después de pedirle al
+  // servidor las direcciones firmadas del vídeo. Y ahí abajo hay DOS salidas
+  // tempranas —el vídeo aún no existe, o no se pudo ni preguntar— que pintan su
+  // aviso DENTRO de la pantalla de la práctica y hacen `return`. Al volver antes del
+  // final, nunca se llegaba a navegar: el aviso se dibujaba en una pantalla que la
+  // usuaria no estaba viendo, y desde su lado pulsar "Empezar práctica" NO HACÍA
+  // ABSOLUTAMENTE NADA. Ni error, ni mensaje, ni movimiento.
+  //
+  // Navegando primero, los tres caminos acaban donde deben: con vídeo se ve el
+  // vídeo, sin vídeo se ve "esta práctica llega pronto", y si falla la petición se
+  // ve el aviso de error. El texto de la cabecera ya está puesto arriba, así que la
+  // pantalla no entra vacía.
+  //
+  // El guard de _pracGen de más abajo sigue haciendo su trabajo: si mientras viaja
+  // la petición ella cambia de duración o se va, la respuesta ya no pinta nada.
+  go('prac');
+
   if(vid && cont){
     _vpDragging=false;
     cont.classList.remove('playing','started','buffering','vp-error');
@@ -8834,7 +11330,9 @@ async function pT(time,rhy){
       if(aud) aud.removeAttribute('src');
     }
   }
-  go('prac');
+  // El go('prac') que había aquí se subió arriba, antes de pedir las direcciones.
+  // Ver el comentario largo de allí: dejarlo al final era lo que hacía que el botón
+  // de empezar la práctica no hiciera nada cuando el vídeo no estaba subido.
 }
 
 // Reproduce / pausa el video de la práctica
@@ -11933,17 +14431,37 @@ function histCard(h){
   const idx=(typeof h.emo==='number')?h.emo:0;
   const e=EMOCIONES[idx]||{nombre:(h.emoName||''),color:'#D88766'};
   const ans=histAnswersHTML(h);
-  return '<div class="estado-card hist-card emo-'+(e.key||'calma')+'" style="margin-bottom:1rem;text-align:left;padding:1.2rem 1.4rem;border-left:4px solid '+e.color+';">'
+  // EL COLOR DE LA EMOCIÓN VIAJA EN UNA VARIABLE CSS, NO EN UN border-left EN LÍNEA.
+  // Antes era style="border-left:4px solid <color>", y eso tenía un fallo real: el
+  // rediseño móvil de #s-history declara `border:none !important`, y una regla
+  // !important gana a los estilos en línea. Resultado: la franja de color de la
+  // emoción SE PERDÍA en teléfono —justo donde más se usa la app— y solo se veía en
+  // escritorio. Nadie lo había notado porque el icono de color seguía ahí.
+  // Una variable en línea no la puede pisar ningún !important: la franja se dibuja
+  // desde el CSS con var(--hist-emo), así que ahora sale en los dos tamaños.
+  //
+  // El relleno, el margen y el text-align se van de aquí al CSS: siendo en línea
+  // obligaban a pelear con !important cada vez que se quería tocar el aspecto.
+  return '<div class="estado-card hist-card emo-'+(e.key||'calma')+'" style="--hist-emo:'+e.color+';">'
     +'<div class="hist-head">'
       +'<div class="hist-id">'
         +'<div class="hist-emo-icon" style="background:color-mix(in srgb, '+e.color+' 16%, #fff);">'+emoIcon(idx,26)+'</div>'
         +'<div>'
-          +'<div class="app-eyebrow" style="margin-bottom:.3rem;">'+e.nombre+'</div>'
-          +'<div class="estado-name" style="font-size:1.05rem;">'+(h.p||h.practica||'')+'</div>'
-          +'<div style="font-size:.8rem;color:var(--texto-medio);">'+(h.r||h.ritmo||'')+' · '+(h.d||h.fecha||'')+'</div>'
+          +'<div class="app-eyebrow">'+e.nombre+'</div>'
+          +'<div class="estado-name">'+(h.p||h.practica||'')+'</div>'
+          // "Ritmo Micro" → "Micro". La palabra "Ritmo" se repite en las tres
+          // duraciones, así que no distingue nada y solo alarga la línea. Se quita
+          // AL PINTAR y no en la base: el dato guardado se queda como está, que es
+          // lo que ya leen el panel de Andrea y las filas antiguas. Mismo recorte
+          // que hace dashSelectTiempo() con rhy.
+          +'<div class="hist-meta">'+String(h.r||h.ritmo||'').replace(/^Ritmo\s+/,'')+' · '+(h.d||h.fecha||'')+'</div>'
         +'</div>'
       +'</div>'
-      +'<div class="dh-tag">Completada ✓</div>'
+      // Solo el check. Era una etiqueta "Completada ✓" que ocupaba media cabecera
+      // de la tarjeta; el círculo verde dice lo mismo y deja el espacio al nombre
+      // de la práctica. El title/aria-label mantiene el significado para quien
+      // navegue con lector de pantalla, que antes leía la palabra completa.
+      +'<div class="dh-tag" role="img" aria-label="Completada" title="Completada">✓</div>'
     +'</div>'
     +(ans
       ? '<button class="hist-toggle" onclick="toggleHistDetalle(this)">Ver mi reflexión ↓</button>'
