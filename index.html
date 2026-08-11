@@ -5052,7 +5052,9 @@ body.app-active { overflow: hidden; }
   font-family:'Montserrat',sans-serif;
   font-size:13.5px; font-weight:500; letter-spacing:0;
   text-transform:none; text-align:center;
-  color:#8a6b5c;
+  /* Va sobre la malla, así que el mismo token que "Regresar": un gris medio no llega
+     al contraste mínimo ahí. */
+  color:var(--txt-suave-malla);
   cursor:pointer;
   transition:border-color .25s ease, color .25s ease;
 }
@@ -5115,45 +5117,20 @@ body.app-active { overflow: hidden; }
 #s-done.on,
 #s-profile.on,
 #s-history.on,
-#s-acceso.on{
+#s-acceso.on,
+#s-prac.on{
   background-color:var(--malla-base) !important;
   background-image:var(--malla) !important;
   background-repeat:no-repeat !important;
 }
 
-/* LA PANTALLA DEL VÍDEO, A OSCURAS. Un oscuro cálido y no un negro plano: es la
-   misma familia de la paleta (--tierra-oscuro es #5C3A28) llevada al fondo, así que
-   apaga sin sacar a la usuaria del mundo de HOGAR. El degradado radial suavísimo
-   evita que un color plano se vea barato en una pantalla grande.
-   OJO: el bloque "rediseño SOLO movil" de #s-prac le pone un fondo claro
-   (#f8ddc8→#f1e2d6) sin !important; ésta gana por llevarlo. */
-#s-prac.on{
-  background:radial-gradient(ellipse 120% 80% at 50% 0%, #2a1c15 0%, #1c1310 78%) !important;
-}
-/* OSCURECER EL FONDO OBLIGA A ACLARAR LO QUE VA ENCIMA, y esto no es un extra: sin
-   ello la pantalla del vídeo queda con su rótulo y su título en texto oscuro sobre
-   fondo oscuro, o sea ilegibles. Solo se toca lo que cae DIRECTAMENTE sobre el
-   fondo; la tarjeta blanca de la guía, el marco del vídeo y el botón de terminar
-   —que es terracota sólido con texto crema— ya funcionan sobre oscuro y se quedan
-   como están.
-   El !important de los dos primeros es para el bloque "rediseño SOLO movil" de
-   #s-prac, que les fija #c0673f y #3a2820 a esa anchura. */
-#s-prac.on .practica-eyebrow{ color:var(--salmon-rosa) !important; }
-#s-prac.on .practica-title{ color:#f3e4d6 !important; }
-/* La banda salmón de la cabecera se vería como una franja clara pegada arriba en
-   una pantalla a oscuras. Se apaga y su botón de volver pasa a contorno claro, el
-   mismo gesto que en las otras pantallas pero en negativo. */
-#s-prac.on .app-nav{
-  background:none !important;
-  border-bottom:none !important;
-}
-#s-prac.on .app-nav-back{
-  background:none !important;
-  border:1px solid rgba(255,255,255,.28);
-  color:#e8d5c6;
-  box-shadow:none !important;
-}
-#s-prac.on .app-nav-logo img{ filter:brightness(0) invert(1); opacity:.5; }
+/* AQUÍ ESTABA EL FONDO OSCURO DE LA PANTALLA DEL VÍDEO, y se va.
+   Se puso oscuro por encargo, con el argumento de que el vídeo era lo importante y la
+   malla le competiría. En pantalla no funcionó: se leía café y ajeno al resto de la
+   app. Ahora lleva la misma malla que las demás —está en la lista de arriba— y con
+   ella se van las nueve reglas que aclaraban su texto para el fondo oscuro: el rótulo,
+   el título, la cabecera, el botón de salir y el logo en negativo. Todo eso vuelve a
+   los valores claros en el bloque del final de la hoja. */
 
 /* ══ LA FRANJA DE OTRO COLOR ENCIMA DEL LOGO ══
    El degradado vive en la pantalla, que es position:fixed. Detrás de ella está el
@@ -5499,9 +5476,13 @@ body{ background:transparent; }
   color:#c0663a;
   margin-bottom:6px;
 }
+/* El color viene de --texto-medio (#6B4A35) por la clase base, y sobre la malla da
+   4.34 — se queda a un pelo del 4.5. Pasa al mismo token que los otros botones de
+   contorno que van sobre la malla: 5.31. */
 #s-profile .perfil-logout{
   font-size:13.5px; font-weight:500;
   letter-spacing:0; text-transform:none;
+  color:var(--txt-suave-malla);
   border-color:rgba(150,100,70,.3);
 }
 #s-profile .btn{
@@ -5567,21 +5548,40 @@ body{ background:transparent; }
   background:none; border-bottom:none;
   padding:calc(12px + env(safe-area-inset-top, 0px)) 20px 6px;
   flex-shrink:0;
+  /* Con el botón de regresar fuera de la cabecera queda un solo hijo, y este center es
+     lo que lo pone en el medio: la clase base reparte con space-between, que con un
+     único elemento lo dejaría a la izquierda. */
+  justify-content:center;
 }
-#s-checkin .app-nav-logo{ height:26px; opacity:.34; }
+/* EL LOGO, GRANDE. Estaba en 26px y no se veía. Aquí es lo único que hay en la
+   cabecera, así que puede ocupar sitio sin competir con nada — al contrario que en
+   Inicio, donde el saludo manda y por eso el logo se mudó a la barra de abajo. */
+#s-checkin .app-nav-logo{ height:64px; opacity:.5; }
 #s-checkin .app-nav-logo img{ filter:none; }
-#s-checkin .app-nav-back{
+
+/* ── REGRESAR, AL PIE DE CADA PASO ────────────────────────────────────────
+   Mismo lenguaje que el "Cerrar sesión" de Mi cuenta y que el "Volver al panel" de
+   Andrea: contorno fino, esquinas de 100px, texto centrado y de lado a lado.
+   Va como último hijo del panel, así que hereda el gap del paso y no necesita margen
+   propio — si se le pone uno, se suma al gap y ese hueco queda más grande que el resto. */
+#s-checkin .ci-regresar{
+  width:100%;
+  padding:14px 16px;
   background:none;
-  border:1px solid rgba(150,100,70,.34);
-  color:#8a6b5c;
-  font-size:11.5px; font-weight:500; letter-spacing:.3px;
-  text-transform:none;
-  padding:7px 14px;
+  border:1.5px solid rgba(150,100,70,.3);
+  border-radius:100px;
+  font-family:'Montserrat',sans-serif;
+  font-size:14px; font-weight:500; letter-spacing:0;
+  text-transform:none; text-align:center;
+  /* Sobre la malla, no un gris medio: el #8a6b5c que se usaba daba 2.66 de contraste
+     y este token está medido en 5.31. */
+  color:var(--txt-suave-malla);
+  cursor:pointer;
   transition:border-color .25s ease, color .25s ease;
 }
-#s-checkin .app-nav-back:hover{
-  background:none;
-  border-color:var(--terracota); color:var(--terracota-oscuro);
+#s-checkin .ci-regresar:hover{
+  border-color:var(--terracota);
+  color:var(--terracota-oscuro);
 }
 
 /* ── EL CENTRADO VERTICAL ─────────────────────────────────────────────────
@@ -5764,7 +5764,7 @@ body{ background:transparent; }
 @media(max-width:480px){
   #s-checkin{ --ci-hueco:20px; }
   #s-checkin .app-nav{ padding:calc(8px + env(safe-area-inset-top, 0px)) 16px 4px; }
-  #s-checkin .app-nav-logo{ height:23px; }
+  #s-checkin .app-nav-logo{ height:54px; }
   #s-checkin .ci-noti-msg{ font-size:14.5px; }
   #s-checkin .action-card{ padding:19px 17px 16px; border-radius:23px; }
   #s-checkin .ci-empezar{ padding:13px 16px; font-size:15px; }
@@ -6354,17 +6354,19 @@ body{ background:transparent; }
    del bloque del fondo y añadir este id a la lista de pantallas con malla. Entonces
    habría que devolver este bloque a los valores claros. */
 
-#s-prac{ --prac-papel: rgba(255,255,255,.92); }
-
 /* ── La cabecera ─────────────────────────────────────────────────────────── */
 #s-prac.on .app-nav{
   padding:calc(12px + env(safe-area-inset-top, 0px)) 20px 6px;
   min-height:0;
 }
-/* El logo baja a 26px y se aclara: sobre oscuro va en negativo, apagado, como firma
-   en la esquina. El invert es lo que lo vuelve claro sin necesitar otro archivo. */
-#s-prac.on .app-nav-logo{ height:26px; }
-#s-prac.on .app-nav-logo img{ filter:brightness(0) invert(1); opacity:.42; }
+/* EL LOGO VUELVE A SU TINTA. Llevaba un brightness(0) invert(1) para volverse blanco
+   sobre el fondo oscuro; con la malla debajo, ese filtro lo dejaría invisible. Y sube
+   de 26 a 48px, que a 26 no se veía.
+   Se queda a la derecha y no centrado: aquí la cabecera comparte línea con el botón de
+   salir, que tiene que estar accesible y visible durante toda la práctica. En el
+   check-in sí va centrado porque allí es lo único que hay. */
+#s-prac.on .app-nav-logo{ height:48px; opacity:.5; }
+#s-prac.on .app-nav-logo img{ filter:none; }
 #s-prac.on .app-nav-back{
   font-size:11.5px; font-weight:500; letter-spacing:.3px;
   text-transform:none;
@@ -6380,7 +6382,14 @@ body{ background:transparent; }
   letter-spacing:0 !important;
   text-transform:none;
   font-weight:500;
-  color:var(--salmon-rosa) !important;
+  /* NI --salmon-rosa NI TERRACOTA, Y ESO SALE DE MEDIR. El salmón se eligió para el
+     fondo oscuro. El terracota #c0663a da 2.22 sobre la malla, muy por debajo del 4.5
+     que pide un texto de 13px, y para llegar habría que oscurecerlo hasta #7d391c —
+     que ya no se lee como terracota sino como marrón. Esta línea es información
+     ("Ritmo Profundo · 45 min"), no un acento, así que usa el token de texto sobre
+     malla: 5.31 de contraste. El acento de color se lo queda el título, que al ser
+     grande le basta un 3.0 y lo cumple. */
+  color:var(--txt-suave-malla) !important;
   margin-bottom:6px;
 }
 /* El título, en el peso ligero de la app y sin cursiva — la cursiva es el recurso de
@@ -6390,7 +6399,9 @@ body{ background:transparent; }
   font-weight:200;
   font-size:clamp(28px, 8vw, 40px) !important;
   letter-spacing:-1px; line-height:1.15;
-  color:#f3e4d6 !important;
+  /* El crema claro era para el oscuro. Ahora el mismo terracota de los títulos del
+     resto de la app. */
+  color:#96522e !important;
 }
 #s-prac.on .practica-header{ margin-bottom:22px; }
 
@@ -6406,19 +6417,22 @@ body{ background:transparent; }
 #s-prac.on .video-container{ border-radius:24px; overflow:hidden; }
 /* El botón de play grande, con el cristal de la app en vez de blanco casi opaco. */
 #s-prac.on .video-play-btn{
-  background:rgba(255,255,255,.9);
+  background:rgba(255,255,255,.92);
   border:none;
   color:var(--terracota-oscuro);
-  box-shadow:0 8px 24px rgba(0,0,0,.28);
+  box-shadow:0 8px 24px rgba(140,90,60,.24);
 }
 
 /* ── La tarjeta de la guía ───────────────────────────────────────────────── */
+/* Con la malla debajo, la tarjeta vuelve al cristal estándar de la app: el 92% de
+   blanco y la sombra negra eran para que se leyera como una hoja de papel sobre el
+   oscuro. Ahora usa los mismos tokens que las tarjetas de Inicio y Mi cuenta. */
 #s-prac.on .practica-guia{
-  background:var(--prac-papel);
+  background:var(--dash-vidrio);
   border:1px solid var(--dash-vidrio-borde);
   border-left:none;
   border-radius:24px;
-  box-shadow:0 10px 30px rgba(0,0,0,.22);
+  box-shadow:var(--dash-vidrio-sombra);
   -webkit-backdrop-filter:var(--dash-vidrio-blur);
   backdrop-filter:var(--dash-vidrio-blur);
   padding:20px 20px 22px;
@@ -6445,7 +6459,9 @@ body{ background:transparent; }
   content:'Para integrar';
   font-size:13px; letter-spacing:0; font-weight:600;
   text-transform:none;
-  color:#c0663a;
+  /* #94461f y no #c0663a: dentro de la tarjeta de cristal, el terracota claro da 2.89
+     y este 4.77. Es el mismo terracota dos pasos más oscuro. */
+  color:#94461f;
 }
 /* El cuadradito del ✦ tenía radio 7px, del lenguaje anterior. Los cuadros de icono
    pequeños de la app van a 11px —el símbolo de las cifras de Inicio, la foto de la
@@ -6458,6 +6474,18 @@ body{ background:transparent; }
   font-style:normal;
   font-size:15.5px; line-height:1.6;
   color:#3f342c;
+}
+/* El botón de salir, sobre claro: contorno y texto oscuros, como en el check-in. */
+/* El #8a6b5c que llevaban estos botones da 2.66 sobre la malla. Pasan al token de
+   texto sobre malla, que está medido en 5.31. */
+#s-prac.on .app-nav-back{
+  background:none;
+  border:1px solid rgba(150,100,70,.34);
+  color:var(--txt-suave-malla);
+}
+#s-prac.on .app-nav-back:hover{
+  background:none;
+  border-color:var(--terracota); color:var(--terracota-oscuro);
 }
 
 /* ── El botón de terminar ────────────────────────────────────────────────── */
@@ -7077,12 +7105,10 @@ body{ background:transparent; }
      de cada en todo el documento: con dos copias, getElementById empieza a escribir
      en la invisible, sin dar error. -->
 <div id="s-checkin" class="scr">
-  <!-- El botón a la izquierda y el logo a la derecha, en la misma línea. El div
-       espaciador de 88px que había se va con el cambio: existía para centrar el logo
-       entre dos elementos, y ahora estorba — con él, el logo quedaría en el medio. El
-       reparto lo hace el justify-content:space-between de la clase base. -->
+  <!-- SOLO EL LOGO, grande y centrado. El botón de regresar se fue de aquí al pie de
+       cada paso, a ancho completo. Con un único hijo, el justify-content:center del CSS
+       lo deja en el medio. -->
   <div class="app-nav">
-    <button class="app-nav-back" onclick="go('dash')">← Regresar</button>
     <div class="app-nav-logo">
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
     </div>
@@ -7113,6 +7139,12 @@ body{ background:transparent; }
       <!-- pills poblados por renderEmoPills() desde EMOCIONES -->
       <div class="pills-row" id="dash-pills-emocion"></div>
       <button id="dash-fallback-link" onclick="go('ci1')" style="display:block;margin:18px auto 0;background:none;border:none;font-family:'Montserrat',sans-serif;font-style:italic;font-size:13px;color:var(--texto-medio);text-decoration:underline;text-underline-offset:3px;cursor:pointer;letter-spacing:0;transition:color .2s;" onmouseover="this.style.color='var(--terracota)'" onmouseout="this.style.color='var(--texto-medio)'">¿No estás segura cómo te sientes? Ver opciones detalladas →</button>
+      <!-- REGRESAR, al pie del paso y a ancho completo. Es el mismo botón que estaba en
+           la cabecera y hace lo mismo —go('dash'), o sea salir del check-in—; solo
+           cambia de sitio y de tamaño. Hay una copia por paso porque los paneles se
+           turnan: uno solo en el contenedor se vería en los tres a la vez, pero
+           quedaría fuera del reparto de huecos de cada panel. -->
+      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
     </section>
 
     <!-- ── PASO 2: DURACIÓN ─────────────────────────────────────────────── -->
@@ -7168,6 +7200,12 @@ body{ background:transparent; }
           <div class="pill-tx"><span class="pill-nm">Profundo</span><span class="pill-ds">sin prisa, con tiempo</span></div>
         </div>
       </div>
+      <!-- REGRESAR, al pie del paso y a ancho completo. Es el mismo botón que estaba en
+           la cabecera y hace lo mismo —go('dash'), o sea salir del check-in—; solo
+           cambia de sitio y de tamaño. Hay una copia por paso porque los paneles se
+           turnan: uno solo en el contenedor se vería en los tres a la vez, pero
+           quedaría fuera del reparto de huecos de cada panel. -->
+      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
     </section>
 
     <!-- ── PASO 3: LA PROPUESTA ─────────────────────────────────────────── -->
@@ -7193,6 +7231,12 @@ body{ background:transparent; }
            igual que antes y conserva su id: pickTimeGo() la busca por
            #dash-action-card para apagarla mientras carga. -->
       <div id="ci-accion"></div>
+      <!-- REGRESAR, al pie del paso y a ancho completo. Es el mismo botón que estaba en
+           la cabecera y hace lo mismo —go('dash'), o sea salir del check-in—; solo
+           cambia de sitio y de tamaño. Hay una copia por paso porque los paneles se
+           turnan: uno solo en el contenedor se vería en los tres a la vez, pero
+           quedaría fuera del reparto de huecos de cada panel. -->
+      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
     </section>
   </div>
 </div>
@@ -10463,7 +10507,12 @@ function appendActionCard(time, rhy, ritmo, minutos){
     '<div class="label">TU PRÁCTICA DE HOY</div>'
     +'<div class="title">'+sP+'</div>'
     +'<div class="meta">'+minutos+' min · '+ritmo+'</div>'
-    +'<span class="ci-empezar"><span class="ci-empezar-play">▶</span> Empezar</span>';
+    // Sin icono de play. Llevaba un ▶ (U+25B6) y iOS lo pinta como EMOJI AZUL, fuera
+    // de la paleta y del tono de todo lo demás. No se sustituye por otro carácter
+    // porque el problema es de la fuente de emoji del sistema, no del glifo: cualquier
+    // triángulo de texto puede correr la misma suerte. Si se quiere el icono, el camino
+    // es un <svg> en línea, que no depende de cómo el sistema decida pintar un carácter.
+    +'<span class="ci-empezar">Empezar</span>';
   cont.appendChild(card);
   // Ya no hay scrollIntoView: el panel entra desde arriba y la tarjeta se ve sin
   // moverse. Antes hacía falta porque la tarjeta caía al fondo de una conversación.
