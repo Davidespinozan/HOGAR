@@ -1,0 +1,14 @@
+{
+  "name": "HOGAR — Regulación a través del movimiento",
+  "short_name": "HOGAR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "browser",
+  "theme_color": "#F4E3D3",
+  "background_color": "#F5EBD9",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

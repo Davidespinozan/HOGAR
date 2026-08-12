@@ -25,7 +25,34 @@
      trazo marrón sobre transparente desaparece en las pestañas oscuras.
      =========================================================================== -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23C0673F'/%3E%3Cg fill='none' stroke='%23F5EBD9' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 30 L32 15 L51 30'/%3E%3Cpath d='M18 30 V47 H46 V30'/%3E%3Cpath d='M32 43 C24 37 23.5 30 27.5 29 C30 28.4 31.4 30.4 32 32 C32.6 30.4 34 28.4 36.5 29 C40.5 30 40 37 32 43 Z'/%3E%3C/g%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23C0673F'/%3E%3Cg fill='none' stroke='%23F5EBD9' stroke-width='4.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M13 30 L32 15 L51 30'/%3E%3Cpath d='M18 30 V47 H46 V30'/%3E%3Cpath d='M32 43 C24 37 23.5 30 27.5 29 C30 28.4 31.4 30.4 32 32 C32.6 30.4 34 28.4 36.5 29 C40.5 30 40 37 32 43 Z'/%3E%3C/g%3E%3C/svg%3E">
+<!-- ===========================================================================
+     ICONO DE LA PANTALLA DE INICIO — el logo completo, blanco sobre salmón rosa.
+
+     Es un ARCHIVO PNG y no un data URI, al contrario que el favicon de arriba, y
+     eso NO es una incoherencia: iOS no acepta ni SVG ni data: en apple-touch-icon.
+     Antes había aquí el mismo SVG en línea que el favicon, así que Safari lo
+     ignoraba y al añadir a la pantalla de inicio ponía una CAPTURA de la página.
+
+     Aquí sí cabe el logo completo con la palabra HOGAR —lo que el favicon no puede
+     permitirse— porque son 180 px y no 16.
+
+     Los cuatro PNG salen del logo original del bucket (LOGOHOGAR_qasyyc.png,
+     2215 px, tinta gris sobre transparente): se recorta a su dibujo, se recolorea a
+     blanco usando su propio canal alfa y se monta sobre #E8A99A (--salmon-rosa).
+     No es un redibujo: es el archivo bueno. La marca ocupa el 76% del ancho, más
+     que en la imagen de referencia, porque a 60 px un logo al 50% no se lee.
+     =========================================================================== -->
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="HOGAR">
+
+<!-- El manifest está por los ICONOS de Android y del escritorio, que no leen
+     apple-touch-icon. Lleva display:"browser" a propósito: HOGAR no se declara
+     instalable porque el pago de Stripe y el correo de acceso salen y vuelven por
+     el navegador, y en modo standalone iOS abre esos saltos en Safari aparte y se
+     pierde el hilo. Cambiar eso es una decisión de producto, no de icono.
+     La versión maskable va con la marca más pequeña porque Android recorta a
+     círculo y solo respeta el 80% central. -->
+<link rel="manifest" href="/manifest.webmanifest">
 <!-- El tono de la MALLA en su borde superior, medido componiendo las seis manchas en
      el centro de arriba: #f4e3d3. Tiñe la barra de estado con la app instalada en la
      pantalla de inicio; con un valor que no case se ve como una franja distinta
@@ -4128,7 +4155,6 @@ body.app-active { overflow: hidden; }
 .adm-acc-titles{ flex:1 1 auto; min-width:0; }
 .adm-acc-eyebrow{ display:block; font-size:var(--adm-eyebrow-size); font-weight:700; letter-spacing:var(--adm-eyebrow-ls);
   text-transform:uppercase; color:var(--adm-eyebrow-color); margin-bottom:6px; }
-.adm-acc-title{ display:block; font-size:1.02rem; font-weight:600; letter-spacing:-.01em; line-height:1.3; }
 .adm-acc-chevron{ flex-shrink:0; width:30px; height:30px; border-radius:50%;
   background:rgba(198,107,65,.10); color:var(--terracota);
   display:flex; align-items:center; justify-content:center;
@@ -4151,7 +4177,6 @@ body.app-active { overflow: hidden; }
 }
 @media(max-width:900px){
   .adm-acc-head{ padding:17px 18px; gap:12px; }
-  .adm-acc-title{ font-size:.95rem; }
   .adm-acc-body{ padding-top:12px; }
 }
 /* ===== COBROS y PLANES — tarjetas de información y formulario del admin ===== */
@@ -6259,9 +6284,14 @@ body{ background:transparent; }
 /* Los eyebrow de tarjeta se quedan un punto por debajo: son subtítulos dentro de una
    tarjeta, no encabezados de sección. */
 #s-admin .adm-card-eyebrow,
-#s-admin .adm-acc-eyebrow,
 #s-admin .adm-kpi-eyebrow{
   font-size:13px !important; font-weight:600;
+}
+/* El eyebrow del acordeón es EXCEPCIÓN: al quitar el título que lo repetía debajo,
+   se quedó como el único encabezado de la tarjeta, así que sube a tamaño de rótulo
+   de sección y mantiene el terracota que ya lo distinguía del subtítulo gris. */
+#s-admin .adm-acc-eyebrow{
+  font-size:15px !important; font-weight:700; margin-bottom:4px;
 }
 /* Las etiquetas de campo, en gris pequeño como las de Mi cuenta. */
 #s-admin .adm-field label,
@@ -6941,9 +6971,17 @@ body{ background:transparent; }
   height:100% !important;
   width:100%;
 }
-/* El aviso de "sin foto". Va en el marco con ::after y solo se ve cuando la imagen
-   está oculta —o sea, cuando no hay foto o no cargó—, porque la imagen la tapa. */
-#adm-view-landing .adm-lp-marco::after{
+/* La foto va TAMBIÉN de fondo del marco, con el mismo encuadre que la imagen
+   (cover y el 30% de alto, que es lo que evita decapitar un retrato). Ver
+   _admLpPintar(): es el respaldo de que la foto se vea aunque el <img> se esconda. */
+#adm-view-landing .adm-lp-marco{
+  background-repeat:no-repeat; background-size:cover; background-position:center 30%;
+}
+/* El aviso de "sin foto" SOLO cuando de verdad no hay ninguna URL, que es algo que
+   se sabe al pintar. Antes dependía de que el <img> estuviera oculto, y como se
+   oculta solo al primer fallo de carga, el aviso salía encima de fotos que existían
+   y que la landing sí estaba mostrando. */
+#adm-view-landing .adm-lp-marco.sinfoto::after{
   content:'Sin foto todavía';
   position:absolute; inset:0;
   display:flex; align-items:center; justify-content:center;
@@ -8280,8 +8318,7 @@ body{ background:transparent; }
       <div class="adm-acc open" id="adm-acc-medios">
         <button type="button" class="adm-acc-head" aria-expanded="true" aria-controls="adm-contenido-body" onclick="toggleAdmAcc('adm-acc-medios')">
           <span class="adm-acc-titles">
-            <span class="adm-acc-eyebrow">— TUS ARCHIVOS</span>
-            <span class="adm-acc-title">Videos y audios</span>
+            <span class="adm-acc-eyebrow">Videos y audios</span>
             <span class="adm-acc-sub" id="adm-acc-sub-medios">Revisando tus archivos…</span>
           </span>
           <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
@@ -8310,8 +8347,7 @@ body{ background:transparent; }
       <div class="adm-acc" id="adm-acc-recorrido">
         <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-cuest-body" onclick="toggleAdmAcc('adm-acc-recorrido')">
           <span class="adm-acc-titles">
-            <span class="adm-acc-eyebrow">— EL RECORRIDO</span>
-            <span class="adm-acc-title">El recorrido</span>
+            <span class="adm-acc-eyebrow">El recorrido</span>
             <span class="adm-acc-sub">Las preguntas del cuestionario y a dónde lleva cada respuesta.</span>
             <span class="adm-acc-meta" id="adm-acc-meta-recorrido">5 prácticas · 5 pasos cada una</span>
           </span>
@@ -8327,8 +8363,7 @@ body{ background:transparent; }
       <div class="adm-acc" id="adm-acc-textos">
         <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-textos-body" onclick="toggleAdmAcc('adm-acc-textos')">
           <span class="adm-acc-titles">
-            <span class="adm-acc-eyebrow">— TEXTOS DE TUS PRÁCTICAS</span>
-            <span class="adm-acc-title">Textos de cada práctica</span>
+            <span class="adm-acc-eyebrow">Textos de cada práctica</span>
             <span class="adm-acc-sub">Lo que dices al elegir la emoción, al ofrecer la práctica y al cerrarla.</span>
             <span class="adm-acc-meta" id="adm-acc-sub-textos">Cargando…</span>
           </span>
@@ -8344,8 +8379,7 @@ body{ background:transparent; }
       <div class="adm-acc" id="adm-acc-notas">
         <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-notas-body" onclick="toggleAdmAcc('adm-acc-notas')">
           <span class="adm-acc-titles">
-            <span class="adm-acc-eyebrow">— NOTAS DEL INICIO</span>
-            <span class="adm-acc-title">Notas del inicio</span>
+            <span class="adm-acc-eyebrow">Notas del inicio</span>
             <span class="adm-acc-sub">Las frases que aparecen en el inicio de tus usuarias. Cambia sola cada día.</span>
             <span class="adm-acc-meta" id="adm-acc-sub-notas">Cargando…</span>
           </span>
@@ -13940,7 +13974,8 @@ function _admLandingHTML(c){
   const foto=(cls,pid,fid,bid,url,fn,tit,nota)=>
     '<div class="adm-lp-foto hogar-rise-in">'
       +'<div class="adm-lp-foto-tit">'+tit+'</div>'
-      +'<div class="adm-lp-marco '+cls+'">'
+      +'<div class="adm-lp-marco '+cls+(String(url||'').trim()?'':' sinfoto')+'"'
+        +' style="background-image:'+_admLpFondo(url)+'">'
         +'<img id="'+pid+'" src="'+_admEsc(url)+'" alt="'+tit+'" '
           +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
         +'<input type="file" id="'+fid+'" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="'+fn+'(this)">'
@@ -13981,7 +14016,7 @@ function _admLandingHTML(c){
   html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
     +'<div class="adm-lp-foto-tit">Tu foto</div>'
     +'<div class="adm-lp-chat-fila">'
-      +'<div class="adm-lp-marco redondo">'
+      +'<div class="adm-lp-marco redondo" style="background-image:'+_admLpFondo(fotoChat)+'">'
         +'<img id="adm-lp-preview-chat" src="'+_admEsc(fotoChat)+'" alt="Tu foto" '
           +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
       +'</div>'
@@ -14002,7 +14037,7 @@ function _admLandingHTML(c){
   html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
     +'<div class="adm-lp-foto-tit">Tu retrato de la landing</div>'
     +'<div class="adm-lp-chat-fila">'
-      +'<div class="adm-lp-marco v" style="width:104px;flex-shrink:0;">'
+      +'<div class="adm-lp-marco v" style="width:104px;flex-shrink:0;background-image:'+_admLpFondo(fotoPerfil)+'">'
         +'<img id="adm-lp-preview-perfil" src="'+_admEsc(fotoPerfil)+'" alt="Tu retrato" '
           +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'" style="height:140px;">'
       +'</div>'
@@ -14050,10 +14085,36 @@ function _admLandingHTML(c){
 }
 
 // Actualiza la previsualización al pegar una URL (opción avanzada).
+/** El valor CSS del fondo de un marco del editor de la landing.
+ *  Las comillas, los paréntesis y la barra invertida se porcentúan: una URL de
+ *  Supabase no los trae, y así una pegada a mano no puede cerrar el url() y colar
+ *  CSS por su cuenta. Porcentuarlos —en vez de borrarlos— no cambia a qué apuntan. */
+function _admLpFondo(url){
+  const limpia=String(url==null?'':url).trim()
+    .replace(/["'()\\]/g, c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
+  return limpia?'url("'+limpia+'")':'none';
+}
+
+/** Pinta una foto del editor en los DOS sitios que la muestran: el <img> —que es de
+ *  donde Recortar lee la foto puesta— y el fondo de su marco.
+ *
+ *  El fondo es el que garantiza que la foto SE VEA. El <img> se esconde solo en
+ *  cuanto falla, porque lleva un onerror de siempre, y eso dejaba el marco vacío
+ *  con su "Sin foto todavía" aunque la foto existiera y estuviera puesta en la
+ *  landing de venta. El fondo no puede fallar así: si la URL carga, se ve. */
+function _admLpPintar(imgEl, url){
+  if(!imgEl) return;
+  imgEl.style.display=''; imgEl.src=url;
+  const marco=imgEl.closest('.adm-lp-marco');
+  if(!marco) return;
+  marco.style.backgroundImage=_admLpFondo(url);
+  marco.classList.toggle('sinfoto', !String(url==null?'':url).trim());
+}
+
 function _admLandingPreview(){
   const url=((document.getElementById('adm-lp-img')||{}).value||'').trim();
   const img=document.getElementById('adm-lp-preview-img');
-  if(img && /^https:\/\//i.test(url)){ img.style.display=''; img.src=url; }
+  if(img && /^https:\/\//i.test(url)){ _admLpPintar(img, url); }
 }
 
 // Rango válido del precio, en centavos. Mismos umbrales que crear-checkout, y
@@ -14692,7 +14753,7 @@ async function _subirArchivoFoto(file, cfg){
     // f) Reflejar: previsualización, campo URL si lo tiene, y la app en vivo — así
     // Andrea ve el cambio donde de verdad va sin recargar ni salir del panel.
     if(cfg.campo){ const campo=document.getElementById(cfg.campo); if(campo) campo.value=url; }
-    const prev=document.getElementById(cfg.prev); if(prev){ prev.style.display=''; prev.src=url; }
+    _admLpPintar(document.getElementById(cfg.prev), url);
     if(cfg.aplicar) try{ cfg.aplicar(url); }catch(_){}
     _admLandingMsg('Imagen actualizada','ok');
   }catch(e){
