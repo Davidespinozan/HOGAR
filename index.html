@@ -7426,6 +7426,34 @@ body{ background:transparent; }
 }
 /* Es un <span>, así que hay que darle lo que un <button> trae de fábrica. */
 #s-checkin .ci-hoy-cta{ display:flex; box-sizing:border-box; }
+/* ══════════════════════════════════════════════════════════════════════════
+   "SALIR" — la puerta de fuera, debajo de "Regresar"
+
+   "Regresar" pasó a volver UN PASO, así que hacía falta otra cosa para salirse del
+   recorrido entero. Se llama "Salir" y no "Volver al inicio" porque es exactamente la
+   misma acción que el "Salir" de la pantalla de la práctica: abandonar lo que se
+   estaba haciendo. Que dos botones que hacen lo mismo se llamen igual es lo que evita
+   tener que pensarlo.
+
+   VA EN TERCER NIVEL: la respuesta pesa, "Regresar" lleva contorno y éste es texto
+   suelto. Así se distingue de un vistazo cuál es la salida de emergencia.
+   En el paso 1 no existe, y no es un olvido: allí no hay paso anterior, así que su
+   "Regresar" ya es la salida.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin .ci-salir{
+  display:block; width:100%;
+  margin:-8px 0 0;          /* recorta el gap del paso: va pegado a su Regresar */
+  padding:10px 16px;
+  background:none; border:none;
+  font-family:'Montserrat',sans-serif;
+  font-size:13.5px; font-weight:400; letter-spacing:0;
+  text-transform:none; text-align:center;
+  color:var(--txt-suave-malla);
+  opacity:.8;
+  cursor:pointer;
+  transition:color .2s ease, opacity .2s ease;
+}
+#s-checkin .ci-salir:hover{ color:var(--terracota-oscuro); opacity:1; }
 </style>
 </head>
 <body>
@@ -8008,7 +8036,8 @@ body{ background:transparent; }
            cambia de sitio y de tamaño. Hay una copia por paso porque los paneles se
            turnan: uno solo en el contenedor se vería en los tres a la vez, pero
            quedaría fuera del reparto de huecos de cada panel. -->
-      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
+      <button type="button" class="ci-regresar" onclick="ciAtras('emocion')">Regresar</button>
+      <button type="button" class="ci-salir" onclick="go('dash')">Salir</button>
     </section>
 
     <!-- ── PASO 3: LA PROPUESTA ─────────────────────────────────────────── -->
@@ -8019,7 +8048,8 @@ body{ background:transparent; }
            cambia de sitio y de tamaño. Hay una copia por paso porque los paneles se
            turnan: uno solo en el contenedor se vería en los tres a la vez, pero
            quedaría fuera del reparto de huecos de cada panel. -->
-      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
+      <button type="button" class="ci-regresar" onclick="ciAtras('tiempo')">Regresar</button>
+      <button type="button" class="ci-salir" onclick="go('dash')">Salir</button>
     </section>
   </div>
 </div>
@@ -11249,10 +11279,55 @@ function ciAviso(id){
   }, 260);
 }
 
-/** Retirarlo a mano tocándolo, sin esperar a que se vaya solo. */
+/** Retirarlo a mano tocándolo, sin esperar a que se vaya solo.
+ *  Aguanta un null a propósito: ciAtras() le pasa el aviso encendido, que puede no
+ *  existir si ya se había ido solo. */
 function ciAvisoCerrar(el){
   if(_ciAvisoTm){ clearTimeout(_ciAvisoTm); _ciAvisoTm=null; }
   if(el) el.classList.remove('on');
+}
+
+/** Vuelve un paso atrás en el check-in.
+ *
+ *  NO BASTA CON CAMBIAR DE PANEL, y por eso esto es una función y no un
+ *  ciMostrarPaso() suelto en el onclick. Cada paso deja estado detrás:
+ *
+ *   · window._dashStep es un guardián. dashSelectEstado() se va de vacío si no vale
+ *     'emocion' y dashSelectTiempo() si no vale 'tiempo'. Sin rebobinarlo, se volvería
+ *     a la pregunta anterior y tocar una respuesta no haría absolutamente nada.
+ *   · las píldoras elegidas se quedan con pointerEvents:none y con sus colores en
+ *     línea. Sin limpiarlas, la pregunta a la que se vuelve estaría muerta.
+ *   · lo que se escribió a partir de esa respuesta —el mensaje de Andrea, la tarjeta
+ *     de la práctica— tiene que vaciarse, o al reelegir se vería un fotograma del
+ *     intento anterior.
+ *
+ *  Es el mismo trabajo que hace resetDashChat() al entrar, pero parcial: aquí solo se
+ *  deshace de la respuesta que se está desandando en adelante. */
+function ciAtras(destino){
+  // Si el aviso de Andrea sigue en pantalla, se va con el paso que lo trajo.
+  ciAvisoCerrar(document.querySelector('#s-checkin .ci-aviso.on'));
+
+  const limpiar = sel => document.querySelectorAll(sel).forEach(pl=>{
+    pl.style.pointerEvents=''; pl.style.opacity=''; pl.style.background=''; pl.style.color='';
+  });
+  const vaciar = ids => ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.innerHTML=''; });
+
+  if(destino==='emocion'){
+    window._dashStep='emocion';
+    limpiar('#dash-pills-emocion .pill');
+    limpiar('#dash-pills-tiempo .pill');
+    vaciar(['ci-resp-andrea','ci-confirm-andrea','ci-accion']);
+    // El tinte de la emoción se va también: se está a punto de elegir otra.
+    FLOW_SCREENS.forEach(id=>{
+      const sc=document.getElementById(id);
+      if(sc) sc.classList.remove('emocion-activa');
+    });
+  } else if(destino==='tiempo'){
+    window._dashStep='tiempo';
+    limpiar('#dash-pills-tiempo .pill');
+    vaciar(['ci-confirm-andrea','ci-accion']);
+  }
+  ciMostrarPaso(destino);
 }
 
 // Flow EMOCIÓN. Antes abría una cascada de cuatro burbujas con setTimeout a
@@ -11464,6 +11539,9 @@ async function iniciarPractica(el, time, rhy){
 // hermanos.
 function resetDashChat(){
   window._dashStep='emocion';
+
+  // Ningún aviso de Andrea encendido de la visita anterior, ni su temporizador vivo.
+  ciAvisoCerrar(document.querySelector('#s-checkin .ci-aviso.on'));
 
   // Los dos huecos que rellenan dashSelectEstado() y dashSelectTiempo(), más el de
   // la tarjeta. Eran cuatro: los dos de las píldoras se fueron con ellas. Vaciarlos importa: si quedara texto del intento anterior, se
