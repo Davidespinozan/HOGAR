@@ -7829,16 +7829,18 @@ html.hogar-arranque #hogar-splash img{
      red, quien ya tiene cuenta ve un segundo de landing y solo después salta a su
      inicio. Se ve como si la app se hubiera equivocado de pantalla.
 
-     ══ CUÁNDO SE ENSEÑA, Y CUÁNDO NO ══
-     Solo si vamos a navegar a otro sitio, que es cuando hay parpadeo:
-       · abierta como app instalada, o
-       · hay una sesión guardada en el navegador.
-     A una visitante nueva que llega desde un anuncio NO se le enseña: para ella la
-     landing es el destino, y taparla un segundo sería empeorarlo.
+     ══ CUÁNDO SE ENSEÑA: SOLO EN LA APP INSTALADA ══
+     Solo si está abierta desde el atajo de la pantalla de inicio. En el navegador NO
+     sale nunca, ni siquiera con la sesión abierta.
 
-     La sesión se detecta buscando la clave que Supabase deja en localStorage
-     (sb-<proyecto>-auth-token). Se busca por patrón y no por nombre exacto para que
-     un cambio de proyecto no lo rompa en silencio.
+     LLEGÓ A SALIR TAMBIÉN CON SESIÓN GUARDADA y estaba mal: en Safari, entrar al
+     sitio y encontrarse una pantalla de marca a pantalla completa parece un error de
+     la web, no una app cargando. En el navegador la web tiene que comportarse como
+     una web.
+
+     El precio de esto es aceptado: en el navegador vuelve a verse un instante de
+     landing antes de saltar al inicio. Ahí no molesta, porque no hay nada que
+     prometa otra cosa; en la app instalada sí, porque se abrió desde un icono.
 
      ══ POR QUÉ VA AQUÍ Y NO EN EL BODY ══
      Tiene que decidirse ANTES del primer pintado. Desde el body, el navegador ya
@@ -7853,16 +7855,11 @@ html.hogar-arranque #hogar-splash img{
 <script>
 (function(){
   try{
+    // Las dos formas de saberlo: display-mode es el estándar y navigator.standalone
+    // es la de Safari en iOS, que no implementa la primera.
     var instalada = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
                  || window.navigator.standalone === true;
-    var haySesion = false;
-    try{
-      for (var i = 0; i < localStorage.length; i++){
-        var k = localStorage.key(i);
-        if (k && /^sb-.*-auth-token$/.test(k)) { haySesion = true; break; }
-      }
-    }catch(_){}
-    if (!instalada && !haySesion) return;
+    if (!instalada) return;
 
     document.documentElement.classList.add('hogar-arranque');
     // La barra de estado, del color de la espera. Se devuelve al quitarla; si no, el
