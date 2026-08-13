@@ -37,12 +37,18 @@
      permitirse— porque son 180 px y no 16.
 
      Los cuatro PNG salen del logo original del bucket (LOGOHOGAR_qasyyc.png,
-     2215 px, tinta gris sobre transparente): se recorta a su dibujo, se recolorea a
-     blanco usando su propio canal alfa y se monta sobre #E8A99A (--salmon-rosa).
-     No es un redibujo: es el archivo bueno. La marca ocupa el 76% del ancho, más
-     que en la imagen de referencia, porque a 60 px un logo al 50% no se lee.
+     2215 px, tinta gris sobre transparente): se recorta, se recolorea a blanco
+     usando su propio canal alfa y se monta sobre #E8A99A (--salmon-rosa). No es un
+     redibujo: es el archivo bueno.
+     VA SOLO LA CASA CON EL CORAZÓN, SIN LA PALABRA "HOGAR". La primera versión la
+     llevaba y quedó mal: a 60 px la palabra obliga a encoger la casa hasta que no se
+     distingue. El recorte se hace por la banda de tinta —la marca ocupa las filas
+     319–1315 del original y la palabra empieza en la 1531, con un hueco limpio en
+     medio—, no por un número a ojo.
+     El ?v=2 del href es contra la caché: iOS se queda con el icono que ya guardó, y
+     sin cambiar la URL quien lo tuviera añadido seguiría viendo el de la palabra.
      =========================================================================== -->
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2">
 <meta name="apple-mobile-web-app-title" content="HOGAR">
 
 <!-- El manifest está por los ICONOS de Android y del escritorio, que no leen
