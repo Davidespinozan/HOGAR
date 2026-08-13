@@ -4575,7 +4575,7 @@ body.app-active { overflow: hidden; }
 #s-dash .dash-meta{ display:none; }
 
 #s-dash .dash-hello{
-  font-size:25px; font-weight:300; letter-spacing:0;
+  font-size:22px; font-weight:300; letter-spacing:0;
   color:#4a4038; line-height:1.15; margin:0;
 }
 /* EL NOMBRE NO VA EN CURSIVA. La versión anterior la heredaba de .dash-name;
@@ -4583,7 +4583,7 @@ body.app-active { overflow: hidden; }
    que un nombre largo se salga por el lado en un teléfono estrecho. */
 #s-dash .dash-name{
   font-style:normal; font-weight:200;
-  font-size:clamp(46px, 17vw, 72px);
+  font-size:clamp(40px, 15vw, 63px);
   letter-spacing:-1.5px; line-height:1.06;
   color:#96522e; margin:0;
 }
@@ -4958,8 +4958,8 @@ body.app-active { overflow: hidden; }
   #s-dash .app-container{ padding-top:0; }
   #s-dash .app-nav{ padding-bottom:0; }
   #s-dash .dash-header{ padding:4px 0 0; }
-  #s-dash .dash-hello{ font-size:22px; }
-  #s-dash .dash-name{ font-size:clamp(38px, 12vw, 50px); }
+  #s-dash .dash-hello{ font-size:20px; }
+  #s-dash .dash-name{ font-size:clamp(34px, 10.5vw, 44px); }
   #s-dash .dash-rule{ margin:10px 0 16px; }
   #s-dash .dash-andrea-glass{ padding:13px 15px 13px 12px; gap:13px; }
   #s-dash .dash-andrea-photo{ width:58px; height:58px; border-width:2.5px; }
@@ -5017,14 +5017,14 @@ body.app-active { overflow: hidden; }
      sobra. Ese hueco baja a 34 y los 54px que suelta se van al cuerpo del saludo,
      del nombre, del hilo y del destello — los cuatro a la vez, por --dash-firma. */
   #s-dash{ --dash-hueco:30px; --dash-firma:20px; }
-  #s-dash .dash-hello{ font-size:32px; }
-  #s-dash .dash-name{ font-size:clamp(56px, 17.5vw, 80px); }
+  #s-dash .dash-hello{ font-size:28px; }
+  #s-dash .dash-name{ font-size:clamp(48px, 15vw, 68px); }
   #s-dash .dash-rule{ margin:16px 0 34px; }
 }
 
 /* ── Escritorio ──────────────────────────────────────────────────────────── */
 @media(min-width:721px){
-  #s-dash .dash-hello{ font-size:28px; }
+  #s-dash .dash-hello{ font-size:25px; }
   /* Una sola línea sube las dos cifras: sesiones a 58px y la racha a los 34.8px
      que salen del cálculo. */
   #s-dash{ --dash-cifra:58px; --dash-tile-pad:24px; --dash-firma:19px; }
