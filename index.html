@@ -7371,10 +7371,22 @@ body{ background:transparent; }
    Estuvieron repartidos a los cantos y quedaban sueltos, cada uno por su lado. Vuelven
    al centro y pegados, que es como se leen igual que un mando. Pantalla completa entra
    al lado del +15, más pequeño: es de otra categoría y no compite con los tres. */
+/* ══ LOS TRES, CENTRADOS DE VERDAD ══
+   Se veían torcidos, y no era el ojo: el de pantalla completa es un hijo más de la
+   fila, así que al centrarla contaba para el reparto y empujaba los tres a la
+   izquierda. El centro real caía entre el play y el +15.
+
+   SE ARREGLA CON UN HUECO GEMELO A LA IZQUIERDA, no sacándolo del flujo ni con
+   cálculos: un ::before del MISMO ancho que el botón equilibra la fila, así que el
+   play queda exactamente en el centro de la pantalla y pantalla completa se queda
+   donde tiene que estar, pegado al +15. Si algún día cambia el tamaño de ese botón,
+   basta con cambiarlo en los dos sitios —por eso van juntos y con este comentario. */
 #s-prac.on .prac-controles{ justify-content:center; gap:20px; }
+#s-prac.on .prac-controles::before{
+  content:''; width:40px; flex-shrink:0;
+}
 #s-prac.on .prac-ctl-fs{
   width:40px; height:40px; flex-shrink:0;
-  margin-left:2px;
   background:none; border:none; border-radius:50%;
   cursor:pointer; padding:0;
   display:flex; align-items:center; justify-content:center;
