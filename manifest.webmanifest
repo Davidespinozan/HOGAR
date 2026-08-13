@@ -3,7 +3,7 @@
   "short_name": "HOGAR",
   "start_url": "/",
   "scope": "/",
-  "display": "browser",
+  "display": "standalone",
   "theme_color": "#FBF4EE",
   "background_color": "#F5EBD9",
   "icons": [

@@ -59,6 +59,27 @@
      La versión maskable va con la marca más pequeña porque Android recorta a
      círculo y solo respeta el 80% central. -->
 <link rel="manifest" href="/manifest.webmanifest">
+
+<!-- ═══ INSTALARLO COMO APP ═══
+     El manifest pasa de display:"browser" a "standalone", y estas dos etiquetas son
+     lo que hace que iOS lo abra sin barra de Safari.
+
+     ANTES ESTABA APAGADO A PROPÓSITO, y lo que lo desbloquea es haber comprobado cómo
+     se entra: con CONTRASEÑA (signInWithPassword), no con enlace por correo. Eso
+     importa porque una app instalada tiene su propio almacén, separado del de Safari:
+     con enlaces mágicos, el correo se abriría en Safari, la sesión caería allí y la
+     app seguiría sin entrar. Con contraseña se escribe dentro y no hay nada que
+     cruzar.
+
+     QUEDAN DOS CAMINOS QUE SÍ SALEN AL NAVEGADOR y conviene tenerlos escritos:
+     recuperar la contraseña (el correo abre Safari; se cambia allí y luego se entra
+     en la app con la nueva) y el pago de Stripe, que solo alcanza a quien tenga el
+     acceso vencido — quien compra por primera vez todavía no la tiene instalada.
+
+     El status-bar en "default" y no "black-translucent": con translucent el contenido
+     se mete DEBAJO del reloj y la batería, y la barra del logo quedaría pisada. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <!-- El tono del BORDE SUPERIOR DE LA APP. Tiñe la barra de estado del teléfono, y
      con un valor que no case se ve como una franja distinta encima de la cabecera.
      Era #f4e3d3, la malla desnuda, porque ahí arrancaban las pantallas. Ahora arriba
@@ -7471,6 +7492,93 @@ body{ background:transparent; }
 /* Un respiro antes de la salida: se suma al gap, así que separa el par Regresar+Salir
    de las respuestas sin separarlos entre sí. */
 #s-checkin .ci-regresar{ margin-top:12px; }
+/* ══════════════════════════════════════════════════════════════════════════
+   EL ANUNCIO DE "INSTÁLALO"
+
+   Una barra flotante abajo, con el cristal de la app. Nace fuera de la pantalla y
+   sube al encenderse; cerrarla la baja y no vuelve —queda anotado en el navegador—.
+
+   ══ SE APARTA DE LA BARRA INFERIOR ══
+   En Inicio, Historial y Mi cuenta hay una barra de pestañas fija abajo. El aviso
+   sube por encima de ella con :has(): "si la pantalla encendida lleva barra, súbete".
+   Donde :has() no exista —Safari anterior a 15.4— el aviso se queda en su sitio bajo
+   y se solapa con la barra un poco; se ve raro, no se rompe nada, y es un navegador
+   que a estas alturas casi no queda.
+   ══════════════════════════════════════════════════════════════════════════ */
+#pwa-aviso{
+  position:fixed; z-index:400;
+  left:12px; right:12px;
+  bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+  max-width:520px; margin:0 auto;
+  display:flex; align-items:center; gap:13px;
+  padding:13px 14px;
+  border-radius:20px;
+  background:rgba(255,255,255,.80);
+  border:1px solid var(--dash-vidrio-borde);
+  box-shadow:0 14px 40px rgba(140,90,60,.20), 0 3px 10px rgba(140,90,60,.10);
+  -webkit-backdrop-filter:blur(20px) saturate(1.4);
+  backdrop-filter:blur(20px) saturate(1.4);
+  /* Apagado: fuera de pantalla y sin poder tocarse. */
+  transform:translateY(calc(100% + 28px));
+  opacity:0;
+  pointer-events:none;
+  transition:transform .5s cubic-bezier(.22,1,.32,1), opacity .35s ease;
+}
+#pwa-aviso.on{ transform:translateY(0); opacity:1; pointer-events:auto; }
+body:has(.scr.on .hnav) #pwa-aviso{
+  bottom:calc(84px + env(safe-area-inset-bottom, 0px));
+}
+.pwa-aviso-icono{
+  width:44px; height:44px; flex-shrink:0;
+  border-radius:11px; display:block;
+  box-shadow:0 3px 10px rgba(140,90,60,.18);
+}
+.pwa-aviso-txt{ flex:1 1 auto; min-width:0; }
+.pwa-aviso-tit{
+  font-family:'Montserrat',sans-serif;
+  font-size:14.5px; font-weight:600; letter-spacing:0;
+  color:#3f342c; margin:0 0 2px;
+}
+.pwa-aviso-sub{
+  font-family:'Montserrat',sans-serif;
+  font-size:12.5px; font-weight:300; line-height:1.35;
+  color:var(--txt-suave); margin:0;
+}
+.pwa-aviso-sub b{ font-weight:600; color:#4a3d34; }
+.pwa-aviso-cta{
+  flex-shrink:0;
+  padding:10px 17px;
+  border:none; border-radius:100px;
+  background:linear-gradient(100deg, var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-size:13.5px; font-weight:600; letter-spacing:0;
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(184,95,61,.30);
+  transition:transform .2s ease;
+}
+.pwa-aviso-cta:active{ transform:scale(.97); }
+/* La equis, discreta y en su propia esquina: cerrar no compite con instalar. */
+.pwa-aviso-x{
+  position:absolute; top:-9px; right:-4px;
+  width:28px; height:28px; flex-shrink:0;
+  border:1px solid var(--dash-vidrio-borde); border-radius:50%;
+  background:rgba(255,255,255,.94);
+  color:var(--txt-suave); font-size:17px; line-height:1;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; padding:0;
+  box-shadow:0 2px 8px rgba(140,90,60,.14);
+}
+.pwa-aviso-x:hover{ color:var(--terracota-oscuro); }
+/* En pantallas estrechas el texto manda: el título baja y el botón se aprieta. */
+@media(max-width:380px){
+  #pwa-aviso{ gap:10px; padding:12px; }
+  .pwa-aviso-icono{ width:38px; height:38px; }
+  .pwa-aviso-cta{ padding:9px 13px; font-size:12.5px; }
+}
+@media(prefers-reduced-motion:reduce){
+  #pwa-aviso{ transition:opacity .25s ease; transform:none; }
+}
 </style>
 </head>
 <body>
@@ -8898,6 +9006,27 @@ body{ background:transparent; }
 
     </div><!-- /.adm-content -->
   </div><!-- /.adm-layout -->
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     EL ANUNCIO DE "INSTÁLALO"
+
+     Va colgado del <body> y NO dentro de una pantalla: así lo ve igual quien está en
+     la landing sin cuenta y quien está dentro de la app, sin repetirlo en catorce
+     sitios ni tener que acordarse de añadirlo a la próxima pantalla.
+
+     Nace apagado. Lo enciende _pwaAvisoQuizas() solo si de verdad hay algo que
+     ofrecer: si ya está instalado no sale, y si ya se cerró una vez tampoco.
+     ══════════════════════════════════════════════════════════════════════════ -->
+<div id="pwa-aviso" role="region" aria-label="Instalar HOGAR">
+  <img class="pwa-aviso-icono" src="/icon-192.png?v=2" alt="">
+  <div class="pwa-aviso-txt">
+    <p class="pwa-aviso-tit">Ten HOGAR a mano</p>
+    <p class="pwa-aviso-sub" id="pwa-aviso-sub">Instálalo y ábrelo desde tu pantalla de inicio, como una app.</p>
+  </div>
+  <button type="button" class="pwa-aviso-cta" id="pwa-aviso-cta" onclick="pwaInstalar()">Instalar</button>
+  <button type="button" class="pwa-aviso-x" onclick="pwaAvisoCerrar()" aria-label="Cerrar este aviso">&times;</button>
 </div>
 
 <script>
@@ -15806,6 +15935,99 @@ function confirmExit(){
       }).catch((err) => console.warn('[HOGAR] SW register failed:', err));
     });
   }
+
+// ══════════════════════════════════════════════════════════════════════════
+// EL ANUNCIO DE INSTALACIÓN
+//
+// Dos caminos, porque los navegadores no se parecen:
+//
+//  · Android y escritorio disparan 'beforeinstallprompt'. Se guarda el evento y el
+//    botón "Instalar" abre el diálogo nativo del sistema.
+//  · iOS NO tiene esa API y no la va a tener: allí instalar es un gesto manual desde
+//    el menú Compartir, así que el aviso deja de ofrecer un botón y explica el gesto.
+//    Y solo en Safari: desde Chrome o Firefox en iPhone no se puede, así que ahí no
+//    se anuncia nada en vez de pedir algo imposible.
+//
+// NO SE TOCA EL SERVICE WORKER, y es deliberado. Chrome enseña su diálogo con más
+// ganas cuando el SW intercepta peticiones, pero el nuestro dice expresamente que no
+// lo hace para no meterse en el flujo de acceso ni en los vídeos. El anuncio funciona
+// igual en todas partes con las instrucciones; el diálogo nativo es el extra.
+// ══════════════════════════════════════════════════════════════════════════
+const PWA_AVISO_KEY='hogar_pwa_aviso_cerrado';
+let _pwaPrompt=null;
+let _pwaAvisoProgramado=false;
+
+/** ¿Ya está abierta como app instalada? Se pregunta de dos formas porque iOS no
+ *  implementa display-mode y usa su propia bandera. */
+function _pwaInstalada(){
+  try{
+    if(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+  }catch(_){}
+  return window.navigator.standalone===true;
+}
+function _pwaEsIOS(){
+  const ua=navigator.userAgent||'';
+  // El iPad moderno se declara Mac: se distingue porque el Mac de verdad no tiene táctil.
+  return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+}
+/** Safari de verdad, no Chrome ni Firefox disfrazados: los dos llevan Safari en su
+ *  cadena, y ninguno de ellos puede añadir a la pantalla de inicio en iOS. */
+function _pwaEsSafariIOS(){
+  const ua=navigator.userAgent||'';
+  return _pwaEsIOS() && /Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
+}
+
+function pwaAvisoCerrar(){
+  try{ localStorage.setItem(PWA_AVISO_KEY,'1'); }catch(_){}
+  const el=document.getElementById('pwa-aviso');
+  if(el) el.classList.remove('on');
+}
+
+async function pwaInstalar(){
+  if(!_pwaPrompt) return;
+  const p=_pwaPrompt;
+  // Se suelta ANTES de esperar la respuesta: el evento solo se puede usar una vez, y
+  // si el aviso volviera a salir con el mismo guardado, el segundo intento fallaría.
+  _pwaPrompt=null;
+  try{ p.prompt(); await p.userChoice; }catch(_){}
+  pwaAvisoCerrar();
+}
+
+/** Decide si hay algo que anunciar y, si lo hay, lo enseña con un respiro. */
+function _pwaAvisoQuizas(){
+  if(_pwaAvisoProgramado) return;
+  if(_pwaInstalada()) return;
+  try{ if(localStorage.getItem(PWA_AVISO_KEY)) return; }catch(_){}
+
+  const el=document.getElementById('pwa-aviso');
+  const cta=document.getElementById('pwa-aviso-cta');
+  const sub=document.getElementById('pwa-aviso-sub');
+  if(!el) return;
+
+  if(_pwaPrompt){
+    if(cta) cta.style.display='';
+  } else if(_pwaEsSafariIOS()){
+    // Sin botón: aquí no hay nada que pulsar, hay un gesto que explicar.
+    if(cta) cta.style.display='none';
+    if(sub) sub.innerHTML='Toca <b>Compartir</b> y luego <b>Añadir a pantalla de inicio</b>.';
+  } else {
+    return;   // ni diálogo nativo ni gesto posible: no se anuncia
+  }
+
+  _pwaAvisoProgramado=true;
+  // Un respiro antes de aparecer: entrar a la vez que la página lo convierte en parte
+  // del ruido de carga en vez de en un aviso.
+  setTimeout(()=>{ el.classList.add('on'); }, 2600);
+}
+
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();          // sin esto, Chrome enseña su propia barra encima
+  _pwaPrompt=e;
+  _pwaAvisoQuizas();
+});
+window.addEventListener('appinstalled', ()=>{ pwaAvisoCerrar(); });
+document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(_pwaAvisoQuizas, 1200); });
+
 </script>
 </body>
 </html>
