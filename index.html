@@ -5692,8 +5692,9 @@ body{ background:transparent; }
 #s-checkin .ci-paso.on{
   display:flex; flex-direction:column;
   flex:1 0 auto;
-  justify-content:space-evenly;
-  gap:var(--ci-hueco);
+  /* El reparto vertical y el hueco los fija el bloque "LOS TRES PASOS DEL CHECK-IN,
+     EN UN SOLO GRUPO CENTRADO" del final de la hoja. Aquí estaban en space-evenly y
+     --ci-hueco, que desperdigaban pregunta, respuestas y botón de arriba abajo. */
   padding-bottom:6px;
   animation:fadeUp .4s ease both;
 }
@@ -7293,14 +7294,6 @@ body{ background:transparent; }
    eso habría desenfocado también la tarjeta de Andrea.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ══ LA PREGUNTA DEL TIEMPO, MÁS PEGADA A SUS ESFERAS ══
-   El paso reparte con space-evenly, que abre el mismo hueco entre los tres bloques y
-   dejaba el título despegado. Aquí el aire sobrante se va FUERA del par
-   título+esferas: un auto encima del título y otro encima del Regresar. Entre los dos
-   solo queda el gap, que se acorta. */
-#s-checkin .ci-paso[data-paso="tiempo"].on{ justify-content:flex-start; gap:18px; }
-#s-checkin .ci-paso[data-paso="tiempo"].on .ci-titulo{ margin-top:auto; }
-#s-checkin .ci-paso[data-paso="tiempo"].on .ci-regresar{ margin-top:auto; }
 
 /* ══ LOS CONTROLES DEL VIDEO, JUNTOS Y CENTRADOS ══
    Estuvieron repartidos a los cantos y quedaban sueltos, cada uno por su lado. Vuelven
@@ -7454,6 +7447,30 @@ body{ background:transparent; }
   transition:color .2s ease, opacity .2s ease;
 }
 #s-checkin .ci-salir:hover{ color:var(--terracota-oscuro); opacity:1; }
+/* ══════════════════════════════════════════════════════════════════════════
+   LOS TRES PASOS DEL CHECK-IN, EN UN SOLO GRUPO CENTRADO
+
+   Repartían con space-evenly: el aire sobrante se metía ENTRE la pregunta, las
+   respuestas y el botón, así que en un teléfono alto los tres quedaban desperdigados
+   de arriba abajo y no se leían como una sola cosa.
+
+   Pasan a agruparse con un hueco corto y a centrarse todos juntos en la pantalla. El
+   aire sobrante se queda fuera del grupo, arriba y abajo.
+
+   ══ POR QUÉ ESTE justify-content:center NO PUEDE CORTAR NADA ══
+   Centrar en flex es peligroso cuando el contenido no cabe: se desborda por los dos
+   lados y la parte de arriba queda inalcanzable. Aquí no pasa porque el paso lleva
+   flex:1 0 auto — con flex-shrink en 0 no se comprime, crece; y si crece, no le sobra
+   aire que repartir, así que el center no tiene nada que hacer y la pantalla se
+   desliza con normalidad.
+
+   El aviso de Andrea no se mueve: va en position:absolute colgado de la pantalla, no
+   dentro del paso.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin .ci-paso.on{ justify-content:center; gap:16px; }
+/* Un respiro antes de la salida: se suma al gap, así que separa el par Regresar+Salir
+   de las respuestas sin separarlos entre sí. */
+#s-checkin .ci-regresar{ margin-top:12px; }
 </style>
 </head>
 <body>
