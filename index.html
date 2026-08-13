@@ -6495,7 +6495,7 @@ body{ background:transparent; }
 /* Con la malla debajo, la tarjeta vuelve al cristal estándar de la app: el 92% de
    blanco y la sombra negra eran para que se leyera como una hoja de papel sobre el
    oscuro. Ahora usa los mismos tokens que las tarjetas de Inicio y Mi cuenta. */
-#s-prac.on .practica-guia{
+#s-done .practica-guia{
   background:var(--dash-vidrio);
   border:1px solid var(--dash-vidrio-borde);
   border-left:none;
@@ -6518,12 +6518,12 @@ body{ background:transparent; }
    pseudo-elemento HEREDA las dos cosas de su elemento. Con la cadena ya en
    "Para integrar", el navegador la seguía pintando "PARA INTEGRAR" con el tracking
    antiguo. Hay que apagar las dos EN EL PADRE, que es donde viven. */
-#s-prac.on .practica-guia-label{
+#s-done .practica-guia-label{
   margin-bottom:12px;
   text-transform:none;
   letter-spacing:0;
 }
-#s-prac.on .practica-guia-label::after{
+#s-done .practica-guia-label::after{
   content:'Para integrar';
   font-size:13px; letter-spacing:0; font-weight:600;
   text-transform:none;
@@ -6534,11 +6534,11 @@ body{ background:transparent; }
 /* El cuadradito del ✦ tenía radio 7px, del lenguaje anterior. Los cuadros de icono
    pequeños de la app van a 11px —el símbolo de las cifras de Inicio, la foto de la
    notificación de Andrea— así que se alinea. */
-#s-prac.on .practica-guia-label::before{
+#s-done .practica-guia-label::before{
   border-radius:11px;
   width:24px; height:24px;
 }
-#s-prac.on .practica-guia p{
+#s-done .practica-guia p{
   font-style:normal;
   font-size:15.5px; line-height:1.6;
   color:#3f342c;
@@ -6608,7 +6608,7 @@ body{ background:transparent; }
   #s-prac.on .app-nav-logo{ height:23px; }
   #s-prac.on .practica-header{ margin-bottom:18px; }
   #s-prac.on .video-frame{ margin-bottom:22px; }
-  #s-prac.on .practica-guia{ padding:17px 17px 19px; border-radius:21px; }
+  #s-done .practica-guia{ padding:17px 17px 19px; border-radius:21px; }
   #s-prac.on .terminar-btn{ margin-top:22px; padding:14px 18px; font-size:15px; }
 }
 
@@ -7143,6 +7143,63 @@ body{ background:transparent; }
   #s-profile .app-nav-logo,
   #s-history .app-nav-logo{ height:40px !important; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   LA PANTALLA DEL VIDEO — el video solo, de una sola vista
+
+   Antes esta pantalla llevaba cuatro cosas apiladas y había que deslizar: cabecera,
+   video, la tarjeta de "Para integrar" y los botones. La tarjeta SE MUDÓ AL CIERRE
+   (ver el marcado de #s-done) y lo que queda se reparte en una sola pantalla:
+   el nombre y el tiempo arriba, el video en el medio y los dos botones abajo.
+
+   LOS CONTROLES NO SON NUEVOS. Play/pausa, −15, +15, barra, tiempo y pantalla
+   completa ya vivían en .vp-controls; lo que faltaba era sitio para que se vieran.
+   Salen al tocar el video (vpToggleHide).
+
+   ══ POR QUÉ EL VIDEO NO LLENA TODA LA ALTURA ══
+   .video-container es 16/9 porque el material es apaisado. En un teléfono vertical,
+   estirarlo a lo alto solo añadiría franjas negras arriba y abajo, o recortaría la
+   imagen. Se queda a su proporción, a todo el ancho y CENTRADO en lo que sobra: es
+   lo más grande que puede ser sin mentir. Para verlo de verdad grande está el botón
+   de pantalla completa, que gira el teléfono.
+
+   LAS REGLAS #s-prac .practica-guia DE LOS BLOQUES VIEJOS QUEDAN MUERTAS: esa clase
+   ya no existe en esta pantalla. No se borran aquí para no mezclar el cambio con una
+   limpieza, pero no pintan nada.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-prac.on{ display:flex; flex-direction:column; }
+#s-prac.on .practica-screen{
+  flex:1 0 auto; display:flex; flex-direction:column;
+  padding-bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+}
+/* El video, centrado en el hueco que dejan la cabecera y los botones. Los dos autos
+   son lo que lo centra; sin ellos se pegaría a la cabecera y el aire caería todo
+   abajo. */
+#s-prac.on .video-frame{ margin:auto 0 !important; }
+/* La cabecera, compacta: dos líneas y nada más. */
+#s-prac.on .practica-header{ margin-bottom:0 !important; }
+
+/* ══ LA TARJETA DE "PARA INTEGRAR", YA EN EL CIERRE ══
+   Su estilo se mudó con ella cambiando #s-prac.on por #s-done en cinco selectores.
+   Lo que sigue es lo que NO se pudo mudar: venía de reglas con el prefijo #s-prac
+   dentro del bloque móvil antiguo, así que en el cierre no llegaba nada. Sobre todo
+   el ✦ del rótulo, cuyo texto lo pone el CSS con content y sin él no se dibuja. */
+#s-done .practica-guia{ margin:26px 0 0; border-left:none; position:relative; }
+#s-done .practica-guia-label{
+  font-family:'Montserrat',sans-serif;
+  display:flex; align-items:center; font-size:0;
+}
+#s-done .practica-guia-label::before{
+  content:'✦';
+  font-size:11px;
+  display:flex; align-items:center; justify-content:center;
+  width:24px; height:24px; border-radius:11px;
+  background:linear-gradient(135deg,#c66b41,#b55836);
+  color:#fdf6ee; flex-shrink:0; margin-right:10px;
+}
+#s-done .practica-guia p{ font-family:'Montserrat',sans-serif; }
+/* El cierre alinea todo al centro; la tarjeta es un párrafo y se lee a la izquierda. */
+#s-done .practica-guia,
+#s-done .practica-guia p{ text-align:left; }
 </style>
 </head>
 <body>
@@ -7883,10 +7940,6 @@ body{ background:transparent; }
         </div>
       </div>
     </div>
-    <div class="practica-guia">
-      <div class="practica-guia-label">✎ Integrando lo que viviste en este ejercicio</div>
-      <p id="rTx">Encuentra una posición cómoda. Permite que tu respiración se asiente antes de comenzar. No hay prisa.</p>
-    </div>
     <button class="terminar-btn" id="terminar-btn" onclick="startQuest()">Terminé mi práctica ✦</button>
     <button type="button" class="prac-salir" onclick="confirmExit()">Salir</button>
   </div>
@@ -7924,6 +7977,17 @@ body{ background:transparent; }
     <h1 class="completado-title">Práctica <em style="font-style:italic;color:var(--terracota);">completa</em>.</h1>
     <div class="completado-mensaje" id="donePhrase">
       Confiar en el cuerpo es un pilar fundamental. HOGAR existe para crear las condiciones para escucharlo.
+    </div>
+    <!-- LA TARJETA DE "PARA INTEGRAR" VIVE AQUÍ, no en la pantalla del video.
+         Está escrita en pasado —"esta práctica le dio espacio"— así que es un texto
+         de después, no de antes; y aquí cae en el momento para el que se escribió, con
+         la práctica ya hecha. De paso deja la pantalla del video con el video solo.
+         EL id rTx NO CAMBIA: es donde escribe pT() con un if($('rTx')), así que sigue
+         encontrándolo esté en la pantalla que esté. El rótulo va vacío en el marcado
+         porque su texto lo pone el CSS con content, en dos pseudo-elementos. -->
+    <div class="practica-guia">
+      <div class="practica-guia-label"></div>
+      <p id="rTx">Encuentra una posición cómoda. Permite que tu respiración se asiente antes de comenzar. No hay prisa.</p>
     </div>
     <button class="volver-btn" onclick="go('dash')">Volver al inicio</button>
     <p style="margin-top:1.5rem;"><a href="javascript:void(0)" onclick="go('history')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">Ver mi historial</a></p>
@@ -11779,7 +11843,9 @@ async function pT(time,rhy){
   if(await _asegurarAcceso()===false){ irAAcceso(); return; }
   sR=rhy;
   const $=id=>document.getElementById(id);
-  if($('prT'))$('prT').textContent='Práctica de '+sP;
+  // SIN el prefijo "Práctica de": la cabecera de esta pantalla es el nombre y el
+  // tiempo y nada más, y con el prefijo el nombre se partía en dos líneas.
+  if($('prT'))$('prT').textContent=sP;
   if($('prR'))$('prR').textContent=sR+' · '+String(time||'').split('-').pop()+' min';
   if($('rT'))$('rT').textContent='Integrando lo que viviste';
   if($('rTx'))$('rTx').textContent=cierreHogar(sP)||RD['Presencia'];
