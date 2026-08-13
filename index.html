@@ -7293,20 +7293,6 @@ body{ background:transparent; }
    debajo se queda de contorno: la jerarquía es la misma que en la tarjeta de la
    práctica. Ancho completo como todo lo demás del check-in.
    ══════════════════════════════════════════════════════════════════════════ */
-#s-checkin .ci-seguir{
-  display:block; width:100%;
-  margin:0; padding:16px 20px;
-  border:none; border-radius:100px;
-  background:linear-gradient(100deg, var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
-  color:#fff;
-  font-family:'Montserrat',sans-serif;
-  font-size:15.5px; font-weight:600; letter-spacing:0; text-transform:none;
-  box-shadow:0 14px 32px rgba(184,95,61,.30), 0 0 22px rgba(216,135,102,.18);
-  cursor:pointer;
-  transition:transform .2s ease, box-shadow .25s ease;
-}
-#s-checkin .ci-seguir:hover{ transform:translateY(-2px); }
-#s-checkin .ci-seguir:active{ transform:scale(.99); }
 
 /* ══════════════════════════════════════════════════════════════════════════
    LA PRÁCTICA: EL TÍTULO Y LOS CONTROLES, PEGADOS AL VIDEO
@@ -7345,18 +7331,6 @@ body{ background:transparent; }
    que hay DETRÁS— y no un filter sobre los hermanos: filter se hereda a los hijos, y
    eso habría desenfocado también la tarjeta de Andrea.
    ══════════════════════════════════════════════════════════════════════════ */
-#s-checkin .ci-paso{ position:relative; }
-#s-checkin .ci-noti-capa{ display:none; }
-#s-checkin .ci-paso.con-noti .ci-noti-capa{
-  display:flex; flex-direction:column; justify-content:center; gap:26px;
-  position:absolute; inset:-8px -6px; z-index:6;
-  background:rgba(250,240,229,.34);
-  -webkit-backdrop-filter:blur(11px) saturate(1.15);
-  backdrop-filter:blur(11px) saturate(1.15);
-  animation:fadeUp .3s ease both;
-}
-/* Con la capa puesta, lo de debajo no se puede tocar aunque asome por los bordes. */
-#s-checkin .ci-paso.con-noti > *:not(.ci-noti-capa){ pointer-events:none; }
 
 /* ══ LA PREGUNTA DEL TIEMPO, MÁS PEGADA A SUS ESFERAS ══
    El paso reparte con space-evenly, que abre el mismo hueco entre los tres bloques y
@@ -7395,6 +7369,51 @@ body{ background:transparent; }
 }
 #s-prac.on .prac-ctl-fs svg{ width:20px; height:20px; }
 #s-prac.on .prac-ctl-fs:hover{ opacity:1; color:var(--terracota-oscuro); }
+/* ══════════════════════════════════════════════════════════════════════════
+   EL AVISO DE ANDREA — baja desde arriba y se va solo
+
+   Es una notificación del teléfono, no un diálogo: entra deslizando bajo la
+   cabecera, se queda siete segundos y se retira sola. No desenfoca, no bloquea y no
+   pide pulsar nada — la pregunta de debajo se ve y se usa desde el primer momento.
+   Tocarlo lo retira antes.
+
+   ══ POR QUÉ position:absolute Y NO fixed ══
+   Está colgado de #s-checkin, que ya es fixed y ocupa la pantalla, así que absolute
+   basta y evita el problema de fixed: cualquier transform en un antepasado —y los
+   pasos entran con uno— lo habría anclado a ese antepasado en vez de a la pantalla.
+
+   ══ EL SITIO ══
+   Justo bajo la barra del logo, que mide su relleno (9+9) más los 40 del logo, más
+   la reserva del notch. Esos números salen del bloque de la barra de usuaria; si
+   cambia el alto del logo, este top va detrás.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin .ci-aviso{
+  position:absolute; z-index:60;
+  top:calc(env(safe-area-inset-top, 0px) + 66px);
+  left:12px; right:12px;
+  /* Se va hacia arriba y se esconde detrás de la barra, que es opaca al cristal y lo
+     tapa: por eso el desplazamiento es mayor que su propio alto. */
+  transform:translateY(-160%);
+  opacity:0;
+  pointer-events:none;
+  cursor:pointer;
+  transition:transform .46s cubic-bezier(.22,1,.32,1), opacity .3s ease;
+}
+#s-checkin .ci-aviso.on{
+  transform:translateY(0);
+  opacity:1;
+  pointer-events:auto;
+}
+/* Dentro va la misma tarjeta de siempre, con algo más de sombra: aquí flota sobre el
+   contenido en vez de estar apoyada en la columna. */
+#s-checkin .ci-aviso .ci-noti{
+  margin:0;
+  box-shadow:0 16px 40px rgba(140,90,60,.20), 0 4px 12px rgba(140,90,60,.10);
+}
+/* Sin la animación de entrada del paso: quien entra es el aviso, no su contenido. */
+@media(prefers-reduced-motion:reduce){
+  #s-checkin .ci-aviso{ transition:opacity .2s ease; transform:none; }
+}
 </style>
 </head>
 <body>
@@ -7855,6 +7874,48 @@ body{ background:transparent; }
       <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
     </div>
   </div>
+  <!-- AVISO DE ANDREA — una notificación de verdad: baja desde arriba, se queda unos
+       segundos y se va sola. No tapa ni desenfoca nada: la pregunta de debajo se ve y
+       se puede usar desde el primer momento.
+
+       VA COLGADO DE LA PANTALLA Y NO DENTRO DEL PASO, y es a propósito: los pasos
+       llevan una animación con transform, y un transform en un antepasado convierte a
+       sus descendientes fixed/absolute en hijos suyos. Metido ahí dentro, el aviso se
+       habría movido con el paso en vez de quedarse pegado bajo la cabecera.
+
+       EL id del párrafo NO CAMBIA (#ci-resp-andrea): es donde escribe dashSelectEstado()
+       y donde vacía resetDashChat(). -->
+  <div class="ci-aviso" id="ci-aviso-emocion" onclick="ciAvisoCerrar(this)" role="status" aria-live="polite">
+    <div class="ci-noti">
+      <div class="ci-noti-cab">
+        <span class="msg-avatar ci-noti-foto"></span>
+        <span class="ci-noti-nombre">Andrea</span>
+        <span class="ci-noti-hora">ahora</span>
+      </div>
+      <p class="ci-noti-msg" id="ci-resp-andrea"></p>
+    </div>
+  </div>
+  <!-- AVISO DE ANDREA — una notificación de verdad: baja desde arriba, se queda unos
+       segundos y se va sola. No tapa ni desenfoca nada: la pregunta de debajo se ve y
+       se puede usar desde el primer momento.
+
+       VA COLGADO DE LA PANTALLA Y NO DENTRO DEL PASO, y es a propósito: los pasos
+       llevan una animación con transform, y un transform en un antepasado convierte a
+       sus descendientes fixed/absolute en hijos suyos. Metido ahí dentro, el aviso se
+       habría movido con el paso en vez de quedarse pegado bajo la cabecera.
+
+       EL id del párrafo NO CAMBIA (#ci-confirm-andrea): es donde escribe dashSelectTiempo()
+       y donde vacía resetDashChat(). -->
+  <div class="ci-aviso" id="ci-aviso-tiempo" onclick="ciAvisoCerrar(this)" role="status" aria-live="polite">
+    <div class="ci-noti">
+      <div class="ci-noti-cab">
+        <span class="msg-avatar ci-noti-foto"></span>
+        <span class="ci-noti-nombre">Andrea</span>
+        <span class="ci-noti-hora">ahora</span>
+      </div>
+      <p class="ci-noti-msg" id="ci-confirm-andrea"></p>
+    </div>
+  </div>
   <div class="app-container">
     <!-- ══ TRES PANELES, UNA SOLA PANTALLA ══
          Cada paso es un .ci-paso y solo uno lleva .on. Se turnan con CSS, así que
@@ -7896,27 +7957,6 @@ body{ background:transparent; }
 
     <!-- ── PASO 2: DURACIÓN ─────────────────────────────────────────────── -->
     <section class="ci-paso" data-paso="tiempo">
-      <!-- LA NOTIFICACIÓN DE ANDREA, ENCIMA DE ESTA PREGUNTA Y NO EN OTRA PANTALLA.
-           Llega como una notificación de verdad: se pone delante, desenfoca lo que hay
-           detrás con backdrop-filter y no deja tocarlo. Al pulsar Continuar se quita el
-           desenfoque y la pregunta queda limpia.
-           SE DESENFOCA CON backdrop-filter Y NO CON filter EN LOS HERMANOS, que fue lo
-           primero que se me ocurrió: filter se hereda a los hijos, así que habría
-           desenfocado también la propia tarjeta de Andrea. backdrop-filter afecta a lo
-           que queda DETRÁS y deja el contenido de la capa nítido.
-           EL id del párrafo NO CAMBIA (#ci-resp-andrea): es donde escriben
-           dashSelectEstado()/dashSelectTiempo() y donde vacía resetDashChat(). -->
-      <div class="ci-noti-capa">
-        <div class="ci-noti">
-          <div class="ci-noti-cab">
-            <span class="msg-avatar ci-noti-foto"></span>
-            <span class="ci-noti-nombre">Andrea</span>
-            <span class="ci-noti-hora">ahora</span>
-          </div>
-          <p class="ci-noti-msg" id="ci-resp-andrea"></p>
-        </div>
-        <button type="button" class="ci-seguir" onclick="ciNotiCerrar(this)">Continuar</button>
-      </div>
       <h1 class="ci-titulo">¿Cuánto tiempo tienes <em>ahora</em>?</h1>
       <!-- LAS TRES DURACIONES, EN CÍRCULOS. El número se sube DENTRO del círculo y por
            eso la descripción ya no dice "15 min · un respiro breve": el minutaje
@@ -7961,27 +8001,6 @@ body{ background:transparent; }
 
     <!-- ── PASO 3: LA PROPUESTA ─────────────────────────────────────────── -->
     <section class="ci-paso" data-paso="lista">
-      <!-- LA NOTIFICACIÓN DE ANDREA, ENCIMA DE ESTA PREGUNTA Y NO EN OTRA PANTALLA.
-           Llega como una notificación de verdad: se pone delante, desenfoca lo que hay
-           detrás con backdrop-filter y no deja tocarlo. Al pulsar Continuar se quita el
-           desenfoque y la pregunta queda limpia.
-           SE DESENFOCA CON backdrop-filter Y NO CON filter EN LOS HERMANOS, que fue lo
-           primero que se me ocurrió: filter se hereda a los hijos, así que habría
-           desenfocado también la propia tarjeta de Andrea. backdrop-filter afecta a lo
-           que queda DETRÁS y deja el contenido de la capa nítido.
-           EL id del párrafo NO CAMBIA (#ci-confirm-andrea): es donde escriben
-           dashSelectEstado()/dashSelectTiempo() y donde vacía resetDashChat(). -->
-      <div class="ci-noti-capa">
-        <div class="ci-noti">
-          <div class="ci-noti-cab">
-            <span class="msg-avatar ci-noti-foto"></span>
-            <span class="ci-noti-nombre">Andrea</span>
-            <span class="ci-noti-hora">ahora</span>
-          </div>
-          <p class="ci-noti-msg" id="ci-confirm-andrea"></p>
-        </div>
-        <button type="button" class="ci-seguir" onclick="ciNotiCerrar(this)">Continuar</button>
-      </div>
       <div id="ci-accion"></div>
       <!-- REGRESAR, al pie del paso y a ancho completo. Es el mismo botón que estaba en
            la cabecera y hace lo mismo —go('dash'), o sea salir del check-in—; solo
@@ -11189,23 +11208,39 @@ function pickEmo(idx){
 // ninguno, que es lo que pasaría encendiendo y apagando clases a mano en cada
 // sitio. El scroll vuelve arriba porque el paso nuevo empieza por su título y sin
 // esto se entraría a media pantalla, heredando el scroll del paso anterior.
-function ciMostrarPaso(paso, conNoti){
+function ciMostrarPaso(paso){
   document.querySelectorAll('#s-checkin .ci-paso').forEach(s=>{
     s.classList.toggle('on', s.dataset.paso===paso);
-    // La capa de Andrea se apaga SIEMPRE en los pasos que no son el que entra: si no,
-    // volver atrás y rehacer el check-in dejaría una notificación vieja encendida.
-    if(s.dataset.paso!==paso) s.classList.remove('con-noti');
-    else s.classList.toggle('con-noti', !!conNoti);
   });
   window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 
-/** Quita la notificación de Andrea y deja la pregunta de debajo nítida y usable.
- *  Recibe el propio botón y sube al panel, en vez de recibir el nombre del paso:
- *  así el mismo onclick vale para las dos capas y no hay que acordarse de cuál es. */
-function ciNotiCerrar(btn){
-  const paso=btn && btn.closest('.ci-paso');
-  if(paso) paso.classList.remove('con-noti');
+// ═══ LOS AVISOS DE ANDREA ═══
+// Bajan desde arriba, se quedan unos segundos y se van solos. No bloquean nada: la
+// pregunta de debajo se puede usar desde el primer momento.
+let _ciAvisoTm=null;
+
+/** Baja el aviso indicado y programa su retirada.
+ *  Apaga primero CUALQUIER otro y cancela el temporizador que hubiera. Sin eso, el
+ *  temporizador del primer aviso seguiría vivo y retiraría el segundo antes de tiempo
+ *  —los dos comparten la misma variable a propósito: solo puede haber uno a la vez. */
+function ciAviso(id){
+  if(_ciAvisoTm){ clearTimeout(_ciAvisoTm); _ciAvisoTm=null; }
+  document.querySelectorAll('#s-checkin .ci-aviso').forEach(a=>a.classList.remove('on'));
+  const a=document.getElementById(id);
+  if(!a) return;
+  // Un respiro antes de bajarlo: la pregunta de debajo entra con su propia animación,
+  // así el aviso no compite con ella y llega justo después, como llegaría de verdad.
+  setTimeout(()=>{
+    a.classList.add('on');
+    _ciAvisoTm=setTimeout(()=>{ a.classList.remove('on'); _ciAvisoTm=null; }, 7000);
+  }, 260);
+}
+
+/** Retirarlo a mano tocándolo, sin esperar a que se vaya solo. */
+function ciAvisoCerrar(el){
+  if(_ciAvisoTm){ clearTimeout(_ciAvisoTm); _ciAvisoTm=null; }
+  if(el) el.classList.remove('on');
 }
 
 // Flow EMOCIÓN. Antes abría una cascada de cuatro burbujas con setTimeout a
@@ -11249,9 +11284,9 @@ function dashSelectEstado(idx){
   const resp=document.getElementById('ci-resp-andrea');
   if(resp) resp.innerHTML=respAndreaHogar(emoKey);
 
-  // La pregunta del tiempo entra YA, y encima suya la notificación de Andrea, que la
-  // tapa y la desenfoca hasta que se pulsa Continuar.
-  ciMostrarPaso('tiempo', true);
+  // La pregunta entra limpia y usable; el aviso baja encima un instante después.
+  ciMostrarPaso('tiempo');
+  ciAviso('ci-aviso-emocion');
 }
 
 // Pick tiempo: detecta from-dash y delega al flow conversacional o al tradicional pT()
@@ -11299,7 +11334,8 @@ function dashSelectTiempo(time, rhy){
   // así al pulsar Continuar está puesta, y sobre todo la precarga del video que
   // dispara appendActionCard() arranca durante la lectura y no después.
   appendActionCard(time, rhy, ritmo, minutos);
-  ciMostrarPaso('lista', true);
+  ciMostrarPaso('lista');
+  ciAviso('ci-aviso-tiempo');
 }
 
 // La tarjeta que arranca la práctica. Ahora entra en #ci-accion, del tercer panel,
