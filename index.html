@@ -4839,7 +4839,8 @@ body.app-active { overflow: hidden; }
    mismo aire arriba, abajo y por la izquierda, y el alto de la píldora sale de
    44 + 2×(9+12) = 86px. El blanco ocupa 44/86 = el 51% del alto, la proporción
    del recorte; antes era el 74% y por eso se veía grande. */
-#s-dash{
+#s-dash,
+#s-checkin{
   --dash-play: 44px;
   --dash-play-anillo: 9px;
   --dash-play-aire: 12px;
@@ -4848,7 +4849,8 @@ body.app-active { overflow: hidden; }
      --dash-play-anillo, el anillo se saldría de la píldora. */
   --dash-play-inset: calc(var(--dash-play-anillo) + var(--dash-play-aire));
 }
-#s-dash .dash-cta{
+#s-dash .dash-cta,
+#s-checkin .dash-cta{
   justify-content:flex-start; gap:0;
   max-width:var(--dash-ancho); margin:0 auto var(--dash-hueco);
   padding:var(--dash-play-inset) 26px var(--dash-play-inset) var(--dash-play-inset);
@@ -4861,12 +4863,14 @@ body.app-active { overflow: hidden; }
              0 0 26px rgba(216,135,102,.30);
   transition:transform .3s ease, box-shadow .3s ease;
 }
-#s-dash .dash-cta:hover{
+#s-dash .dash-cta:hover,
+#s-checkin .dash-cta:hover{
   transform:translateY(-3px);
   box-shadow:0 22px 42px rgba(184,95,61,.42),
              0 0 34px rgba(216,135,102,.40);
 }
-#s-dash .dash-cta-play{
+#s-dash .dash-cta-play,
+#s-checkin .dash-cta-play{
   flex-shrink:0;
   width:var(--dash-play); height:var(--dash-play); border-radius:50%;
   background:#fff;
@@ -4879,16 +4883,19 @@ body.app-active { overflow: hidden; }
    que lo contiene bajó de 62 a 44 y a 19 se quedaba sin aire alrededor.
    Va 2px a la derecha: centrado geométrico, un play se ve descolocado a la
    izquierda. Usa el terracota oscuro de la píldora, no un naranja aparte. */
-#s-dash .dash-cta-play svg{
+#s-dash .dash-cta-play svg,
+#s-checkin .dash-cta-play svg{
   width:15px; height:15px; margin-left:2px; color:var(--terracota-oscuro);
 }
 /* Sin position ni z-index: ya no hay ::before que tapara a estos dos. */
-#s-dash .dash-cta-txt{
+#s-dash .dash-cta-txt,
+#s-checkin .dash-cta-txt{
   flex:1; text-align:center; padding:0 10px;
   font-size:19px; font-weight:400; letter-spacing:.005em; color:#fff;
 }
 /* En el mockup la flecha va suelta, sin el círculo translúcido que tenía. */
-#s-dash .dash-cta-arrow{
+#s-dash .dash-cta-arrow,
+#s-checkin .dash-cta-arrow{
   width:auto; height:auto; border-radius:0; background:none;
   font-size:23px; color:#fff; opacity:.95;
 }
@@ -4983,10 +4990,14 @@ body.app-active { overflow: hidden; }
      NO se toca el padding a mano: si se escribiera aquí un valor menor que el
      grosor del anillo, el anillo se saldría de la píldora. */
   #s-dash{ --dash-play:38px; --dash-play-anillo:8px; --dash-play-aire:10px; }
-  #s-dash .dash-cta{ padding-right:20px; }
-  #s-dash .dash-cta-play svg{ width:13px; height:13px; }
-  #s-dash .dash-cta-txt{ font-size:16.5px; padding:0 6px; }
-  #s-dash .dash-cta-arrow{ font-size:20px; }
+  #s-dash .dash-cta,
+  #s-checkin .dash-cta{ padding-right:20px; }
+  #s-dash .dash-cta-play svg,
+  #s-checkin .dash-cta-play svg{ width:13px; height:13px; }
+  #s-dash .dash-cta-txt,
+  #s-checkin .dash-cta-txt{ font-size:16.5px; padding:0 6px; }
+  #s-dash .dash-cta-arrow,
+  #s-checkin .dash-cta-arrow{ font-size:20px; }
   #s-dash .dash-paisaje{ padding:18px 16px 20px; }
   #s-dash .dash-paisaje-header{ gap:10px; }
   #s-dash .dash-paisaje-eyebrow{ font-size:9.5px; letter-spacing:1.5px; }
@@ -5754,61 +5765,12 @@ body{ background:transparent; }
   font-style:normal; font-weight:600; color:#96522e;
 }
 
-/* ── LA TARJETA DE LA PRÁCTICA (paso 3) ───────────────────────────────────
-   Deja de ser una barra horizontal con una flecha al final y pasa a tener presencia:
-   cuatro líneas centradas y un botón de ancho completo. Conserva el degradado
-   terracota y gana una sombra amplia.
-
-   LA REGLA BASE #s-checkin .action-card SIGUE ARRIBA en la hoja y es la que pone el
-   degradado; aquí se la reescribe a columna. Va DESPUÉS, así que gana por orden con
-   la misma especificidad — no hace falta !important.
-
-   El clic vive en la tarjeta entera, no en el botón: "Empezar" es un <span> con
-   aspecto de botón y no un <button> de verdad, para no meter un elemento interactivo
-   dentro de otro. Así toda la superficie responde y #dash-action-card sigue siendo
-   el nodo que pickTimeGo() apaga mientras carga. */
-#s-checkin .action-card{
-  display:flex; flex-direction:column; align-items:stretch;
-  /* La regla base la dejaba en space-between para repartir barra y flecha. En columna
-     eso no hace nada porque la tarjeta mide lo que mide su contenido, pero se anula
-     para que no reaparezca si algún día se le fija un alto. */
-  justify-content:flex-start;
-  gap:0;
-  text-align:center;
-  padding:22px 20px 18px;
-  border-radius:26px;
-  box-shadow:0 16px 38px rgba(184,95,61,.34), 0 0 26px rgba(216,135,102,.22);
-  margin-top:0;
-}
-#s-checkin .action-card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 22px 46px rgba(184,95,61,.40), 0 0 32px rgba(216,135,102,.28);
-}
-/* El rótulo. Es el único sitio del rediseño donde se conservan las versalitas, y es
-   deliberado: aquí funcionan como antetítulo de una sola línea, no como etiqueta de
-   formulario. Y la clase no se puede renombrar — iniciarPractica() le escribe
-   "PREPARANDO TU PRÁCTICA…" encima mientras carga. */
-#s-checkin .action-card .label{
-  font-family:'Montserrat',sans-serif;
-  font-size:10.5px; font-weight:700;
-  letter-spacing:2.2px; text-transform:uppercase;
-  color:rgba(255,255,255,.72);
-  margin-bottom:10px;
-}
-#s-checkin .action-card .title{
-  font-family:'Montserrat',sans-serif;
-  font-style:italic; font-weight:300;
-  font-size:clamp(28px, 8vw, 38px);
-  line-height:1.15; letter-spacing:-.5px;
-  color:#fff;
-  margin-bottom:6px;
-}
-#s-checkin .action-card .meta{
-  font-family:'Montserrat',sans-serif;
-  font-size:12.5px; font-weight:400;
-  color:rgba(255,255,255,.78);
-  margin-bottom:18px;
-}
+/* ── AQUÍ ESTABAN LAS REGLAS DE LA TARJETA DE COLOR ───────────────────────
+   El paso 3 era un bloque terracota con el rótulo, el nombre, la duración y el botón
+   dentro. Se fue: ahora el texto va sobre la malla y el único elemento con peso es el
+   botón de Inicio. Ver el bloque "PASO 3 DEL CHECK-IN" al final de la hoja.
+   Las reglas base #s-checkin .action-card siguen más arriba en la hoja, sin uso: se
+   dejan porque .action-card la comparten pantallas antiguas del flujo clásico. */
 /* El botón blanco de ancho completo. */
 #s-checkin .ci-empezar{
   display:flex; align-items:center; justify-content:center; gap:8px;
@@ -5829,7 +5791,6 @@ body{ background:transparent; }
   #s-checkin .app-nav{ padding:calc(8px + env(safe-area-inset-top, 0px)) 16px 4px; }
   #s-checkin .app-nav-logo{ height:54px; }
   #s-checkin .ci-noti-msg{ font-size:14.5px; }
-  #s-checkin .action-card{ padding:19px 17px 16px; border-radius:23px; }
   #s-checkin .ci-empezar{ padding:13px 16px; font-size:15px; }
 }
 
@@ -7414,6 +7375,57 @@ body{ background:transparent; }
 @media(prefers-reduced-motion:reduce){
   #s-checkin .ci-aviso{ transition:opacity .2s ease; transform:none; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   PASO 3 DEL CHECK-IN — el nombre fuera, y dentro del botón solo "Empezar"
+
+   Era un bloque terracota con rótulo, nombre, duración y botón dentro: cuatro cosas
+   compitiendo en una caja de color, y encima chocaba con el aviso de Andrea. Ahora el
+   texto vive sobre la malla, como en los otros dos pasos, y lo único con peso visual
+   es el botón — que es el MISMO de Inicio, .dash-cta con su círculo de play.
+   Sus reglas están donde siempre, con #s-checkin añadido al lado de #s-dash.
+
+   El bloque entero sigue siendo #dash-action-card y sigue recibiendo el clic: por eso
+   el botón es un <span> con aspecto de botón, para no anidar dos interactivos.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin .ci-hoy{
+  display:flex; flex-direction:column; align-items:stretch;
+  gap:0; cursor:pointer;
+  animation:fadeUp .4s ease both;
+}
+/* El rótulo, en minúscula y discreto: ya no compite, solo sitúa. Lleva la clase
+   .label, que es la que iniciarPractica() reescribe mientras carga. */
+#s-checkin .ci-hoy .label{
+  font-family:'Montserrat',sans-serif;
+  font-size:13px; font-weight:500; letter-spacing:0; text-transform:none;
+  color:var(--txt-suave-malla);
+  text-align:center; margin:0 0 10px;
+}
+/* El nombre, con la misma letra que las preguntas de los otros dos pasos: es lo que
+   iguala los tres. En terracota porque aquí es una respuesta, no una pregunta. */
+#s-checkin .ci-hoy-nombre{
+  font-family:'Montserrat',sans-serif;
+  font-weight:200; font-style:normal;
+  font-size:clamp(30px, 8vw, 42px);
+  line-height:1.15; letter-spacing:-.5px;
+  color:var(--terracota-oscuro);
+  text-align:center;
+  margin:0;
+}
+#s-checkin .ci-hoy-meta{
+  font-family:'Montserrat',sans-serif;
+  font-size:14.5px; font-weight:300; letter-spacing:0;
+  color:var(--txt-suave-malla);
+  text-align:center;
+  margin:10px 0 0;
+}
+/* El botón, separado del texto y sin el margen inferior que trae en Inicio, donde
+   debajo tiene el paisaje; aquí el hueco lo pone el gap del paso. */
+#s-checkin .ci-hoy-cta{
+  margin:28px 0 0 !important;
+  max-width:none !important;
+}
+/* Es un <span>, así que hay que darle lo que un <button> trae de fábrica. */
+#s-checkin .ci-hoy-cta{ display:flex; box-sizing:border-box; }
 </style>
 </head>
 <body>
@@ -11348,7 +11360,10 @@ function appendActionCard(time, rhy, ritmo, minutos){
   if(!cont) return;
   cont.innerHTML='';
   const card=document.createElement('div');
-  card.className='action-card';
+  // Clase nueva: el bloque terracota se fue, así que hereda de .action-card justo lo
+  // que ya no queremos. El id SÍ se conserva —pickTimeGo() lo busca para apagarlo
+  // mientras carga— y el onclick también.
+  card.className='ci-hoy';
   card.id='dash-action-card';
   card.style.animation='fadeUp .4s ease forwards';
   card.style.opacity='0';
@@ -11357,20 +11372,33 @@ function appendActionCard(time, rhy, ritmo, minutos){
   // nombre de la práctica en grande, duración, y el botón blanco de ancho completo.
   // Se va el .action-arrow, que era la flecha de la barra.
   // LA CLASE .label SE CONSERVA Y NO ES CASUAL: iniciarPractica() la busca para
-  // cambiar su texto a "PREPARANDO TU PRÁCTICA…" mientras carga, y la restaura
+  // cambiar su texto a "Preparando tu práctica…" mientras carga, y la restaura
   // después. Renombrarla dejaría a la usuaria sin ese aviso.
   // El clic sigue en la tarjeta entera y no en el botón: así toda la superficie
   // responde, y #dash-action-card sigue siendo el nodo que pickTimeGo() apaga.
+  // EL TEXTO SALE DEL BOTÓN Y SE QUEDA FUERA, sobre la malla, igual que en los otros
+  // dos pasos del check-in; dentro del botón solo va "Empezar". Y ese botón es EL
+  // MISMO de Inicio —.dash-cta, con su círculo de play— para que arrancar una práctica
+  // se vea igual en los dos sitios.
+  //
+  // EL BOTÓN ES UN <span> Y NO UN <button>, y eso no es descuido: el clic vive en el
+  // contenedor entero (#dash-action-card), así que un botón de verdad aquí dentro
+  // sería un elemento interactivo dentro de otro. Se conserva el criterio que ya tenía
+  // el "Empezar" anterior.
+  //
+  // LA CLASE .label SIGUE EN EL RÓTULO: iniciarPractica() la busca para escribir
+  // "Preparando tu práctica…" mientras carga y devolver luego el texto original.
   card.innerHTML=
-    '<div class="label">TU PRÁCTICA DE HOY</div>'
-    +'<div class="title">'+sP+'</div>'
-    +'<div class="meta">'+minutos+' min · '+ritmo+'</div>'
-    // Sin icono de play. Llevaba un ▶ (U+25B6) y iOS lo pinta como EMOJI AZUL, fuera
-    // de la paleta y del tono de todo lo demás. No se sustituye por otro carácter
-    // porque el problema es de la fuente de emoji del sistema, no del glifo: cualquier
-    // triángulo de texto puede correr la misma suerte. Si se quiere el icono, el camino
-    // es un <svg> en línea, que no depende de cómo el sistema decida pintar un carácter.
-    +'<span class="ci-empezar">Empezar</span>';
+    '<div class="label">tu práctica de hoy</div>'
+    +'<div class="ci-hoy-nombre">'+sP+'</div>'
+    +'<div class="ci-hoy-meta">'+minutos+' min · '+ritmo+'</div>'
+    +'<span class="dash-cta ci-hoy-cta">'
+      +'<span class="dash-cta-play" aria-hidden="true">'
+        +'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.2v13.6c0 .9 1 1.5 1.8 1L20.5 13c.7-.5.7-1.5 0-2L9.8 4.2C9 3.7 8 4.3 8 5.2z"/></svg>'
+      +'</span>'
+      +'<span class="dash-cta-txt">Empezar</span>'
+      +'<span class="dash-cta-arrow">→</span>'
+    +'</span>';
   cont.appendChild(card);
   // Ya no hay scrollIntoView: el panel entra desde arriba y la tarjeta se ve sin
   // moverse. Antes hacía falta porque la tarjeta caía al fondo de una conversación.
@@ -11407,7 +11435,7 @@ async function iniciarPractica(el, time, rhy){
     el.style.opacity='0.65';
     temporizador=setTimeout(()=>{
       avisoPuesto=true;
-      if(etiqueta) etiqueta.textContent='PREPARANDO TU PRÁCTICA…';
+      if(etiqueta) etiqueta.textContent='Preparando tu práctica…';
     }, 150);
   }
   try{
