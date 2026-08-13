@@ -7171,10 +7171,9 @@ body{ background:transparent; }
   flex:1 0 auto; display:flex; flex-direction:column;
   padding-bottom:calc(20px + env(safe-area-inset-bottom, 0px));
 }
-/* El video, centrado en el hueco que dejan la cabecera y los botones. Los dos autos
-   son lo que lo centra; sin ellos se pegaría a la cabecera y el aire caería todo
-   abajo. */
-#s-prac.on .video-frame{ margin:auto 0 !important; }
+/* El margen del marco lo fija el bloque de "EL VIDEO, DE CANTO A CANTO" del final de
+   la hoja: los dos autos verticales que lo centran en el hueco, y un negativo lateral
+   para que se salga del relleno de la columna. Aquí ya no se toca. */
 /* La cabecera, compacta: dos líneas y nada más. */
 #s-prac.on .practica-header{ margin-bottom:0 !important; }
 
@@ -7200,6 +7199,74 @@ body{ background:transparent; }
 /* El cierre alinea todo al centro; la tarjeta es un párrafo y se lee a la izquierda. */
 #s-done .practica-guia,
 #s-done .practica-guia p{ text-align:left; }
+/* ══════════════════════════════════════════════════════════════════════════
+   LOS CONTROLES DEL VIDEO, DEBAJO Y NO ENCIMA
+
+   Estaban superpuestos dentro del video en círculos negros translúcidos —lo normal
+   cuando flotan sobre la imagen— y salían al tocar. Ahora viven fuera, siempre a la
+   vista y sobre la malla, así que el negro ya no vale: pasan al lenguaje de la app.
+   El de play es el único lleno, porque es el que se busca.
+
+   Se fueron la barra de progreso y el contador de tiempo. Con ellos se va también la
+   posibilidad de saltar a un punto: para eso están los ±15.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-prac.on .prac-controles{
+  display:flex; align-items:center; justify-content:center; gap:22px;
+  margin:16px 0 0; position:relative;
+}
+#s-prac.on .prac-ctl{
+  background:var(--dash-vidrio);
+  border:1px solid var(--dash-vidrio-borde);
+  box-shadow:var(--dash-vidrio-sombra);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+  color:var(--terracota-oscuro);
+  border-radius:50%; cursor:pointer; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  position:relative;
+  transition:transform .15s ease, box-shadow .2s ease;
+}
+#s-prac.on .prac-ctl:active{ transform:scale(.94); }
+#s-prac.on .prac-ctl-skip{ width:54px; height:54px; }
+#s-prac.on .prac-ctl-skip svg{ width:30px; height:30px; }
+/* El número va DENTRO de la flecha circular, un pelo bajo el centro para que la punta
+   de la flecha no se le eche encima. */
+#s-prac.on .prac-ctl-num{
+  position:absolute; left:50%; top:54%;
+  transform:translate(-50%,-50%);
+  font-family:'Montserrat',sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:0;
+  pointer-events:none;
+}
+#s-prac.on .prac-ctl-play{
+  width:72px; height:72px;
+  background:linear-gradient(140deg, var(--terracota-oscuro), #a95230);
+  border-color:rgba(255,255,255,.35);
+  color:#fff;
+}
+#s-prac.on .prac-ctl-play svg{ width:32px; height:32px; }
+/* Pantalla completa: al canto derecho y discreto, para que los tres de en medio se
+   queden centrados en la pantalla y no se descoloquen por él. */
+#s-prac.on .prac-ctl-fs{
+  position:absolute; right:0; top:50%; transform:translateY(-50%);
+  width:38px; height:38px; border-radius:50%;
+  background:none; border:none; cursor:pointer; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--txt-suave-malla); opacity:.75;
+}
+#s-prac.on .prac-ctl-fs svg{ width:19px; height:19px; }
+#s-prac.on .prac-ctl-fs:hover{ opacity:1; color:var(--terracota-oscuro); }
+
+/* ══ EL VIDEO, DE CANTO A CANTO ══
+   Se sale del relleno lateral de su columna para ganar ancho, y como es 16/9 ese
+   ancho es alto: en un teléfono de 430px pasa de ~219 a ~242 de alto. El relleno se
+   fija aquí en un token para que el margen negativo no pueda quedar descuadrado si
+   algún día cambia el de .app-container. */
+#s-prac.on{ --prac-pad:20px; }
+@media(min-width:701px){ #s-prac.on{ --prac-pad:32px; } }
+#s-prac.on .practica-screen{ padding-left:var(--prac-pad); padding-right:var(--prac-pad); }
+#s-prac.on .video-frame{ margin:auto calc(-1 * var(--prac-pad)) !important; }
+#s-prac.on .video-container{ border-radius:20px; }
 </style>
 </head>
 <body>
@@ -7886,7 +7953,7 @@ body{ background:transparent; }
     </div>
     <div class="video-frame">
       <div class="video-container" id="video-container">
-        <video id="prac-video" playsinline preload="metadata" onclick="vpToggleHide()"></video>
+        <video id="prac-video" playsinline preload="metadata" onclick="tTm()"></video>
         <audio id="prac-audio" preload="auto" style="display:none"></audio>
         <div class="video-placeholder" onclick="tTm()">
           <div class="video-play-btn"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
@@ -7916,29 +7983,32 @@ body{ background:transparent; }
           <p class="vp-pendiente-desc" id="vp-pendiente-desc">Estamos preparándola con calma. Mientras tanto, puedes elegir Micro o Base.</p>
           <button type="button" class="btn btn-r" onclick="go('dash')">Volver al inicio</button>
         </div>
-        <div class="vp-controls" id="vp-controls">
-          <div class="vp-center">
-            <button type="button" class="vp-btn vp-skip" onclick="pracSkip(-15)" aria-label="Retroceder 15 segundos">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg>
-              <span class="vp-skip-num">15</span>
-            </button>
-            <button type="button" class="vp-btn vp-play" onclick="tTm()" id="vp-play-btn" aria-label="Reproducir o pausar">
-              <svg id="vp-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            </button>
-            <button type="button" class="vp-btn vp-skip" onclick="pracSkip(15)" aria-label="Avanzar 15 segundos">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 4v5h-5"/></svg>
-              <span class="vp-skip-num">15</span>
-            </button>
-          </div>
-          <div class="vp-bottom">
-            <input type="range" class="vp-progress" id="vp-progress" min="0" max="1000" value="0" step="1" oninput="_vpSeek()" onchange="_vpSeekRelease()" aria-label="Progreso del video">
-            <div class="vp-meta">
-              <span class="vp-time" id="vp-time">00:00 / 00:00</span>
-              <button type="button" class="vp-fs" onclick="toggleFullscreen()" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
-            </div>
-          </div>
-        </div>
-      </div>
+              </div>
+    </div>
+    <!-- LOS CONTROLES, DEBAJO DEL VIDEO Y NO ENCIMA.
+         Estaban superpuestos dentro de .video-container y salían al tocar; ahora viven
+         fuera, siempre a la vista, sobre la malla. Con ellos se fueron la barra de
+         progreso y el contador de tiempo: no se querían.
+         LOS ids vp-play-btn Y vp-play-icon NO CAMBIAN: _vpSetPlayIcon() cambia el
+         triángulo por las dos barras escribiendo dentro de vp-play-icon.
+         _vpUpdateProgress(), _vpSeek() y _vpSeekRelease() se quedan sin nada que
+         actualizar y no fallan: los tres buscan sus elementos con un if antes de
+         tocarlos, y a los dos últimos ya solo los llamaba la barra que se fue. -->
+    <div class="prac-controles">
+      <button type="button" class="prac-ctl prac-ctl-skip" onclick="pracSkip(-15)" aria-label="Retroceder 15 segundos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9"/><path d="M3 4v5h5"/></svg>
+        <span class="prac-ctl-num">15</span>
+      </button>
+      <button type="button" class="prac-ctl prac-ctl-play" onclick="tTm()" id="vp-play-btn" aria-label="Reproducir o pausar">
+        <svg id="vp-play-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button type="button" class="prac-ctl prac-ctl-skip" onclick="pracSkip(15)" aria-label="Avanzar 15 segundos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 4v5h-5"/></svg>
+        <span class="prac-ctl-num">15</span>
+      </button>
+      <!-- Pantalla completa: no estaba en la lista de los tres, pero es la única forma
+           de ver el video de verdad grande, así que se queda pequeño y aparte. -->
+      <button type="button" class="prac-ctl-fs" onclick="toggleFullscreen()" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
     </div>
     <button class="terminar-btn" id="terminar-btn" onclick="startQuest()">Terminé mi práctica ✦</button>
     <button type="button" class="prac-salir" onclick="confirmExit()">Salir</button>
