@@ -7682,9 +7682,114 @@ body:has(.scr.on .hnav) #pwa-aviso{
 #s-profile .perfil-via,
 #s-profile #perfil-ayuda > a{ display:inline-flex; align-items:center; }
 #s-admin .adm-field label{ display:inline-flex; align-items:center; }
+/* ══════════════════════════════════════════════════════════════════════════
+   LA PANTALLA DE ESPERA AL ABRIR
+   La decide el script del <head>, que pone .hogar-arranque en el <html> antes del
+   primer pintado. Sin esa clase no existe: para una visitante nueva no hay espera.
+   ══════════════════════════════════════════════════════════════════════════ */
+#hogar-splash{ display:none; }
+html.hogar-arranque #hogar-splash{
+  display:flex; align-items:center; justify-content:center;
+  position:fixed; inset:0;
+  /* Por encima de TODO, incluidas las pantallas (200), la barra inferior (60) y el
+     aviso de instalar (400). */
+  z-index:9999;
+  background:#E8A99A;              /* --salmon-rosa, el mismo fondo del icono */
+  opacity:1;
+  transition:opacity .36s ease;
+}
+html.hogar-arranque-saliendo #hogar-splash{ opacity:0; }
+html.hogar-arranque #hogar-splash img{
+  width:38vw; max-width:150px; min-width:104px;
+  height:auto; display:block;
+  animation:splashLatido 1.9s ease-in-out infinite;
+}
+/* Un latido muy corto: dice "está pasando algo" sin llamar la atención. Sin esto, una
+   espera de dos segundos parece una pantalla colgada. */
+@keyframes splashLatido{
+  0%,100%{ opacity:1;   transform:scale(1); }
+  50%    { opacity:.72; transform:scale(.975); }
+}
+@media(prefers-reduced-motion:reduce){
+  html.hogar-arranque #hogar-splash img{ animation:none; }
+}
 </style>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     LA PANTALLA DE ESPERA AL ABRIR
+
+     ══ EL PROBLEMA ══
+     #s-landing nace con la clase .on, así que la página de venta es lo que está
+     pintado mientras _authInit() restaura la sesión. Como eso es una consulta a la
+     red, quien ya tiene cuenta ve un segundo de landing y solo después salta a su
+     inicio. Se ve como si la app se hubiera equivocado de pantalla.
+
+     ══ CUÁNDO SE ENSEÑA, Y CUÁNDO NO ══
+     Solo si vamos a navegar a otro sitio, que es cuando hay parpadeo:
+       · abierta como app instalada, o
+       · hay una sesión guardada en el navegador.
+     A una visitante nueva que llega desde un anuncio NO se le enseña: para ella la
+     landing es el destino, y taparla un segundo sería empeorarlo.
+
+     La sesión se detecta buscando la clave que Supabase deja en localStorage
+     (sb-<proyecto>-auth-token). Se busca por patrón y no por nombre exacto para que
+     un cambio de proyecto no lo rompa en silencio.
+
+     ══ POR QUÉ VA AQUÍ Y NO EN EL BODY ══
+     Tiene que decidirse ANTES del primer pintado. Desde el body, el navegador ya
+     podría haber pintado la landing, que es justo lo que se quiere evitar.
+
+     ══ LA RED DE SEGURIDAD ══
+     Los 6 segundos del setTimeout no son un adorno: si el módulo no carga, si
+     Supabase no responde o si algo revienta, sin eso la pantalla se quedaría en
+     salmón para siempre y la app sería inservible. Se prefiere ver un parpadeo tarde
+     a no ver nada nunca.
+     ══════════════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  try{
+    var instalada = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+                 || window.navigator.standalone === true;
+    var haySesion = false;
+    try{
+      for (var i = 0; i < localStorage.length; i++){
+        var k = localStorage.key(i);
+        if (k && /^sb-.*-auth-token$/.test(k)) { haySesion = true; break; }
+      }
+    }catch(_){}
+    if (!instalada && !haySesion) return;
+
+    document.documentElement.classList.add('hogar-arranque');
+    // La barra de estado, del color de la espera. Se devuelve al quitarla; si no, el
+    // teléfono se queda con el salmón puesto sobre la malla del inicio.
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m){ window._themeColorPrevio = m.getAttribute('content'); m.setAttribute('content', '#E8A99A'); }
+
+    window._splashFuera = function(){
+      var h = document.documentElement;
+      if (!h.classList.contains('hogar-arranque')) return;
+      h.classList.add('hogar-arranque-saliendo');
+      var mm = document.querySelector('meta[name="theme-color"]');
+      if (mm && window._themeColorPrevio) mm.setAttribute('content', window._themeColorPrevio);
+      setTimeout(function(){
+        h.classList.remove('hogar-arranque');
+        h.classList.remove('hogar-arranque-saliendo');
+      }, 380);
+    };
+    setTimeout(function(){ if (window._splashFuera) window._splashFuera(); }, 6000);
+  }catch(_){}
+})();
+</script>
 </head>
 <body>
+
+<!-- La espera. Va antes que nada para que sea lo primero que exista, y el icono es el
+     MISMO archivo del atajo de la pantalla de inicio: su fondo ya es este salmón, así
+     que sobre esta pantalla el cuadrado desaparece y solo se ve la casa. Abrir la app
+     se convierte en una continuación del icono que se acaba de tocar. -->
+<div id="hogar-splash" aria-hidden="true">
+  <img src="/icon-512.png?v=2" alt="">
+</div>
 
 <!-- LANDING -->
 <div id="s-landing" class="scr on">
@@ -16436,9 +16541,19 @@ function confirmExit(){
     // El cuestionario, igual: se pide al cargar y si no llega manda el respaldo
     // del código. No bloquea a nadie.
     if (typeof window.precargarCuestionarioHogar === 'function') { window.precargarCuestionarioHogar(); }
-    if (typeof window._authInit === 'function') { window._authInit(); }
+    // La espera se retira cuando _authInit() TERMINA, gane o pierda: si hay sesión ya
+    // habrá navegado al inicio, y si no la hay lo que queda debajo es la landing, que
+    // es su destino correcto. El finally cubre las dos y también un fallo.
+    if (typeof window._authInit === 'function') {
+      Promise.resolve(window._authInit()).catch(function(){}).then(function(){
+        if (window._splashFuera) window._splashFuera();
+      });
+    } else if (window._splashFuera) { window._splashFuera(); }
   } catch (err) {
     console.error('[HOGAR] No se pudo inicializar Supabase:', err);
+    // Sin cliente no hay sesión que restaurar: fuera la espera ya, en vez de dejar a
+    // la red de seguridad tener a alguien seis segundos mirando el logo.
+    if (window._splashFuera) window._splashFuera();
   }
 </script>
 <script>
