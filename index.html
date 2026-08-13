@@ -7285,6 +7285,47 @@ body{ background:transparent; }
    Ya eran de ancho completo; lo que les faltaba era cuerpo. */
 #s-prac.on .terminar-btn{ padding:18px 20px; font-size:16.5px; margin-top:24px; }
 #s-prac.on .prac-salir{ padding:16px; font-size:15px; margin-top:14px; }
+/* ══════════════════════════════════════════════════════════════════════════
+   EL "CONTINUAR" DE LAS NOTIFICACIONES DE ANDREA
+
+   Los dos pasos nuevos del check-in llevan solo la notificación y este botón. Es el
+   primario de esos pasos —el que se pulsa— así que va lleno, y el "Regresar" de
+   debajo se queda de contorno: la jerarquía es la misma que en la tarjeta de la
+   práctica. Ancho completo como todo lo demás del check-in.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-checkin .ci-seguir{
+  display:block; width:100%;
+  margin:0; padding:16px 20px;
+  border:none; border-radius:100px;
+  background:linear-gradient(100deg, var(--terracota-oscuro) 0%, var(--terracota-oscuro) 45%, #a95230 100%);
+  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  font-size:15.5px; font-weight:600; letter-spacing:0; text-transform:none;
+  box-shadow:0 14px 32px rgba(184,95,61,.30), 0 0 22px rgba(216,135,102,.18);
+  cursor:pointer;
+  transition:transform .2s ease, box-shadow .25s ease;
+}
+#s-checkin .ci-seguir:hover{ transform:translateY(-2px); }
+#s-checkin .ci-seguir:active{ transform:scale(.99); }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LA PRÁCTICA: EL TÍTULO Y LOS CONTROLES, PEGADOS AL VIDEO
+
+   El marco llevaba `margin:auto` arriba y abajo, así que se centraba él solo en todo
+   el hueco libre y dejaba dos claros enormes: uno entre el título y el video y otro
+   entre el video y los botones. Los tres son UNA cosa y tienen que leerse juntos.
+
+   El aire sobrante pasa a repartirse FUERA del grupo: un auto encima del título y
+   otro encima del botón de terminar. Con dos autos, el hueco se parte entre los dos
+   y el bloque de video queda centrado sin separarse por dentro.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-prac.on .practica-header{ margin:auto 0 14px !important; }
+#s-prac.on .video-frame{ margin:0 calc(-1 * var(--prac-pad)) !important; }
+#s-prac.on .prac-controles{ margin-top:14px; margin-bottom:20px; }
+/* El auto de aquí es el que recoge la otra mitad del aire. El margin-bottom de la
+   fila de controles es el suelo mínimo: sin él, en una pantalla corta el botón se
+   pegaría a los controles. */
+#s-prac.on .terminar-btn{ margin-top:auto; }
 </style>
 </head>
 <body>
@@ -7785,16 +7826,15 @@ body{ background:transparent; }
     </section>
 
     <!-- ── PASO 2: DURACIÓN ─────────────────────────────────────────────── -->
-    <section class="ci-paso" data-paso="tiempo">
-      <!-- LA RESPUESTA DE ANDREA, EN FORMATO NOTIFICACIÓN. El id del párrafo NO cambia
-           —#ci-resp-andrea— porque es donde escribe dashSelectEstado() y donde vacía
-           resetDashChat(); lo que cambia es lo que lo envuelve.
-           EL AVATAR REUTILIZA LA CLASE .msg-avatar del chat que se quitó, y eso no es
-           pereza: _landingSetFotoAndrea() inyecta una regla
-           `.msg-avatar{background-image:...!important}` con la foto real que Andrea
-           sube desde su panel. Usando esa clase, la foto llega aquí sin una línea de
-           JS nueva y sin que puedan quedar dos Andreas distintas. El CSS solo le
-           cambia el tamaño y la redondea menos, para que sea cuadrada. -->
+    <!-- LA NOTIFICACIÓN DE ANDREA, SOLA Y EN SU PROPIO PASO.
+         Antes iba pegada encima de la pregunta siguiente. Ahora es un paso aparte: se
+         lee, se pulsa Continuar y entonces aparece la pregunta limpia, sin texto encima.
+         EL id NO CAMBIA (#ci-resp-andrea): es donde escribe dashSelectEstado() y donde vacía
+         resetDashChat(), así que mover el bloque no toca ni una línea de esas funciones.
+         EL AVATAR REUTILIZA .msg-avatar del chat que se quitó, y no es pereza:
+         _landingSetFotoAndrea() inyecta una regla con la foto que Andrea sube desde su
+         panel, así que usando esa clase la foto llega sin JS nuevo. -->
+    <section class="ci-paso" data-paso="noti-emocion">
       <div class="ci-noti">
         <div class="ci-noti-cab">
           <span class="msg-avatar ci-noti-foto"></span>
@@ -7803,6 +7843,10 @@ body{ background:transparent; }
         </div>
         <p class="ci-noti-msg" id="ci-resp-andrea"></p>
       </div>
+      <button type="button" class="ci-seguir" onclick="ciMostrarPaso('tiempo')">Continuar</button>
+      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
+    </section>
+    <section class="ci-paso" data-paso="tiempo">
       <h1 class="ci-titulo">¿Cuánto tiempo tienes <em>ahora</em>?</h1>
       <!-- LAS TRES DURACIONES, EN CÍRCULOS. El número se sube DENTRO del círculo y por
            eso la descripción ya no dice "15 min · un respiro breve": el minutaje
@@ -7846,16 +7890,15 @@ body{ background:transparent; }
     </section>
 
     <!-- ── PASO 3: LA PROPUESTA ─────────────────────────────────────────── -->
-    <section class="ci-paso" data-paso="lista">
-      <!-- LA RESPUESTA DE ANDREA, EN FORMATO NOTIFICACIÓN. El id del párrafo NO cambia
-           —#ci-resp-andrea— porque es donde escribe dashSelectEstado() y donde vacía
-           resetDashChat(); lo que cambia es lo que lo envuelve.
-           EL AVATAR REUTILIZA LA CLASE .msg-avatar del chat que se quitó, y eso no es
-           pereza: _landingSetFotoAndrea() inyecta una regla
-           `.msg-avatar{background-image:...!important}` con la foto real que Andrea
-           sube desde su panel. Usando esa clase, la foto llega aquí sin una línea de
-           JS nueva y sin que puedan quedar dos Andreas distintas. El CSS solo le
-           cambia el tamaño y la redondea menos, para que sea cuadrada. -->
+    <!-- LA NOTIFICACIÓN DE ANDREA, SOLA Y EN SU PROPIO PASO.
+         Antes iba pegada encima de la pregunta siguiente. Ahora es un paso aparte: se
+         lee, se pulsa Continuar y entonces aparece la pregunta limpia, sin texto encima.
+         EL id NO CAMBIA (#ci-confirm-andrea): es donde escribe dashSelectTiempo() y donde vacía
+         resetDashChat(), así que mover el bloque no toca ni una línea de esas funciones.
+         EL AVATAR REUTILIZA .msg-avatar del chat que se quitó, y no es pereza:
+         _landingSetFotoAndrea() inyecta una regla con la foto que Andrea sube desde su
+         panel, así que usando esa clase la foto llega sin JS nuevo. -->
+    <section class="ci-paso" data-paso="noti-tiempo">
       <div class="ci-noti">
         <div class="ci-noti-cab">
           <span class="msg-avatar ci-noti-foto"></span>
@@ -7864,9 +7907,10 @@ body{ background:transparent; }
         </div>
         <p class="ci-noti-msg" id="ci-confirm-andrea"></p>
       </div>
-      <!-- Aquí entra la .action-card, que es la que arranca la práctica. Se pinta
-           igual que antes y conserva su id: pickTimeGo() la busca por
-           #dash-action-card para apagarla mientras carga. -->
+      <button type="button" class="ci-seguir" onclick="ciMostrarPaso('lista')">Continuar</button>
+      <button type="button" class="ci-regresar" onclick="go('dash')">Regresar</button>
+    </section>
+    <section class="ci-paso" data-paso="lista">
       <div id="ci-accion"></div>
       <!-- REGRESAR, al pie del paso y a ancho completo. Es el mismo botón que estaba en
            la cabecera y hace lo mismo —go('dash'), o sea salir del check-in—; solo
@@ -11122,7 +11166,10 @@ function dashSelectEstado(idx){
   const resp=document.getElementById('ci-resp-andrea');
   if(resp) resp.innerHTML=respAndreaHogar(emoKey);
 
-  ciMostrarPaso('tiempo');
+  // A LA NOTIFICACIÓN, NO A LA PREGUNTA. Lo que dice Andrea al elegir la emoción se
+  // lee solo, en su propio paso; el Continuar de ese panel es el que abre la
+  // pregunta del tiempo, ya sin texto encima.
+  ciMostrarPaso('noti-emocion');
 }
 
 // Pick tiempo: detecta from-dash y delega al flow conversacional o al tradicional pT()
@@ -11166,8 +11213,11 @@ function dashSelectTiempo(time, rhy){
   const conf=document.getElementById('ci-confirm-andrea');
   if(conf) conf.innerHTML=(confirmAndreaHogar(PRACTICE_TO_EMO[sP]) || ('Te preparé <em>'+sP+'</em>. Suave, sin exigirte nada.'));
 
+  // La tarjeta se construye YA, aunque el paso que se enseñe sea la notificación:
+  // así al pulsar Continuar está puesta, y sobre todo la precarga del video que
+  // dispara appendActionCard() arranca durante la lectura y no después.
   appendActionCard(time, rhy, ritmo, minutos);
-  ciMostrarPaso('lista');
+  ciMostrarPaso('noti-tiempo');
 }
 
 // La tarjeta que arranca la práctica. Ahora entra en #ci-accion, del tercer panel,
