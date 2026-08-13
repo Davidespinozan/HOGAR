@@ -7666,6 +7666,22 @@ body:has(.scr.on .hnav) #pwa-aviso{
 }
 #s-profile .clave-olvidada:hover{ color:var(--terracota-oscuro); }
 #s-profile .clave-olvidada[disabled]{ opacity:.6; cursor:default; }
+/* Los símbolos de contacto. Alineados con el texto por su caja, no por la línea base:
+   un SVG no tiene línea base y con vertical-align acaba flotando alto. */
+.hogar-icono{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:1.05em; height:1.05em;
+  margin-right:7px;
+  flex-shrink:0;
+  position:relative; top:.14em;   /* el ojo lo quiere un pelo más abajo del centro */
+}
+.hogar-icono svg{ width:100%; height:100%; display:block; }
+/* En las etiquetas del panel el símbolo va en terracota, como el propio rótulo, y en
+   los enlaces de la usuaria hereda el color del enlace: en los dos casos basta con
+   currentColor, así que no hace falta darle color aquí. */
+#s-profile .perfil-via,
+#s-profile #perfil-ayuda > a{ display:inline-flex; align-items:center; }
+#s-admin .adm-field label{ display:inline-flex; align-items:center; }
 </style>
 </head>
 <body>
@@ -11392,6 +11408,25 @@ function _igLimpio(n){
     .replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/\/+$/,'');
 }
 
+/** Los tres símbolos de contacto, en SVG dentro del propio archivo.
+ *  NO son una fuente de iconos ni imágenes de fuera: la app tiene una política que
+ *  bloquea peticiones a otros dominios, así que un icono remoto no llegaría a pintarse.
+ *  Correo e Instagram van de trazo, como el resto de iconos de la app; el de WhatsApp
+ *  va macizo porque es una marca y de contorno deja de reconocerse. */
+const HOGAR_ICONOS={
+  correo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 8 8.5 5.5L20.5 8"/></svg>',
+  whatsapp:'<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+    +'<path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.15a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.69 8.23-8.22 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.16.25-.64.81-.78.97-.15.17-.29.19-.53.06-.25-.12-1.05-.38-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.24-.01-.38.11-.5.11-.11.25-.29.37-.43.12-.15.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.47c-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.11-.22-.17-.47-.29z"/></svg>',
+  instagram:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/>'
+    +'<circle cx="17.3" cy="6.7" r="1.15" fill="currentColor" stroke="none"/></svg>'
+};
+/** El símbolo envuelto, listo para poner delante de un texto. */
+function _icono(nombre){
+  return '<span class="hogar-icono" aria-hidden="true">'+(HOGAR_ICONOS[nombre]||'')+'</span>';
+}
+
 /** mailto con asunto y cuerpo ya escritos. La clienta solo tiene que enviar. */
 function mailtoHogar(asunto, cuerpo){
   return 'mailto:'+HOGAR_CONTACTO
@@ -11536,16 +11571,16 @@ function uP(){
     let vias=enlaceAyudaHogar(
       'Ayuda con HOGAR',
       'Hola Andrea:\n\n\n\nMi correo de registro: '+_emailUsuaria()+'\n',
-      HOGAR_CONTACTO);
+      _icono('correo')+_admEsc(HOGAR_CONTACTO));
     const wa=_waLimpio(HOGAR_WHATSAPP);
     if(wa){
       vias+='<a href="https://wa.me/'+wa+'" target="_blank" rel="noopener" class="acc-ayuda-link perfil-via">'
-        +'WhatsApp '+_admEsc(HOGAR_WHATSAPP)+'</a>';
+        +_icono('whatsapp')+_admEsc(HOGAR_WHATSAPP)+'</a>';
     }
     const ig=_igLimpio(HOGAR_INSTAGRAM);
     if(ig){
       vias+='<a href="https://instagram.com/'+encodeURIComponent(ig)+'" target="_blank" rel="noopener" class="acc-ayuda-link perfil-via">'
-        +'@'+_admEsc(ig)+'</a>';
+        +_icono('instagram')+'@'+_admEsc(ig)+'</a>';
     }
     ay.innerHTML=vias;
   }
@@ -14371,11 +14406,11 @@ async function loadContactoAdmin(){
       +'<p class="adm-card-text" style="margin-bottom:16px;">'
         +'Esto es lo que ve una usuaria en «¿Necesitas algo?». Los dos últimos son opcionales: '
         +'si los dejas vacíos, no aparecen.</p>'
-      +'<div class="adm-field"><label for="adm-contacto-email">Tu correo</label>'
+      +'<div class="adm-field"><label for="adm-contacto-email">'+_icono('correo')+'Tu correo</label>'
         +'<input type="email" id="adm-contacto-email" placeholder="'+_admEsc(HOGAR_CONTACTO)+'" value="'+_admEsc(correo)+'"></div>'
-      +'<div class="adm-field"><label for="adm-contacto-wa">WhatsApp <span style="font-weight:400;">(opcional)</span></label>'
+      +'<div class="adm-field"><label for="adm-contacto-wa">'+_icono('whatsapp')+'WhatsApp <span style="font-weight:400;">(opcional)</span></label>'
         +'<input type="tel" id="adm-contacto-wa" placeholder="+52 55 1234 5678" value="'+_admEsc(wa)+'"></div>'
-      +'<div class="adm-field"><label for="adm-contacto-ig">Instagram <span style="font-weight:400;">(opcional)</span></label>'
+      +'<div class="adm-field"><label for="adm-contacto-ig">'+_icono('instagram')+'Instagram <span style="font-weight:400;">(opcional)</span></label>'
         +'<input type="text" id="adm-contacto-ig" placeholder="@tucuenta" value="'+_admEsc(ig)+'"></div>'
       +'<div class="adm-cuest-guardar-bloque">'
         +'<button type="button" class="adm-btn-mini primario" onclick="guardarContactoHogar(this)">Guardar cambios</button>'
