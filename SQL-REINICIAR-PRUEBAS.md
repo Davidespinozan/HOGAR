@@ -59,40 +59,52 @@ actividad: sus 16 prácticas eran de probar la app y hoy inflan sus propias cifr
 Supabase → **Database → Backups**. Comprueba que hay una copia reciente. Esto no
 tiene deshacer.
 
-### El SQL
+### El SQL — en DOS bloques, y el orden importa
 
-Va **todo dentro de una transacción**: o entra entero o no entra nada. Si algo falla a
-mitad, la base se queda como estaba en vez de a medio borrar.
+**LA PRIMERA VERSIÓN DE ESTE DOCUMENTO ESTABA MAL Y NO BORRÓ NADA.** Metía los cinco
+borrados en una sola transacción, con `delete from auth.users` al final. Si ése falla
+por permisos —que es lo normal—, Postgres **aborta la transacción entera** y el
+`commit` se comporta como un `rollback`: deshace también los cuatro anteriores. La
+nota que decía "si falla, deja el commit igual" era falsa.
+
+Por eso van separados: lo nuestro en su transacción, las cuentas de acceso en otra.
+Si la segunda no pasa, la primera ya quedó hecha.
+
+#### Bloque 1 — nuestras tablas
 
 ```sql
 begin;
 
--- 1) Toda la actividad, de todo el mundo. Incluye la de Andrea, que era de pruebas.
---    hogar_sesiones_respuestas cuelga de hogar_sesiones con ON DELETE CASCADE, así
---    que se va sola; se borra explícitamente igual, por si esa cascada cambiara.
+-- Toda la actividad, de todo el mundo. Incluye la de Andrea, que era de pruebas.
 delete from public.hogar_sesiones_respuestas;
 delete from public.hogar_sesiones;
 
--- 2) Los dos registros de trámites, que solo tienen rastros de las pruebas.
+-- Los dos registros de trámites, que solo tienen rastros de las pruebas.
 delete from public.hogar_bajas;
 delete from public.hogar_acceso_manual_log;
 
--- 3) Las fichas de usuaria, todas menos la de Andrea.
+-- Las fichas de usuaria, todas menos la de Andrea.
 delete from public.hogar_usuarias
- where lower(email) <> 'andrealaso1997@hotmail.com';
-
--- 4) Y sus cuentas de acceso, para que esos correos puedan volver a registrarse
---    limpios si hacen falta para probar otra vez.
-delete from auth.users
  where lower(email) <> 'andrealaso1997@hotmail.com';
 
 commit;
 ```
 
-> Si el paso 4 da error de permisos, no pasa nada: deja el `commit;` igual y borra
-> esas cuentas a mano desde **Authentication → Users**. Los pasos 1 a 3 ya habrán
-> dejado el panel limpio; lo único que quedaría son cuentas sin ficha, que no aparecen
-> en ningún sitio.
+Comprueba antes de seguir: debe quedar **1** usuaria y **0** sesiones.
+
+#### Bloque 2 — las cuentas de acceso
+
+Aparte, y solo después de que el bloque 1 haya quedado:
+
+```sql
+delete from auth.users
+ where lower(email) <> 'andrealaso1997@hotmail.com';
+```
+
+Si éste da error de permisos, no pasa nada y **no deshace el bloque 1**: borra esas
+cuentas a mano desde **Authentication → Users**. Sin ficha en `hogar_usuarias` no
+aparecen en ningún sitio del panel; lo único que hacen es ocupar sitio en la lista de
+autenticación.
 
 ### Comprobar que quedó
 
