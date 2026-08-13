@@ -11535,14 +11535,14 @@ function uP(){
   if($('perfil-avatar'))$('perfil-avatar').textContent=i;
   if($('perfil-nombre-display'))$('perfil-nombre-display').textContent=U.name;
   if($('perfil-email-display'))$('perfil-email-display').textContent=U.email;
-  // El email no se edita desde aquí. La nota se arma en JS y no en el HTML
-  // porque el cuerpo del correo lleva el suyo, que solo se conoce con la sesión.
+  // AQUÍ ESTABA "Para cambiarlo, escríbenos". Sobra desde que el correo se cambia
+  // sola desde el botón de al lado.
+  // El hueco se queda, y se VACÍA en cada pintado: es donde escribe
+  // _correoMostrarAvisoVuelta() al volver del enlace de confirmación, unas líneas más
+  // abajo en esta misma función. Limpiarlo antes es lo que evita que ese aviso verde
+  // se quede pegado para siempre una vez leído.
   const en=$('perfil-email-nota');
-  if(en) en.innerHTML='Para cambiarlo, '+enlaceAyudaHogar(
-    'Cambiar mi correo de HOGAR',
-    'Hola Andrea:\n\nQuiero cambiar el correo de mi cuenta de HOGAR.\n\n'
-      +'Mi correo actual: '+_emailUsuaria()+'\nMi correo nuevo: \n\nGracias.',
-    'escríbenos');
+  if(en){ en.textContent=''; en.style.color=''; }
   if($('pd'))$('pd').textContent=U.days;
   if($('ps'))$('ps').textContent=U.sessions;
   if($('pk'))$('pk').textContent=U.streak;
