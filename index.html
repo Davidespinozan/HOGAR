@@ -7579,6 +7579,61 @@ body:has(.scr.on .hnav) #pwa-aviso{
 @media(prefers-reduced-motion:reduce){
   #pwa-aviso{ transition:opacity .25s ease; transform:none; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   "FOTOS ANTERIORES" — volver a una foto que ya estuvo
+
+   Bajo cada foto, y solo si de verdad hay alguna guardada. Cerrado por defecto: es
+   una salida de emergencia, no algo que haya que ver cada vez que se abre el panel.
+   Ver SQL-FOTOS-HISTORIAL.md.
+   ══════════════════════════════════════════════════════════════════════════ */
+#adm-view-landing .adm-lp-previas-btn{
+  display:inline-flex; align-items:center; gap:7px;
+  margin-top:10px; padding:7px 13px;
+  background:rgba(255,255,255,.62);
+  border:1px solid var(--dash-vidrio-borde);
+  border-radius:100px;
+  font-family:'Montserrat',sans-serif;
+  font-size:12px; font-weight:500; letter-spacing:0; text-transform:none;
+  color:var(--txt-suave);
+  cursor:pointer;
+  transition:color .2s ease, border-color .2s ease;
+}
+#adm-view-landing .adm-lp-previas-btn:hover{
+  color:var(--terracota-oscuro); border-color:var(--terracota);
+}
+/* El número de fotos guardadas, en su propia pastilla: se ve de un vistazo si hay
+   una o cuatro sin tener que abrir. */
+#adm-view-landing .adm-lp-previas-num{
+  min-width:17px; height:17px; padding:0 4px;
+  border-radius:100px;
+  background:rgba(198,107,65,.14);
+  color:#94461f;
+  font-size:10.5px; font-weight:700; line-height:17px; text-align:center;
+}
+/* La tira, cerrada de nacimiento. UNA SOLA TÉCNICA: display none/flex. Lo primero que
+   escribí animaba el alto con grid-template-rows Y encima cambiaba el display al
+   abrir — dos cosas que no casan, porque cambiar display corta cualquier transición.
+   Con cinco miniaturas de 62px la apertura es instantánea y no se echa de menos. */
+#adm-view-landing .adm-lp-previas{ display:none; }
+#adm-view-landing .adm-lp-foto.previas-abiertas .adm-lp-previas,
+#adm-view-landing .adm-lp-chat.previas-abiertas .adm-lp-previas{
+  display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;
+  animation:fadeUp .28s ease both;
+}
+#adm-view-landing .adm-lp-previa{
+  width:62px; height:62px; flex-shrink:0;
+  border:2px solid rgba(255,255,255,.85);
+  border-radius:13px;
+  background-size:cover; background-position:center 30%; background-repeat:no-repeat;
+  box-shadow:0 3px 10px rgba(140,90,60,.16);
+  cursor:pointer; padding:0;
+  transition:transform .18s ease, box-shadow .2s ease;
+}
+#adm-view-landing .adm-lp-previa:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 20px rgba(140,90,60,.26);
+}
+#adm-view-landing .adm-lp-previa:active{ transform:scale(.96); }
 </style>
 </head>
 <body>
@@ -14652,6 +14707,9 @@ async function loadLandingAdmin(){
     const { data, error } = await window.sb.from('hogar_config')
       .select('*').eq('id',1).maybeSingle();
     if(error) throw error;
+    // Se guarda la fila entera: el historial de fotos y el valor actual de cada una
+    // salen de aquí, y así una subida no tiene que volver a leer la tabla.
+    window._admLandingCfg = data || {};
     cont.innerHTML=_admLandingHTML(data||{});
   }catch(e){
     console.warn('[HOGAR admin] landing:',(e&&e.message)||e);
@@ -14695,7 +14753,7 @@ function _admLandingHTML(c){
   // escritorio (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS de
   // siempre — en especial adm-lp-subir, del que la subida toma el botón para
   // ponerle "Subiendo…". Las otras dos siguen el mismo patrón con lo suyo.
-  const foto=(cls,pid,fid,bid,url,resp,fn,tit,nota)=>
+  const foto=(cls,pid,fid,bid,url,resp,fn,tit,nota,clave,col)=>
     '<div class="adm-lp-foto hogar-rise-in">'
       +'<div class="adm-lp-foto-tit">'+tit+'</div>'
       +'<div class="adm-lp-marco '+cls+(String(url||'').trim()?'':' sinfoto')+'"'
@@ -14707,13 +14765,14 @@ function _admLandingHTML(c){
           +'onclick="document.getElementById(\''+fid+'\').click()">Cambiar foto</button>'
       +'</div>'
       +'<div class="adm-lp-foto-nota">'+nota+'</div>'
+      +(clave?_admHistorialHTML(clave, col):'')
     +'</div>';
 
   html+='<div class="adm-lp-fotos">'
     +foto('h','adm-lp-preview-img','adm-lp-file','adm-lp-subir', img, HERO_IMG_COD,
-          'subirImagenHeroHogar','Portada · computadora','')
+          'subirImagenHeroHogar','Portada · computadora','','desktop','landing_hero_imagen')
     +foto('v','adm-lp-preview-movil','adm-lp-file-movil','adm-lp-subir-movil', imgMovil, HERO_MOVIL_COD,
-          'subirFotoMovilHogar','Portada · celular','')
+          'subirFotoMovilHogar','Portada · celular','','movil','landing_hero_imagen_movil')
     +'</div>'
     // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
     // la fuente de la imagen de ESCRITORIO para Guardar; la subida escribe aquí
@@ -14730,9 +14789,9 @@ function _admLandingHTML(c){
   // misma imagen a dos anchos, no dos recortes. Ver _landingSetCierreImg().
   html+='<div class="adm-lp-fotos">'
     +foto('h','adm-lp-preview-trans','adm-lp-file-trans','adm-lp-subir-trans', imgTrans, TRANS_COD,
-          'subirFotoTransHogar','Lo que empieza a cambiar','')
+          'subirFotoTransHogar','Lo que empieza a cambiar','','trans','landing_trans_imagen')
     +foto('h','adm-lp-preview-cierre','adm-lp-file-cierre','adm-lp-subir-cierre', imgCierre, CIERRE_COD,
-          'subirFotoCierreHogar','Tu espacio te espera','')
+          'subirFotoCierreHogar','Tu espacio te espera','','cierre','landing_cierre_imagen')
     +'</div>'
     +'<div class="adm-field-hint" style="margin-bottom:16px;">JPG, PNG o WEBP · máx. 5 MB. Llevan texto encima, así que funcionan mejor las tranquilas.</div>';
 
@@ -14751,6 +14810,7 @@ function _admLandingHTML(c){
           +'onclick="document.getElementById(\'adm-lp-file-chat\').click()">Cambiar foto</button>'
         +'<button type="button" class="adm-btn-mini suave" style="margin-left:8px;" '
           +'onclick="recortarFotoActual(\'chat\')">Recortar</button>'
+        +_admHistorialHTML('chat','andrea_foto_chat')
       +'</div>'
     +'</div>'
     +'</div>';
@@ -14772,6 +14832,7 @@ function _admLandingHTML(c){
           +'onclick="document.getElementById(\'adm-lp-file-perfil\').click()">Cambiar foto</button>'
         +'<button type="button" class="adm-btn-mini suave" style="margin-left:8px;" '
           +'onclick="recortarFotoActual(\'perfil\')">Recortar</button>'
+        +_admHistorialHTML('perfil','andrea_foto_perfil')
       +'</div>'
     +'</div>'
     +'</div>';
@@ -14838,6 +14899,122 @@ function _admLpFallo(img){
   img.style.display='none';
   const marco=img.closest('.adm-lp-marco');
   if(marco){ marco.style.backgroundImage='none'; marco.classList.add('sinfoto'); }
+}
+
+// ══════════════════════════════════════════════════════════════════════════
+// EL HISTORIAL DE FOTOS DE LA LANDING
+//
+// Andrea cambia una foto, la ve en la landing y prefiere la de antes. Estas tres
+// funciones guardan las últimas cinco URLs de cada foto para poder volver.
+//
+// ══ POR QUÉ UNA COLUMNA Y NO EL BUCKET ══
+// Las fotos viejas siguen en el bucket —cada subida crea un archivo con su fecha y no
+// se borra ninguna— pero la llave pública NO puede listarlo: la petición responde bien
+// y devuelve cero archivos. Leer de ahí habría pedido abrir una política sobre
+// storage.objects, más delicada que añadir una columna.
+//
+// ══ SI EL SQL NO SE HA CORRIDO, NO PASA NADA ══
+// Es lo que protege _admHistorialHay(): la fila llega con select('*'), así que la
+// columna está entre las claves solo si existe de verdad en la tabla. Sin ella, estas
+// funciones no escriben nada y las subidas siguen funcionando exactamente igual. Sin
+// esa comprobación, el update fallaría entero y dejaría de poder cambiarse una foto.
+// Ver SQL-FOTOS-HISTORIAL.md.
+// ══════════════════════════════════════════════════════════════════════════
+/** El bloque "Fotos anteriores" que va bajo una foto. Devuelve '' si no hay ninguna,
+ *  así que se puede pegar detrás de cualquier foto sin preguntar nada. */
+function _admHistorialHTML(clave, col){
+  const previas=_admHistorialDe(col);
+  if(!previas.length) return '';
+  let html='<button type="button" class="adm-lp-previas-btn" onclick="_admHistorialAbrir(this)">'
+    +'↺ Fotos anteriores <span class="adm-lp-previas-num">'+previas.length+'</span></button>'
+    +'<div class="adm-lp-previas">';
+  previas.forEach((u,i)=>{
+    html+='<button type="button" class="adm-lp-previa" title="Volver a esta foto" '
+      +'onclick="restaurarFotoAnterior(\''+clave+'\','+i+')" '
+      +'style="background-image:'+_admLpFondo(u)+'"></button>';
+  });
+  return html+'</div>';
+}
+
+/** Abre y cierra la tira. La clase va en el CONTENEDOR de la foto y no en la tira,
+ *  para que el botón pueda girar su flecha con el mismo estado. */
+function _admHistorialAbrir(btn){
+  // Las cuatro fotos de la landing viven en .adm-lp-foto; "Tu foto" y "Tu retrato",
+  // en .adm-lp-chat. Se buscan las dos: con solo la primera, en esas dos la clase
+  // caía en el <div> del texto y el CSS no la encontraba.
+  const caja=btn.closest('.adm-lp-foto, .adm-lp-chat');
+  if(caja) caja.classList.toggle('previas-abiertas');
+}
+
+/** Vuelve a una foto anterior. Es el mismo camino que una subida a partir del paso e:
+ *  no hay archivo que enviar porque esa foto YA está en el bucket —de ahí salió—, así
+ *  que solo se reapunta la columna y se refleja. La que estaba ahora pasa al historial,
+ *  igual que en una subida, así que se puede ir y volver sin perder ninguna. */
+async function restaurarFotoAnterior(clave, indice){
+  const cfg=ADM_FOTOS[clave];
+  if(!cfg) return;
+  const url=_admHistorialDe(cfg.col)[indice];
+  if(!url) return;
+  _admLandingMsg('');
+  try{
+    const patch={ updated_at:new Date().toISOString() };
+    patch[cfg.col]=url;
+    Object.assign(patch, _admHistorialPatch(cfg.col, url));
+    const { data, error } = await window.sb.from('hogar_config')
+      .update(patch).eq('id',1).select('id');
+    if(error) throw error;
+    if(!data || !data.length){ _admLandingMsg(ADM_LANDING_SIN_PERMISO,'error'); return; }
+    _admHistorialApuntar(cfg.col, url, patch);
+
+    if(cfg.campo){ const campo=document.getElementById(cfg.campo); if(campo) campo.value=url; }
+    _admLpPintar(document.getElementById(cfg.prev), url);
+    if(cfg.aplicar) try{ cfg.aplicar(url); }catch(_){}
+    _admLandingMsg('Volviste a la foto anterior','ok');
+    // Se repinta el editor entero: la tira cambió —la que estaba se ha ido al
+    // historial y la restaurada ha salido de él— y redibujarla a mano sería repetir
+    // aquí la lógica que ya vive en _admLandingHTML().
+    loadLandingAdmin();
+  }catch(e){
+    console.warn('[HOGAR admin] restaurar foto:', (e&&e.message)||e);
+    _admLandingMsg('No se pudo volver a esa foto. Intenta de nuevo.','error');
+  }
+}
+
+const ADM_HIST_TOPE=5;
+const ADM_HIST_COL='landing_fotos_previas';
+
+function _admHistorialHay(){
+  const c=window._admLandingCfg;
+  return !!c && Object.prototype.hasOwnProperty.call(c, ADM_HIST_COL);
+}
+
+/** Las URLs anteriores de una foto, de más reciente a más antigua. */
+function _admHistorialDe(col){
+  if(!_admHistorialHay()) return [];
+  const todo=window._admLandingCfg[ADM_HIST_COL] || {};
+  const lista=todo[col];
+  return Array.isArray(lista) ? lista.filter(u=>typeof u==='string' && u) : [];
+}
+
+/** El trozo de update que mete la foto ACTUAL al principio del historial.
+ *  Devuelve {} si la columna no existe o si no hay nada que archivar, así que se
+ *  puede volcar sin condiciones sobre cualquier patch. */
+function _admHistorialPatch(col, urlNueva){
+  if(!_admHistorialHay()) return {};
+  const actual=window._admLandingCfg[col];
+  if(!actual || actual===urlNueva) return {};     // nada que guardar: no había, o es la misma
+  const lista=[actual].concat(_admHistorialDe(col).filter(u=>u!==actual)).slice(0, ADM_HIST_TOPE);
+  const todo=Object.assign({}, window._admLandingCfg[ADM_HIST_COL] || {});
+  todo[col]=lista;
+  const p={}; p[ADM_HIST_COL]=todo; return p;
+}
+
+/** Deja la copia en memoria igual que lo que acaba de quedar en la base, para que un
+ *  segundo cambio sin recargar parta de lo correcto. */
+function _admHistorialApuntar(col, url, patch){
+  if(!window._admLandingCfg) return;
+  window._admLandingCfg[col]=url;
+  if(patch && patch[ADM_HIST_COL]) window._admLandingCfg[ADM_HIST_COL]=patch[ADM_HIST_COL];
 }
 
 /** Pinta una foto del editor en los DOS sitios que la muestran: el <img> —que es de
@@ -15487,13 +15664,17 @@ async function _subirArchivoFoto(file, cfg){
         +'». Comprueba que existe y que tu cuenta tiene permiso para subir ahí.');
     }
 
-    // e) Guardar solo esta columna en hogar_config. Con RLS, 0 filas = sin permiso.
+    // e) Guardar la columna en hogar_config, Y de paso empujar al historial la foto
+    // que había. Van en el MISMO update a propósito: si fueran dos, un fallo entre
+    // medias dejaría el historial y la foto contando cosas distintas.
     const patch={ updated_at:new Date().toISOString() };
     patch[cfg.col]=url;
+    Object.assign(patch, _admHistorialPatch(cfg.col, url));
     const { data, error } = await window.sb.from('hogar_config')
       .update(patch).eq('id',1).select('id');
     if(error) throw error;
     if(!data || !data.length){ _admLandingMsg(ADM_LANDING_SIN_PERMISO,'error'); return; }
+    _admHistorialApuntar(cfg.col, url, patch);
 
     // f) Reflejar: previsualización, campo URL si lo tiene, y la app en vivo — así
     // Andrea ve el cambio donde de verdad va sin recargar ni salir del panel.
