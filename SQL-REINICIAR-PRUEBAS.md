@@ -22,7 +22,6 @@ select
   (u.monto_centavos / 100.0)    as monto,
   (select count(*) from public.hogar_sesiones s where s.user_id = u.id)             as practicas,
   (select count(*) from public.hogar_sesiones_respuestas r where r.user_id = u.id)  as respuestas,
-  (select count(*) from public.hogar_notas n where n.user_id = u.id)                as notas,
   (a.id is not null)            as tiene_cuenta_de_acceso
 from public.hogar_usuarias u
 left join auth.users a on a.id = u.id
@@ -35,7 +34,6 @@ Y el resumen de cuánto hay en total:
 select 'usuarias'   as tabla, count(*) from public.hogar_usuarias
 union all select 'sesiones',            count(*) from public.hogar_sesiones
 union all select 'respuestas',          count(*) from public.hogar_sesiones_respuestas
-union all select 'notas del diario',    count(*) from public.hogar_notas
 union all select 'bajas',               count(*) from public.hogar_bajas
 union all select 'accesos manuales',    count(*) from public.hogar_acceso_manual_log
 union all select 'cuentas de acceso',   count(*) from auth.users;
@@ -56,6 +54,14 @@ La configuración de Andrea vive en otras tablas y no entra en ningún borrado:
 | `hogar_cuestionario` | el recorrido y sus preguntas |
 | `hogar_practica_textos` | los textos de cada práctica |
 | `hogar_landing` | textos de la página de venta |
+| `hogar_notas` | las frases de Andrea que ve la usuaria en su inicio |
+
+> **`hogar_notas` engaña por el nombre.** No son notas *de* las usuarias: son las diez
+> frases que escribe Andrea y que aparecen en el inicio de quien entra. Son suyas y
+> son configuración. El primer borrador de este documento las contaba como datos de
+> usuaria y el SQL falló al no encontrar `user_id` — bien que fallara.
+>
+> El diario íntimo, ése sí de cada clienta, es `hogar_sesiones_respuestas`.
 
 ---
 
