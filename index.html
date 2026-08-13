@@ -7700,7 +7700,9 @@ html.hogar-arranque #hogar-splash{
 }
 html.hogar-arranque-saliendo #hogar-splash{ opacity:0; }
 html.hogar-arranque #hogar-splash img{
-  width:38vw; max-width:150px; min-width:104px;
+  /* Grande: dos tercios del ancho en teléfono, con tope para que en una tablet o en
+     el escritorio no se vuelva un cartel. El alto sale solo de su proporción. */
+  width:66vw; max-width:340px; min-width:200px;
   height:auto; display:block;
   animation:splashLatido 1.9s ease-in-out infinite;
 }
@@ -7765,9 +7767,18 @@ html.hogar-arranque #hogar-splash img{
     var m = document.querySelector('meta[name="theme-color"]');
     if (m){ window._themeColorPrevio = m.getAttribute('content'); m.setAttribute('content', '#E8A99A'); }
 
+    // DOS SEGUNDOS MÍNIMOS, aunque la sesión se resuelva en trescientos milisegundos.
+    // No es capricho: una espera que aparece y desaparece de golpe se lee como un
+    // parpadeo —justo lo que veníamos a quitar—. Si tarda más de dos segundos, se va
+    // en cuanto esté lista y no espera de más.
+    var _splashDesde = Date.now();
+    var _splashMinimo = 2000;
+
     window._splashFuera = function(){
       var h = document.documentElement;
       if (!h.classList.contains('hogar-arranque')) return;
+      var falta = _splashMinimo - (Date.now() - _splashDesde);
+      if (falta > 0){ setTimeout(window._splashFuera, falta); return; }
       h.classList.add('hogar-arranque-saliendo');
       var mm = document.querySelector('meta[name="theme-color"]');
       if (mm && window._themeColorPrevio) mm.setAttribute('content', window._themeColorPrevio);
@@ -7776,19 +7787,26 @@ html.hogar-arranque #hogar-splash img{
         h.classList.remove('hogar-arranque-saliendo');
       }, 380);
     };
-    setTimeout(function(){ if (window._splashFuera) window._splashFuera(); }, 6000);
+    // La red de seguridad sigue en 6s: por encima del mínimo, así que no compiten.
+    setTimeout(function(){
+      if (!window._splashFuera) return;
+      _splashMinimo = 0;              // a estas alturas ya se vio de sobra
+      window._splashFuera();
+    }, 6000);
   }catch(_){}
 })();
 </script>
 </head>
 <body>
 
-<!-- La espera. Va antes que nada para que sea lo primero que exista, y el icono es el
-     MISMO archivo del atajo de la pantalla de inicio: su fondo ya es este salmón, así
-     que sobre esta pantalla el cuadrado desaparece y solo se ve la casa. Abrir la app
-     se convierte en una continuación del icono que se acaba de tocar. -->
+<!-- La espera. Va antes que nada para que sea lo primero que exista.
+     AQUÍ VA EL LOGO ENTERO, con la palabra, y no el archivo del icono: el icono es
+     solo la casa —la palabra se le quitó porque a 60px no se leía— pero esto es una
+     pantalla completa y ahí sí se lee. Y va en blanco sobre TRANSPARENTE, no sobre su
+     cuadrado salmón: así puede crecer todo lo que haga falta sin que se vea el canto
+     del cuadrado contra el fondo. -->
 <div id="hogar-splash" aria-hidden="true">
-  <img src="/icon-512.png?v=2" alt="">
+  <img src="/logo-blanco.png" alt="">
 </div>
 
 <!-- LANDING -->
