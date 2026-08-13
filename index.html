@@ -5053,23 +5053,27 @@ body.app-active { overflow: hidden; }
 }
 
 /* ══ EL BOTÓN "VOLVER AL PANEL" DE ANDREA ══
-   Era una píldora pequeña arriba a la derecha de la cabecera de Inicio, y solo ahí.
-   Ahora es un botón de ancho completo al principio de la columna de contenido, con el
-   mismo lenguaje que el "Cerrar sesión" de Mi cuenta —contorno fino, esquinas de
-   100px, texto centrado— y está en las TRES pantallas, siempre en el mismo sitio.
+   Ha ido bajando. Empezó como una píldora pequeña arriba a la derecha de la cabecera
+   de Inicio; luego fue un botón de ancho completo al principio de la columna,
+   repetido en las tres pantallas; después uno solo al pie de Inicio; y ahora está
+   SOLO EN MI CUENTA, pegado encima de "Cerrar sesión". Ahí es donde tiene sentido:
+   ya llevaba su mismo lenguaje —contorno fino, esquinas de 100px, texto centrado—
+   porque es lo mismo que ése, una salida. Ahora además están juntos.
 
-   VA CON CLASE Y SIN #s-dash DELANTE porque la usan tres pantallas. El nombre lleva
-   el prefijo adm- pero NO pertenece al bloque del panel: es un botón de las pantallas
-   de usuaria que solo Andrea ve. Es el único sitio donde ese prefijo cruza la
-   frontera, y se llama así porque es a donde lleva.
+   VA CON CLASE Y SIN #s-profile DELANTE aunque ya solo lo use una pantalla: uA() lo
+   enciende con querySelectorAll, así que volver a ponerlo en otra pantalla no pide
+   tocar ni CSS ni JS. El nombre lleva el prefijo adm- pero NO pertenece al bloque del
+   panel: es un botón de las pantallas de usuaria que solo Andrea ve. Es el único
+   sitio donde ese prefijo cruza la frontera, y se llama así porque es a donde lleva.
 
    NO OCUPA SITIO cuando está apagado: display:none en el marcado lo colapsa del todo,
-   y al ir en el flujo —no en position:absolute como antes— el saludo sube a ocupar su
-   hueco. Para una usuaria normal la pantalla es exactamente la de siempre. */
+   así que para una usuaria normal Mi cuenta queda exactamente como siempre. */
 .adm-volver-btn{
   display:none;               /* estado inicial; uA() lo pone en block para Andrea */
   width:100%;
-  margin:0 0 18px;
+  /* Los 30px son los que traía "Cerrar sesión" cuando era el primero del grupo: el
+     botón hereda su sitio, y el hueco entre los dos lo aprieta la regla de abajo. */
+  margin:30px 0 0;
   padding:13px 16px;
   background:none;
   border:1.5px solid rgba(150,100,70,.3);
@@ -5087,6 +5091,14 @@ body.app-active { overflow: hidden; }
   border-color:var(--terracota);
   color:var(--terracota-oscuro);
 }
+/* CUANDO ESTÁ ENCENDIDO, los dos botones se leen como un grupo: 12px entre ellos, el
+   mismo aire corto que hay entre "Cerrar sesión" y "Borrar mi cuenta".
+   SE APOYA EN .adm-volver-on Y NO EN EL HERMANO A SECAS, y eso es obligatorio: un
+   selector de hermano adyacente SÍ casa con un elemento en display:none, así que
+   `.adm-volver-btn + .perfil-logout` le habría quitado su separación de 30px también
+   a una usuaria normal, que no ve el primer botón. uA() pone y quita esa clase con
+   el mismo criterio que el display. */
+#s-profile .adm-volver-btn.adm-volver-on + .perfil-logout{ margin-top:12px; }
 
 /* Los "← Volver" de Historial y Mi cuenta se quitaron del marcado junto con el
    div espaciador de 88px que los equilibraba. La barra de abajo lleva a Inicio
@@ -5543,6 +5555,8 @@ body{ background:transparent; }
   #s-profile .perfil-field{ padding:11px 0; }
   #s-profile .perfil-field-value{ font-size:16px; }
   #s-profile .perfil-logout{ margin-top:16px; padding:13px; }
+  #s-profile .adm-volver-btn{ margin-top:16px; padding:13px; }
+  #s-profile .adm-volver-btn.adm-volver-on + .perfil-logout{ margin-top:10px; }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -7316,32 +7330,22 @@ body{ background:transparent; }
 <div id="s-dash" class="scr">
   <div class="app-nav">
     <div class="nav-actions">
-      <!-- ESTE BOTÓN NO SE VA CON LOS OTROS DOS, Y NO ES UN OLVIDO. Es la ÚNICA
-           salida de Andrea de vuelta a su panel desde las pantallas de usuaria:
-           nace en display:none y uA() lo enciende solo si esAdmin(U.email). Si
-           se quitara, entrando con su cuenta se quedaría encerrada aquí sin más
-           camino que recargar. Para una usuaria normal nunca se enciende, así
-           que su cabecera queda COMPLETAMENTE VACÍA — el logo se mudó a la primera
-           pestaña de la barra de abajo y los dos iconos que había aquí, historial y
-           perfil, se bajaron a esa misma barra en su día. Ninguno se duplica: allí
-           llaman al mismo go() que llamaban aquí. -->
-      <!-- AQUÍ ESTABA EL BOTÓN "Volver al panel" de Andrea, como píldora pequeña a la
-           derecha y solo en esta pantalla. Se movió al principio de la columna de
-           contenido de las TRES pantallas de usuaria, con ancho completo. Ver la nota
-           que acompaña a cada copia. -->
+      <!-- ESTA CABECERA QUEDA COMPLETAMENTE VACÍA, y no es un olvido: el logo se mudó
+           a la primera pestaña de la barra de abajo y los dos iconos que había aquí,
+           historial y perfil, se bajaron a esa misma barra. Ninguno se duplica: allí
+           llaman al mismo go() que llamaban aquí.
+           AQUÍ ESTABA TAMBIÉN EL BOTÓN "Volver al panel" de Andrea, como píldora
+           pequeña a la derecha. Ahora está en MI CUENTA, encima de "Cerrar sesión", y
+           en ninguna otra pantalla. Sigue siendo su ÚNICA salida de vuelta al panel
+           desde las pantallas de usuaria —sin él, entrando con su cuenta se quedaría
+           encerrada sin más camino que recargar—, así que no se puede quitar de ahí
+           sin darle otra. -->
       <!-- Avatar muerto: display:none fijo, nunca se enciende. Se queda porque
            uA() le escribe la inicial dentro por id junto al del panel. -->
       <div class="av" id="a0" onclick="go('profile')" style="display:none;"></div>
     </div>
   </div>
   <div class="app-container">
-    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
-         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo
-         colapsa del todo, no queda un hueco donde debería estar el botón—.
-         VA CON CLASE Y NO CON ID, y eso es obligatorio ahora: hay tres copias, una por
-         pantalla, y un getElementById solo encontraría la primera; las otras dos se
-         quedarían invisibles para Andrea. uA() las recorre con querySelectorAll. -->
-    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">← Volver al panel</button>
     <div class="dash-header">
       <div class="dash-header-top">
         <div class="dash-meta" id="dash-meta">— HOY · DÍA 1</div>
@@ -7799,13 +7803,6 @@ body{ background:transparent; }
        el elemento solo por la reserva del notch. -->
   <div class="app-nav"></div>
   <div class="app-container perfil-screen" style="margin:0 auto;">
-    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
-         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo
-         colapsa del todo, no queda un hueco donde debería estar el botón—.
-         VA CON CLASE Y NO CON ID, y eso es obligatorio ahora: hay tres copias, una por
-         pantalla, y un getElementById solo encontraría la primera; las otras dos se
-         quedarían invisibles para Andrea. uA() las recorre con querySelectorAll. -->
-    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">← Volver al panel</button>
     <!-- SOLO EL TÍTULO, a la izquierda, como en Mi historial. Se fueron el círculo
          con la inicial, el rótulo "Tu espacio" y el subtítulo: los tres se comían la
          mitad de la pantalla antes de llegar al primer dato.
@@ -7895,6 +7892,16 @@ body{ background:transparent; }
         </div>
       </div>
     </div>
+    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
+         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo colapsa
+         del todo, así que Mi cuenta le queda exactamente como siempre.
+         VA AQUÍ, pegado encima de "Cerrar sesión", porque es lo mismo que ése: una
+         salida. Estuvo antes como píldora en la cabecera de Inicio, después repetido
+         arriba en las tres pantallas, y luego al pie de Inicio. Ahora, uno solo y en
+         el sitio donde ya se buscan las salidas.
+         Sigue con CLASE y no con ID: uA() lo enciende con querySelectorAll, así que
+         devolverlo a otra pantalla no pide tocar el JS. -->
+    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">Volver al panel</button>
     <button class="perfil-logout" onclick="doOut()">Cerrar sesión</button>
     <!-- Borrar la cuenta. Discreto y al final: no es una acción que haya que
          invitar a hacer, pero los términos la prometen y tiene que estar. -->
@@ -7928,13 +7935,6 @@ body{ background:transparent; }
        título a la barra de estado. -->
   <div class="app-nav"></div>
   <div class="app-container" style="max-width:800px;">
-    <!-- SOLO LO VE ANDREA. Nace en display:none y lo enciende uA() si esAdmin(U.email);
-         para una usuaria normal no se muestra Y NO OCUPA SITIO —display:none lo
-         colapsa del todo, no queda un hueco donde debería estar el botón—.
-         VA CON CLASE Y NO CON ID, y eso es obligatorio ahora: hay tres copias, una por
-         pantalla, y un getElementById solo encontraría la primera; las otras dos se
-         quedarían invisibles para Andrea. uA() las recorre con querySelectorAll. -->
-    <button type="button" class="adm-volver-btn" onclick="goAdmin('inicio')" title="Volver al área administrativa" style="display:none;">← Volver al panel</button>
     <!-- SOLO EL TÍTULO. Se fueron el rótulo "Tu archivo" y el subtítulo, y con
          ellos los estilos en línea del bloque —el text-align:center y los
          font-size— para que el CSS pueda alinearlo a la izquierda sin pelear con
@@ -10047,16 +10047,23 @@ function uA(){if(!U)return;const i=U.name.charAt(0).toUpperCase();['a0','a4'].fo
   // policies RLS del servidor — esto no protege nada, solo evita enseñar una puerta
   // que no le sirve a una usuaria normal).
   //
-  // SON TRES BOTONES Y NO UNO: hay una copia en Inicio, otra en Historial y otra en
-  // Mi cuenta, para que Andrea lo encuentre siempre en el mismo sitio. Antes era un
-  // único #nav-admin-btn en la cabecera de Inicio y se buscaba con getElementById;
-  // con tres copias eso solo habría encendido la primera y las otras dos se habrían
-  // quedado invisibles para ella. De ahí el cambio a clase + querySelectorAll.
+  // HOY ES UNO SOLO: en Mi cuenta, encima de "Cerrar sesión". Llegó a haber tres, una
+  // por pantalla. La barra de abajo lleva a Mi cuenta desde cualquiera de las tres,
+  // así que sigue estando a un toque desde donde esté.
+  // AUN ASÍ SIGUE SIENDO CLASE + querySelectorAll, no getElementById. Con tres copias
+  // era obligatorio —un id solo habría encendido la primera— y ahora es lo que permite
+  // devolverlo a otra pantalla sin volver a tocar este archivo por aquí.
   //
   // 'block' y no 'flex': el botón pasó de píldora a bloque de ancho completo, y el
   // texto lo centra el text-align del CSS.
-  const verPanel = esAdmin(U.email) ? 'block' : 'none';
-  document.querySelectorAll('.adm-volver-btn').forEach(b=>{ b.style.display = verPanel; });
+  const esAndrea = esAdmin(U.email);
+  document.querySelectorAll('.adm-volver-btn').forEach(b=>{
+    b.style.display = esAndrea ? 'block' : 'none';
+    // La clase es SOLO para el CSS: un `+ .perfil-logout` casa igual con un hermano
+    // en display:none, así que sin ella el hueco de "Cerrar sesión" se apretaría
+    // también para una usuaria, que no ve este botón.
+    b.classList.toggle('adm-volver-on', esAndrea);
+  });
 }
 // Saludo según hora LOCAL del dispositivo. Sin coma — la HTML añade el nombre.
 function _greetingByTime(){
