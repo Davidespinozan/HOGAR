@@ -6483,13 +6483,6 @@ body{ background:transparent; }
   margin-bottom:26px;
 }
 #s-prac.on .video-container{ border-radius:24px; overflow:hidden; }
-/* El botón de play grande, con el cristal de la app en vez de blanco casi opaco. */
-#s-prac.on .video-play-btn{
-  background:rgba(255,255,255,.92);
-  border:none;
-  color:var(--terracota-oscuro);
-  box-shadow:0 8px 24px rgba(140,90,60,.24);
-}
 
 /* ── La tarjeta de la guía ───────────────────────────────────────────────── */
 /* Con la malla debajo, la tarjeta vuelve al cristal estándar de la app: el 92% de
@@ -7245,17 +7238,6 @@ body{ background:transparent; }
   color:#fff;
 }
 #s-prac.on .prac-ctl-play svg{ width:32px; height:32px; }
-/* Pantalla completa: al canto derecho y discreto, para que los tres de en medio se
-   queden centrados en la pantalla y no se descoloquen por él. */
-#s-prac.on .prac-ctl-fs{
-  position:absolute; right:0; top:50%; transform:translateY(-50%);
-  width:38px; height:38px; border-radius:50%;
-  background:none; border:none; cursor:pointer; padding:0;
-  display:flex; align-items:center; justify-content:center;
-  color:var(--txt-suave-malla); opacity:.75;
-}
-#s-prac.on .prac-ctl-fs svg{ width:19px; height:19px; }
-#s-prac.on .prac-ctl-fs:hover{ opacity:1; color:var(--terracota-oscuro); }
 
 /* ══ EL VIDEO, DE CANTO A CANTO ══
    Se sale del relleno lateral de su columna para ganar ancho, y como es 16/9 ese
@@ -7267,6 +7249,42 @@ body{ background:transparent; }
 #s-prac.on .practica-screen{ padding-left:var(--prac-pad); padding-right:var(--prac-pad); }
 #s-prac.on .video-frame{ margin:auto calc(-1 * var(--prac-pad)) !important; }
 #s-prac.on .video-container{ border-radius:20px; }
+/* ══════════════════════════════════════════════════════════════════════════
+   LA COLUMNA DE LA PRÁCTICA SE ENCOGÍA — el fallo, y por qué
+
+   El video no llegaba a los cantos, pero es que TAMPOCO llegaban los botones de
+   abajo, y ésos ya eran width:100%. Lo que estaba estrecho era la columna entera.
+
+   La causa la metí yo al hacer esta pantalla de una sola vista: .app-container lleva
+   `margin:0 auto` de siempre, y al convertir #s-prac.on en un contenedor flex en
+   columna, ese auto pasó a ser un margen del EJE TRANSVERSAL. Y en flexbox un hijo
+   con un margen auto en ese eje NO SE ESTIRA: se encoge a su contenido y se centra.
+   Por eso todo salía angosto y centrado a la vez.
+
+   El width:100% lo devuelve al ancho entero. El max-width:900px de .practica-screen
+   sigue mandando en escritorio, y el margin:0 auto sigue centrándola allí.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-prac.on .practica-screen{ width:100%; }
+
+/* ══ LOS TRES CONTROLES, DE CANTO A CANTO ══
+   Estaban juntos y centrados con un gap fijo. Pasan a repartirse el ancho entero:
+   los ±15 pegados a los cantos y el play en medio. Y crecen, porque son los botones
+   que se buscan a media práctica y con el teléfono lejos. */
+#s-prac.on .prac-controles{
+  justify-content:space-between;
+  gap:0;
+  margin-top:20px;
+}
+#s-prac.on .prac-ctl-skip{ width:64px; height:64px; }
+#s-prac.on .prac-ctl-skip svg{ width:35px; height:35px; }
+#s-prac.on .prac-ctl-num{ font-size:11px; }
+#s-prac.on .prac-ctl-play{ width:86px; height:86px; }
+#s-prac.on .prac-ctl-play svg{ width:38px; height:38px; }
+
+/* ══ Y LOS DE ABAJO, MÁS GRANDES ══
+   Ya eran de ancho completo; lo que les faltaba era cuerpo. */
+#s-prac.on .terminar-btn{ padding:18px 20px; font-size:16.5px; margin-top:24px; }
+#s-prac.on .prac-salir{ padding:16px; font-size:15px; margin-top:14px; }
 </style>
 </head>
 <body>
@@ -7955,10 +7973,11 @@ body{ background:transparent; }
       <div class="video-container" id="video-container">
         <video id="prac-video" playsinline preload="metadata" onclick="tTm()"></video>
         <audio id="prac-audio" preload="auto" style="display:none"></audio>
-        <div class="video-placeholder" onclick="tTm()">
-          <div class="video-play-btn"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>
-          <div style="font-family:'Montserrat',sans-serif;font-style:italic;font-size:16px;">Toca para comenzar</div>
-        </div>
+        <!-- LA PORTADA, YA SIN SU BOTÓN DE PLAY. Había dos plays para lo mismo: éste
+             flotando en medio del video y el de la fila de abajo. Se queda el de abajo.
+             El div sigue aquí y sigue llamando a tTm() al tocarlo, así que la portada
+             entera arranca la práctica; lo que se fue es el círculo blanco. -->
+        <div class="video-placeholder" onclick="tTm()"></div>
         <div class="vp-loader" id="vp-loader">
           <div class="vp-loader-ring"></div>
           <div class="vp-loader-txt vp-loader-txt-load">Preparando tu práctica…</div>
@@ -8006,9 +8025,9 @@ body{ background:transparent; }
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 4v5h-5"/></svg>
         <span class="prac-ctl-num">15</span>
       </button>
-      <!-- Pantalla completa: no estaba en la lista de los tres, pero es la única forma
-           de ver el video de verdad grande, así que se queda pequeño y aparte. -->
-      <button type="button" class="prac-ctl-fs" onclick="toggleFullscreen()" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg></button>
+      <!-- AQUÍ ESTABA EL BOTÓN DE PANTALLA COMPLETA. Se va: con los tres repartidos a
+           los cantos, iba pegado encima del de +15. toggleFullscreen() se queda en el
+           código por si vuelve, pero ya no lo llama nadie. -->
     </div>
     <button class="terminar-btn" id="terminar-btn" onclick="startQuest()">Terminé mi práctica ✦</button>
     <button type="button" class="prac-salir" onclick="confirmExit()">Salir</button>
