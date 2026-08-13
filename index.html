@@ -13025,7 +13025,15 @@ const ADMIN_EMAIL='andrealaso1997@hotmail.com';
 // Cuesta un ALTER TABLE y un retoque en loadAdmin(). La otra salida es borrar esas
 // cuentas de Supabase — entonces no hay nada que excluir y la lista sobra de
 // verdad.
-const ADMIN_TEST_EMAILS=['magalyb.1804@gmail.com','magalybl.1804@gmail.com','magalyblltt@gmail.com','daen97@hotmail.com'];
+// ANDREA ENTRA EN LA LISTA, y no es una prueba más: es que no es clienta de sí misma.
+// Su cuenta existe porque también entra a la app, pero contarla como usuaria le sumaba
+// un alta que no vendió y, con sus propias prácticas de probar, actividad que no es de
+// nadie. Al meterla aquí desaparece de las tres cifras y de la lista de usuarias, que
+// es donde no pinta nada. Sigue entrando y usando la app exactamente igual: esta lista
+// solo filtra lo que el PANEL enseña.
+// Las otras cuatro se quedan escritas aunque sus filas ya no existan: si se vuelve a
+// probar con esos correos, el filtro sigue puesto.
+const ADMIN_TEST_EMAILS=['andrealaso1997@hotmail.com','magalyb.1804@gmail.com','magalybl.1804@gmail.com','magalyblltt@gmail.com','daen97@hotmail.com'];
 let _admUsuarias=[]; // cache de la última carga, para filtrar en cliente sin re-consultar
 
 // Inicio del día / del mes en hora local, como ISO, para filtrar created_at con .gte()/.lt()
