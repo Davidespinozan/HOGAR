@@ -7772,6 +7772,52 @@ html.hogar-arranque #hogar-splash img{
 }
 #s-admin .adm-panel-link-ico svg{ width:100%; height:100%; display:block; }
 #s-admin .adm-panel-link{ display:flex; align-items:center; }
+/* ══════════════════════════════════════════════════════════════════════════
+   USUARIAS E INTERESADAS — dos grupos, no una lista
+
+   Quien se registra y no compra NO es una usuaria: no tiene acceso a ninguna
+   práctica. Mezclarlas hacía que la lista dijera que Andrea tiene clientas que no
+   tiene, y de paso escondía a las que sí puede acompañar entre las que no.
+
+   El corte lo hace _admEstadoPago(), la misma función que pinta el badge, así que
+   grupo y etiqueta no pueden discrepar.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-admin .adm-u-grupo + .adm-u-grupo{ margin-top:30px; }
+#s-admin .adm-u-grupo-cab{
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:4px;
+}
+#s-admin .adm-u-grupo-tit{
+  font-family:'Montserrat',sans-serif;
+  font-size:15px; font-weight:700; letter-spacing:0; text-transform:none;
+  color:#3f342c;
+}
+/* El número, en su pastilla: se ve de un vistazo cuántas hay en cada grupo sin
+   contar tarjetas. */
+#s-admin .adm-u-grupo-num{
+  min-width:22px; height:22px; padding:0 7px;
+  border-radius:100px;
+  background:rgba(198,107,65,.14);
+  color:#94461f;
+  font-family:'Montserrat',sans-serif;
+  font-size:12px; font-weight:700; line-height:22px; text-align:center;
+}
+#s-admin .adm-u-grupo-nota{
+  font-family:'Montserrat',sans-serif;
+  font-size:12.5px; font-weight:300; line-height:1.45;
+  color:var(--txt-suave);
+  margin:0 0 14px; max-width:46em;
+}
+/* LA REJILLA SE MUDA DEL CONTENEDOR A CADA GRUPO, y hay que hacerlo: #adm-usuarias-body
+   lleva .adm-u-grid, y sus hijos ya no son las tarjetas sino los dos bloques de grupo
+   — dejarla ahí habría puesto "Tus usuarias" e "Interesadas" en dos columnas, una al
+   lado de la otra. Se apaga ahí y se enciende dentro, con las MISMAS medidas que
+   tenía: una columna en teléfono y dos en escritorio. */
+#s-admin .adm-u-grid{ display:block; }
+#s-admin .adm-u-lista{ display:grid; grid-template-columns:1fr; gap:12px; }
+@media(min-width:901px){
+  #s-admin .adm-u-lista{ grid-template-columns:1fr 1fr; gap:16px; }
+}
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════════════════
@@ -9065,9 +9111,9 @@ html.hogar-arranque #hogar-splash img{
       <div class="adm-section-title">— ESTE MES</div>
       <div class="adm-kpi-grid">
         <div class="adm-kpi hogar-rise-in">
-          <div class="adm-kpi-eyebrow">— ALTAS</div>
+          <div class="adm-kpi-eyebrow">— COMPRAS</div>
           <div class="adm-kpi-num" id="adm-mes-altas">—</div>
-          <div class="adm-kpi-sub">nuevas usuarias este mes</div>
+          <div class="adm-kpi-sub">usuarias nuevas este mes</div>
         </div>
         <div class="adm-kpi hogar-rise-in">
           <div class="adm-kpi-eyebrow">— PRÁCTICAS</div>
@@ -13494,8 +13540,17 @@ async function loadAdmin(){
     window.sb.from('hogar_sesiones').select('id',{count:'exact',head:true}).gte('created_at',_admStartOfToday())
   ));
   // 3) ESTE MES — altas (usuarias) y prácticas (sesiones)
+  // COMPRAS DEL MES, NO ALTAS. Antes contaba filas creadas en hogar_usuarias sin
+  // mirar si habían pagado, así que metía en la misma cifra a quien compró y a quien
+  // solo se registró. Era la cifra que Andrea lee como "cómo va el negocio", y estaba
+  // inflada — y un número inflado no se nota, al contrario que una etiqueta rara.
+  //
+  // Se filtra por pagado + fecha_compra, el MISMO criterio que usa el cálculo de lo
+  // ingresado este mes. Que las dos cifras se cuenten igual es lo que evita que una
+  // diga tres compras y la otra el dinero de dos.
   _admLoadCount('adm-mes-altas', ()=>{
-    let q=window.sb.from('hogar_usuarias').select('id',{count:'exact',head:true}).gte('created_at',_admStartOfMonth());
+    let q=window.sb.from('hogar_usuarias').select('id',{count:'exact',head:true})
+      .eq('pagado',true).gte('fecha_compra',_admStartOfMonth());
     if(ADMIN_TEST_EMAILS.length) q=q.not('email','in','('+ADMIN_TEST_EMAILS.map(e=>'"'+e+'"').join(',')+')');
     return q;
   });
@@ -13674,33 +13729,66 @@ function renderAdminUsuarias(){
   if(!rows.length){
     const filtrando = !!(term || pago);
     body.innerHTML=_admUsuariasVacio(
-      filtrando ? 'No hay usuarias que coincidan' : 'Todavía no hay usuarias',
+      filtrando ? 'No hay nadie que coincida' : 'Todavía no hay nadie',
       filtrando ? 'Prueba con otro nombre, otro correo o quitando el filtro.'
                 : 'Cuando alguien entre a HOGAR, aparecerá aquí.');
     return;
   }
-  body.innerHTML=rows.map(r=>{
-    const e=_admEstadoPago(r);
-    const badge = '<span class="adm-u-badge '+e.clase+'">'+e.etiqueta+'</span>';
-    const id=_admEsc(r.id);
-    // La tarjeta entera abre la ficha, igual que antes lo hacía la fila entera.
-    // Se muestran siempre desplegadas: colapsarlas exigiría que el toque
-    // significara dos cosas a la vez (expandir y abrir la ficha).
-    return '<article class="adm-u-card" onclick="verUsuariaHogar(\''+id+'\')" tabindex="0" role="button"'
-      +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();verUsuariaHogar(\''+id+'\');}">'
-      +'<div class="adm-u-head">'
-        +'<div class="adm-u-avatar" aria-hidden="true">'+_admEsc(_admInicial(r))+'</div>'
-        +'<div class="adm-u-nombre">'+_admEsc(_admDash(r.nombre))+'</div>'
-        +badge
+
+  // ══ DOS GRUPOS, Y LA DIFERENCIA NO ES COSMÉTICA ══
+  // Quien se registra y no compra NO es una usuaria: no tiene acceso a ninguna
+  // práctica. Mezclarlas hacía que la lista de Andrea dijera que tiene clientas que
+  // no tiene, y de paso escondía a las que sí puede acompañar entre las que no.
+  //
+  // El corte es el MISMO que decide el acceso —_admEstadoPago(), la función que
+  // pinta el badge— y no la columna `plan`, que no manda en nada. Así el grupo y la
+  // etiqueta no pueden discrepar.
+  //
+  // Las de "Revisar" caen entre las interesadas, y es lo correcto: empezaron a pagar
+  // y no consta el cobro, así que todavía no tienen acceso. Su badge las distingue.
+  const usuarias=rows.filter(r=> _admEstadoPago(r).clave==='activa');
+  const interesadas=rows.filter(r=> _admEstadoPago(r).clave!=='activa');
+
+  const grupo=(titulo, nota, lista)=>{
+    if(!lista.length) return '';
+    return '<div class="adm-u-grupo">'
+      +'<div class="adm-u-grupo-cab">'
+        +'<span class="adm-u-grupo-tit">'+titulo+'</span>'
+        +'<span class="adm-u-grupo-num">'+lista.length+'</span>'
       +'</div>'
-      +'<div class="adm-u-datos">'
-        +_admFilaDato('Correo', _admEsc(_admDash(r.email)))
-        +_admFilaDato('Alta', _admFmtDate(r.created_at), true)
-        +_admFilaDato('Plan', _admEsc(_admDash(r.plan)))
-      +'</div>'
-      +'<div class="adm-u-ver">Ver su ficha &rsaquo;</div>'
-    +'</article>';
-  }).join('');
+      +(nota?'<p class="adm-u-grupo-nota">'+nota+'</p>':'')
+      +'<div class="adm-u-lista">'+lista.map(_admTarjetaUsuaria).join('')+'</div>'
+    +'</div>';
+  };
+
+  body.innerHTML =
+      grupo('Tus usuarias', '', usuarias)
+    + grupo('Interesadas', 'Se registraron y no han comprado todavía. Todavía no tienen acceso a las prácticas.', interesadas);
+}
+
+/** Una tarjeta. Sale de renderAdminUsuarias() para poder pintarla desde los dos
+ *  grupos sin repetir su marcado, que es donde se colaría una diferencia. */
+function _admTarjetaUsuaria(r){
+  const e=_admEstadoPago(r);
+  const badge = '<span class="adm-u-badge '+e.clase+'">'+e.etiqueta+'</span>';
+  const id=_admEsc(r.id);
+  // La tarjeta entera abre la ficha, igual que antes lo hacía la fila entera.
+  // Se muestran siempre desplegadas: colapsarlas exigiría que el toque
+  // significara dos cosas a la vez (expandir y abrir la ficha).
+  return '<article class="adm-u-card" onclick="verUsuariaHogar(\''+id+'\')" tabindex="0" role="button"'
+    +' onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();verUsuariaHogar(\''+id+'\');}">'
+    +'<div class="adm-u-head">'
+      +'<div class="adm-u-avatar" aria-hidden="true">'+_admEsc(_admInicial(r))+'</div>'
+      +'<div class="adm-u-nombre">'+_admEsc(_admDash(r.nombre))+'</div>'
+      +badge
+    +'</div>'
+    +'<div class="adm-u-datos">'
+      +_admFilaDato('Correo', _admEsc(_admDash(r.email)))
+      +_admFilaDato('Alta', _admFmtDate(r.created_at), true)
+      +_admFilaDato('Plan', _admEsc(_admDash(r.plan)))
+    +'</div>'
+    +'<div class="adm-u-ver">Ver su ficha &rsaquo;</div>'
+  +'</article>';
 }
 
 // Un renglón label/valor de la tarjeta. nowrap para lo que no debe partirse nunca
