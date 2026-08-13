@@ -53,11 +53,13 @@
      La versión maskable va con la marca más pequeña porque Android recorta a
      círculo y solo respeta el 80% central. -->
 <link rel="manifest" href="/manifest.webmanifest">
-<!-- El tono de la MALLA en su borde superior, medido componiendo las seis manchas en
-     el centro de arriba: #f4e3d3. Tiñe la barra de estado con la app instalada en la
-     pantalla de inicio; con un valor que no case se ve como una franja distinta
-     encima del logo. Si se cambian los alfas de --malla, este valor va detrás. -->
-<meta name="theme-color" content="#F4E3D3">
+<!-- El tono del BORDE SUPERIOR DE LA APP. Tiñe la barra de estado del teléfono, y
+     con un valor que no case se ve como una franja distinta encima de la cabecera.
+     Era #f4e3d3, la malla desnuda, porque ahí arrancaban las pantallas. Ahora arriba
+     va la barra de cristal, así que es ese cristal compuesto sobre la malla:
+     blanco al 62% sobre #f4e3d3 = #fbf4ee. Si cambia el alfa de la barra o los de
+     --malla, este valor va detrás. -->
+<meta name="theme-color" content="#FBF4EE">
 
 <!-- ===========================================================================
      VISTA PREVIA AL COMPARTIR (WhatsApp, Instagram, Facebook, X).
@@ -5031,14 +5033,12 @@ body.app-active { overflow: hidden; }
    más valioso de la pantalla para decir algo que la usuaria ya sabe. Ahora vive en
    la primera pestaña de la barra de abajo, donde además hace de navegación.
 
-   LA .app-nav SE QUEDA AUNQUE ESTÉ VACÍA, y no es descuido: su padding-top lleva la
-   reserva del notch —el env(safe-area-inset-top)— y es el ancla del botón de Andrea.
-   Borrarla pegaría el saludo a la barra de estado del iPhone.
-
-   Va acotado a las TRES pantallas y no a .app-nav a secas, porque la misma clase la
-   usan el check-in, la práctica, el cuestionario y el cierre. El check-in CONSERVA su
-   logo a propósito: no tiene barra inferior, así que allí es lo único que sitúa a la
-   usuaria dentro de HOGAR. */
+   ══ ESTO YA NO MANDA ══
+   El logo VOLVIÓ a la cabecera, y ahora con la misma barra de cristal del panel de
+   Andrea en las nueve pantallas de usuaria. Lo que decide hoy el aspecto de la
+   .app-nav es el bloque "LA BARRA SUPERIOR DE LA USUARIA" del final de la hoja, que
+   gana a esta regla con !important. Se deja escrita porque su padding sigue siendo
+   la reserva del notch si algún día se quita aquella. */
 #s-dash .app-nav,
 #s-history .app-nav,
 #s-profile .app-nav{
@@ -5592,9 +5592,10 @@ body{ background:transparent; }
      único elemento lo dejaría a la izquierda. */
   justify-content:center;
 }
-/* EL LOGO, GRANDE. Estaba en 26px y no se veía. Aquí es lo único que hay en la
-   cabecera, así que puede ocupar sitio sin competir con nada — al contrario que en
-   Inicio, donde el saludo manda y por eso el logo se mudó a la barra de abajo. */
+/* EL LOGO. Estos 64px y este opacity:.5 YA NO SE APLICAN: el bloque de la barra de
+   usuaria del final de la hoja los gana con !important y lo deja al mismo alto y al
+   mismo color que en el panel, para que las nueve pantallas se vean iguales.
+   Se quedan escritos porque el flex-shrink:0 de la regla de arriba sí sigue vivo. */
 #s-checkin .app-nav-logo{ height:64px; opacity:.5; }
 #s-checkin .app-nav-logo img{ filter:none; }
 
@@ -7020,6 +7021,112 @@ body{ background:transparent; }
   margin-top:16px; padding-top:14px;
   border-top:1px solid rgba(150,100,70,.14);
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   LA BARRA SUPERIOR DE LA USUARIA — la misma del panel, con el logo centrado
+
+   Es la barra que ya tenía Andrea en su panel (.adm-topbar): cristal sobre la
+   malla, filo abajo y sombra corta. Allí el logo va al canto derecho porque la
+   izquierda la ocupa la hamburguesa; aquí no hay menú, así que va CENTRADO.
+
+   VA EN LAS NUEVE PANTALLAS DE USUARIA para que sea la base de todas: Inicio,
+   el check-in y sus dos pasos sueltos, las preguntas, el video, el cierre,
+   Mi cuenta e Historial.
+
+   ══ POR QUÉ CON !important ══
+   La clase .app-nav es vieja y arrastra reglas de varias tandas anteriores: el
+   "rediseño SOLO móvil" le pone fondos salmón opacos en la práctica y en el
+   historial, el check-in y el cuestionario dejaron el logo a media opacidad, y
+   tres pantallas lo tenían apagado del todo. Varias de esas reglas llevan .on en
+   el selector, así que pesan más que un #pantalla .clase de aquí. Se las gana por
+   valor en vez de ir a borrarlas una por una, que es lo que mezclaría este cambio
+   con una limpieza.
+
+   ══ OJO CON EL ALTO DE INICIO ══
+   Inicio estaba medido para caber sin deslizar en un teléfono alto. Esta barra le
+   come su altura, así que ahora desliza un poco. Es el precio de tener la misma
+   base en todas las pantallas.
+
+   ══ EL LOGO SALE DOS VECES EN TRES PANTALLAS ══
+   En Inicio, Mi cuenta e Historial la barra de abajo lleva la marca en su primera
+   pestaña (la casita + HOGAR). Ahora la marca está arriba y abajo. Se deja así
+   porque la pestaña de abajo además NAVEGA: no es solo un logo. Si molesta, lo que
+   se cambia es esa pestaña, no esta barra.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-dash .app-nav,
+#s-checkin .app-nav,
+#s-ci1 .app-nav,
+#s-ci2 .app-nav,
+#s-quest .app-nav,
+#s-prac .app-nav,
+#s-done .app-nav,
+#s-profile .app-nav,
+#s-history .app-nav{
+  position:sticky !important; top:0; z-index:50;
+  display:flex !important; align-items:center; justify-content:center !important;
+  gap:14px;
+  /* La reserva del notch: con viewport-fit=cover la barra arranca en el borde
+     físico de la pantalla, igual que la del panel. */
+  padding:calc(12px + env(safe-area-inset-top, 0px)) 16px 12px !important;
+  background:rgba(255,255,255,.62) !important;
+  border-bottom:1px solid var(--dash-vidrio-borde) !important;
+  box-shadow:0 4px 18px rgba(140,90,60,.10);
+  -webkit-backdrop-filter:var(--dash-vidrio-blur);
+  backdrop-filter:var(--dash-vidrio-blur);
+}
+/* El logo, al mismo alto que en el panel y a su color de siempre: ni el
+   brightness(.85) de la regla base ni el opacity:.5 que traían el check-in, el
+   cuestionario y la práctica. */
+#s-dash .app-nav-logo,
+#s-checkin .app-nav-logo,
+#s-ci1 .app-nav-logo,
+#s-ci2 .app-nav-logo,
+#s-quest .app-nav-logo,
+#s-prac .app-nav-logo,
+#s-done .app-nav-logo,
+#s-profile .app-nav-logo,
+#s-history .app-nav-logo{
+  height:42px !important; opacity:1 !important;
+}
+#s-dash .app-nav-logo img,
+#s-checkin .app-nav-logo img,
+#s-ci1 .app-nav-logo img,
+#s-ci2 .app-nav-logo img,
+#s-quest .app-nav-logo img,
+#s-prac .app-nav-logo img,
+#s-done .app-nav-logo img,
+#s-profile .app-nav-logo img,
+#s-history .app-nav-logo img{
+  filter:none !important; height:100%; width:auto; display:block;
+}
+/* Los dos "← Volver" que quedan (los pasos sueltos del check-in) y el hueco de
+   88px que los equilibraba salen del centrado: se anclan a los cantos para que el
+   logo se quede en el medio de la barra, no del hueco que le dejen. */
+#s-ci1 .app-nav,
+#s-ci2 .app-nav{ position:sticky !important; justify-content:space-between !important; }
+
+@media(max-width:480px){
+  /* Igual que en el panel: la barra baja un punto en teléfono. */
+  #s-dash .app-nav,
+  #s-checkin .app-nav,
+  #s-ci1 .app-nav,
+  #s-ci2 .app-nav,
+  #s-quest .app-nav,
+  #s-prac .app-nav,
+  #s-done .app-nav,
+  #s-profile .app-nav,
+  #s-history .app-nav{
+    padding:calc(9px + env(safe-area-inset-top, 0px)) 14px 9px !important;
+  }
+  #s-dash .app-nav-logo,
+  #s-checkin .app-nav-logo,
+  #s-ci1 .app-nav-logo,
+  #s-ci2 .app-nav-logo,
+  #s-quest .app-nav-logo,
+  #s-prac .app-nav-logo,
+  #s-done .app-nav-logo,
+  #s-profile .app-nav-logo,
+  #s-history .app-nav-logo{ height:36px !important; }
+}
 </style>
 </head>
 <body>
@@ -7329,11 +7436,14 @@ body{ background:transparent; }
 <!-- DASHBOARD -->
 <div id="s-dash" class="scr">
   <div class="app-nav">
+    <div class="app-nav-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
+    </div>
     <div class="nav-actions">
-      <!-- ESTA CABECERA QUEDA COMPLETAMENTE VACÍA, y no es un olvido: el logo se mudó
-           a la primera pestaña de la barra de abajo y los dos iconos que había aquí,
-           historial y perfil, se bajaron a esa misma barra. Ninguno se duplica: allí
-           llaman al mismo go() que llamaban aquí.
+      <!-- AQUÍ VUELVE EL LOGO, centrado, con la barra de cristal que comparten las
+           nueve pantallas de usuaria (ver el bloque del final de la hoja). Los dos
+           iconos que había en esta cabecera —historial y perfil— siguen abajo, en la
+           barra, llamando al mismo go() que llamaban aquí.
            AQUÍ ESTABA TAMBIÉN EL BOTÓN "Volver al panel" de Andrea, como píldora
            pequeña a la derecha. Ahora está en MI CUENTA, encima de "Cerrar sesión", y
            en ninguna otra pantalla. Sigue siendo su ÚNICA salida de vuelta al panel
@@ -7691,7 +7801,11 @@ body{ background:transparent; }
        centro es un vídeo no aportaba nada y quedaba diminuto arriba.
        El elemento se conserva porque su padding-top lleva la reserva del notch; sin él,
        el rótulo de la práctica se pegaría a la barra de estado. -->
-  <div class="app-nav"></div>
+  <div class="app-nav">
+    <div class="app-nav-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
+    </div>
+  </div>
   <div class="app-container practica-screen">
     <div class="practica-header">
       <div class="practica-eyebrow" id="prR">TU PRÁCTICA DE HOY</div>
@@ -7767,7 +7881,11 @@ body{ background:transparent; }
   <!-- CABECERA VACÍA: se fueron la banda, el logo y los dos espaciadores de 88px que
        lo centraban. Esta pantalla es un cierre —círculo, frase y botón— y no necesita
        nada arriba. Se conserva el elemento solo por la reserva del notch. -->
-  <div class="app-nav"></div>
+  <div class="app-nav">
+    <div class="app-nav-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
+    </div>
+  </div>
   <div class="stickers-decorativos">
     <div class="sticker-deco sticker-3">
       <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
@@ -7801,7 +7919,11 @@ body{ background:transparent; }
   <!-- CABECERA VACÍA, igual que en Historial: el logo se mudó a la barra de abajo y
        el "← Volver" se fue en su día porque la barra ya lleva a Inicio. Se conserva
        el elemento solo por la reserva del notch. -->
-  <div class="app-nav"></div>
+  <div class="app-nav">
+    <div class="app-nav-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
+    </div>
+  </div>
   <div class="app-container perfil-screen" style="margin:0 auto;">
     <!-- SOLO EL TÍTULO, a la izquierda, como en Mi historial. Se fueron el círculo
          con la inicial, el rótulo "Tu espacio" y el subtítulo: los tres se comían la
@@ -7933,7 +8055,11 @@ body{ background:transparent; }
        elemento se conserva porque sigue haciendo un trabajo: reservar el hueco del
        notch (su padding-top lleva el env(safe-area-inset-top)). Borrarlo pegaría el
        título a la barra de estado. -->
-  <div class="app-nav"></div>
+  <div class="app-nav">
+    <div class="app-nav-logo">
+      <img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR">
+    </div>
+  </div>
   <div class="app-container" style="max-width:800px;">
     <!-- SOLO EL TÍTULO. Se fueron el rótulo "Tu archivo" y el subtítulo, y con
          ellos los estilos en línea del bloque —el text-align:center y los
