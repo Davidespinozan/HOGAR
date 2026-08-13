@@ -13978,13 +13978,13 @@ function _admLandingHTML(c){
   // escritorio (adm-lp-file, adm-lp-subir, adm-lp-preview-img) son los MISMOS de
   // siempre — en especial adm-lp-subir, del que la subida toma el botón para
   // ponerle "Subiendo…". Las otras dos siguen el mismo patrón con lo suyo.
-  const foto=(cls,pid,fid,bid,url,fn,tit,nota)=>
+  const foto=(cls,pid,fid,bid,url,resp,fn,tit,nota)=>
     '<div class="adm-lp-foto hogar-rise-in">'
       +'<div class="adm-lp-foto-tit">'+tit+'</div>'
       +'<div class="adm-lp-marco '+cls+(String(url||'').trim()?'':' sinfoto')+'"'
         +' style="background-image:'+_admLpFondo(url)+'">'
-        +'<img id="'+pid+'" src="'+_admEsc(url)+'" alt="'+tit+'" '
-          +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
+        +'<img id="'+pid+'" src="'+_admEsc(url)+'" alt="'+tit+'" data-resp="'+_admEsc(resp)+'" '
+          +'onerror="_admLpFallo(this)" onload="this.style.display=\'\'">'
         +'<input type="file" id="'+fid+'" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="'+fn+'(this)">'
         +'<button type="button" class="adm-lp-cambiar" id="'+bid+'" '
           +'onclick="document.getElementById(\''+fid+'\').click()">Cambiar foto</button>'
@@ -13993,9 +13993,9 @@ function _admLandingHTML(c){
     +'</div>';
 
   html+='<div class="adm-lp-fotos">'
-    +foto('h','adm-lp-preview-img','adm-lp-file','adm-lp-subir', img,
+    +foto('h','adm-lp-preview-img','adm-lp-file','adm-lp-subir', img, HERO_IMG_COD,
           'subirImagenHeroHogar','Portada · computadora','')
-    +foto('v','adm-lp-preview-movil','adm-lp-file-movil','adm-lp-subir-movil', imgMovil,
+    +foto('v','adm-lp-preview-movil','adm-lp-file-movil','adm-lp-subir-movil', imgMovil, HERO_MOVIL_COD,
           'subirFotoMovilHogar','Portada · celular','')
     +'</div>'
     // Opción avanzada, discreta: pegar una URL a mano. adm-lp-img sigue siendo
@@ -14012,9 +14012,9 @@ function _admLandingHTML(c){
   // El del cierre lleva UN solo control aunque el CSS lo pinte en dos sitios: es la
   // misma imagen a dos anchos, no dos recortes. Ver _landingSetCierreImg().
   html+='<div class="adm-lp-fotos">'
-    +foto('h','adm-lp-preview-trans','adm-lp-file-trans','adm-lp-subir-trans', imgTrans,
+    +foto('h','adm-lp-preview-trans','adm-lp-file-trans','adm-lp-subir-trans', imgTrans, TRANS_COD,
           'subirFotoTransHogar','Lo que empieza a cambiar','')
-    +foto('h','adm-lp-preview-cierre','adm-lp-file-cierre','adm-lp-subir-cierre', imgCierre,
+    +foto('h','adm-lp-preview-cierre','adm-lp-file-cierre','adm-lp-subir-cierre', imgCierre, CIERRE_COD,
           'subirFotoCierreHogar','Tu espacio te espera','')
     +'</div>'
     +'<div class="adm-field-hint" style="margin-bottom:16px;">JPG, PNG o WEBP · máx. 5 MB. Llevan texto encima, así que funcionan mejor las tranquilas.</div>';
@@ -14024,8 +14024,8 @@ function _admLandingHTML(c){
     +'<div class="adm-lp-foto-tit">Tu foto</div>'
     +'<div class="adm-lp-chat-fila">'
       +'<div class="adm-lp-marco redondo" style="background-image:'+_admLpFondo(fotoChat)+'">'
-        +'<img id="adm-lp-preview-chat" src="'+_admEsc(fotoChat)+'" alt="Tu foto" '
-          +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'">'
+        +'<img id="adm-lp-preview-chat" src="'+_admEsc(fotoChat)+'" alt="Tu foto" data-resp="'+_admEsc(FOTO_CHAT_COD)+'" '
+          +'onerror="_admLpFallo(this)" onload="this.style.display=\'\'">'
       +'</div>'
       +'<div class="adm-lp-chat-txt">'
         +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">La que ven tus usuarias dentro de la app.</div>'
@@ -14045,8 +14045,8 @@ function _admLandingHTML(c){
     +'<div class="adm-lp-foto-tit">Tu retrato de la landing</div>'
     +'<div class="adm-lp-chat-fila">'
       +'<div class="adm-lp-marco v" style="width:104px;flex-shrink:0;background-image:'+_admLpFondo(fotoPerfil)+'">'
-        +'<img id="adm-lp-preview-perfil" src="'+_admEsc(fotoPerfil)+'" alt="Tu retrato" '
-          +'onerror="this.style.display=\'none\'" onload="this.style.display=\'\'" style="height:140px;">'
+        +'<img id="adm-lp-preview-perfil" src="'+_admEsc(fotoPerfil)+'" alt="Tu retrato" data-resp="'+_admEsc(FOTO_PERFIL_PREV)+'" '
+          +'onerror="_admLpFallo(this)" onload="this.style.display=\'\'" style="height:140px;">'
       +'</div>'
       +'<div class="adm-lp-chat-txt">'
         +'<div class="adm-lp-foto-nota" style="margin:0 0 10px;">La grande de la sección <em>Detrás de HOGAR</em>, la que ve quien todavía no ha entrado. Es distinta de la de arriba: aquí sales en grande, así que suele funcionar una foto de cuerpo o de medio cuerpo.</div>'
@@ -14093,13 +14093,34 @@ function _admLandingHTML(c){
 
 // Actualiza la previsualización al pegar una URL (opción avanzada).
 /** El valor CSS del fondo de un marco del editor de la landing.
- *  Las comillas, los paréntesis y la barra invertida se porcentúan: una URL de
- *  Supabase no los trae, y así una pegada a mano no puede cerrar el url() y colar
- *  CSS por su cuenta. Porcentuarlos —en vez de borrarlos— no cambia a qué apuntan. */
+ *
+ *  COMILLAS SIMPLES EN EL url(), Y NO ES COSMÉTICO. Esto se inyecta dentro de un
+ *  atributo style="…" del HTML que se construye a mano, así que una comilla doble
+ *  aquí CIERRA EL ATRIBUTO: el marco se quedaba sin fondo y la foto no aparecía por
+ *  ningún lado. Fue exactamente el fallo de "no se ve cuál estoy cambiando".
+ *
+ *  Las comillas, los paréntesis y la barra invertida de la URL se porcentúan: una de
+ *  Supabase no los trae, y así una pegada a mano no puede cerrar el url() ni el
+ *  atributo y colar nada. Porcentuarlos —en vez de borrarlos— no cambia a qué apuntan. */
 function _admLpFondo(url){
   const limpia=String(url==null?'':url).trim()
     .replace(/["'()\\]/g, c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
-  return limpia?'url("'+limpia+'")':'none';
+  return limpia?"url('"+limpia+"')":'none';
+}
+
+/** Qué hacer cuando una foto del editor no carga.
+ *
+ *  ANTES SE ESCONDÍA Y YA: el marco se quedaba vacío y Andrea no tenía forma de saber
+ *  qué estaba cambiando. Y si el valor guardado en la base era viejo o estaba roto,
+ *  el editor no enseñaba nada aunque la landing sí estuviera mostrando la del código.
+ *  Ahora cae a la del código —la misma que pinta la landing— y solo si ESA también
+ *  falla se rinde y avisa. Sin bucle: al segundo intento src ya es igual al respaldo. */
+function _admLpFallo(img){
+  const resp=img.getAttribute('data-resp')||'';
+  if(resp && img.src!==resp){ _admLpPintar(img, resp); return; }
+  img.style.display='none';
+  const marco=img.closest('.adm-lp-marco');
+  if(marco){ marco.style.backgroundImage='none'; marco.classList.add('sinfoto'); }
 }
 
 /** Pinta una foto del editor en los DOS sitios que la muestran: el <img> —que es de
