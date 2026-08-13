@@ -6665,6 +6665,16 @@ body{ background:transparent; }
 
 /* El logo vuelve a su tinta: el filter lo volvía blanco para el fondo café. */
 #s-admin .adm-panel-logo img{ filter:none; opacity:.5; }
+/* CENTRADO EN EL MENÚ. La fila repartía con space-between, que es lo correcto con dos
+   hijos —logo y aspa— pero deja el logo pegado a la izquierda; y en el sidebar de
+   escritorio, que solo lleva el logo, lo dejaba en el mismo canto.
+   El aspa sale del reparto y se ancla al canto derecho, así el logo se centra sobre la
+   fila entera y no sobre el hueco que le deje el botón. */
+#s-admin .adm-panel-logo{ position:relative; justify-content:center; }
+#s-admin .adm-panel-close{ position:absolute; right:0; top:50%; transform:translateY(-50%); }
+/* El giro del hover conserva el centrado vertical: sin esto, el transform del :hover
+   pisaría el translateY y el aspa daría un salto al pasar por encima. */
+#s-admin .adm-panel-close:hover{ transform:translateY(-50%) rotate(90deg); }
 
 /* Andrea: su nombre y su rol, invertidos. */
 #s-admin .adm-perfil{ border-bottom-color:rgba(150,100,70,.16); }
@@ -7091,7 +7101,7 @@ body{ background:transparent; }
 #s-done .app-nav-logo,
 #s-profile .app-nav-logo,
 #s-history .app-nav-logo{
-  height:42px !important; opacity:1 !important;
+  height:46px !important; opacity:1 !important;
 }
 #s-dash .app-nav-logo img,
 #s-checkin .app-nav-logo img,
@@ -7131,7 +7141,7 @@ body{ background:transparent; }
   #s-prac .app-nav-logo,
   #s-done .app-nav-logo,
   #s-profile .app-nav-logo,
-  #s-history .app-nav-logo{ height:36px !important; }
+  #s-history .app-nav-logo{ height:40px !important; }
 }
 </style>
 </head>
