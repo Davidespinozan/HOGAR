@@ -7650,6 +7650,9 @@ body:has(.scr.on .hnav) #pwa-aviso{
   display:flex; flex-wrap:wrap; gap:8px;
   margin-top:10px;
 }
+/* Las vías de contacto de "¿Necesitas algo?", una por línea: son enlaces distintos y
+   en la misma línea se leerían como uno solo partido. */
+#s-profile .perfil-via{ display:block; margin-top:6px; }
 </style>
 </head>
 <body>
@@ -8510,6 +8513,35 @@ body:has(.scr.on .hnav) #pwa-aviso{
         </div>
       </div>
     </div>
+    <!-- CAMBIAR LA CONTRASEÑA. Va aquí y no en "Datos personales" porque no es un
+         dato suyo, es una llave: pertenece al mismo grupo que su acceso.
+         NACE PLEGADO. Es algo que se hace una vez cada mucho, y desplegado deja dos
+         campos vacíos ocupando media pantalla cada vez que entra a mirar su racha. -->
+    <div class="perfil-section">
+      <div class="perfil-section-title">Mi contraseña</div>
+      <div class="perfil-field" id="clave-cerrada">
+        <div>
+          <div class="perfil-field-label">Contraseña</div>
+          <div class="perfil-field-value">••••••••</div>
+        </div>
+        <button class="perfil-field-edit" onclick="abrirCambioClave()">Cambiar</button>
+      </div>
+      <div id="clave-abierta" style="display:none;">
+        <div class="perfil-field" style="flex-direction:column;align-items:stretch;">
+          <div class="perfil-field-label">Contraseña nueva</div>
+          <input type="password" class="perfil-input" id="clave-nueva" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+        </div>
+        <div class="perfil-field" style="flex-direction:column;align-items:stretch;">
+          <div class="perfil-field-label">Repítela</div>
+          <input type="password" class="perfil-input" id="clave-repe" autocomplete="new-password" placeholder="La misma otra vez">
+        </div>
+        <div class="perfil-field-nota" id="clave-msg" style="margin-top:2px;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+          <button class="perfil-field-edit" onclick="cerrarCambioClave()">Cancelar</button>
+          <button class="perfil-field-edit" style="background:var(--terracota);color:var(--crema);" id="clave-guardar" onclick="guardarClaveNueva(this)">Guardar</button>
+        </div>
+      </div>
+    </div>
     <div class="perfil-section">
       <div class="perfil-section-title">Mi acceso</div>
       <div class="perfil-field">
@@ -9058,6 +9090,28 @@ body:has(.scr.on .hnav) #pwa-aviso{
         <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
           <div id="adm-notas-body">
             <div class="adm-loading">Cargando tus notas…</div>
+          </div>
+        </div></div></div>
+      </div>
+
+      <!-- CÓMO TE CONTACTAN — va en "Lo que dices" y no en "Tu landing", y no es
+           arbitrario: la landing es la página de venta, pero este contacto lo ve sobre
+           todo quien YA entró, en el bloque "¿Necesitas algo?" de Mi cuenta. Lo que
+           tienen en común las cuatro cosas de esta sección es que son mensajes suyos
+           que llegan a la usuaria, y éste también. Además evita añadir una entrada más
+           al menú, que ya tiene cinco. -->
+      <div class="adm-acc" id="adm-acc-contacto">
+        <button type="button" class="adm-acc-head" aria-expanded="false" aria-controls="adm-contacto-body" onclick="toggleAdmAcc('adm-acc-contacto')">
+          <span class="adm-acc-titles">
+            <span class="adm-acc-eyebrow">Cómo te contactan</span>
+            <span class="adm-acc-sub">Tu correo, y si quieres tu WhatsApp o tu Instagram. Es lo que ve una usuaria cuando necesita algo.</span>
+            <span class="adm-acc-meta" id="adm-acc-sub-contacto">Cargando…</span>
+          </span>
+          <span class="adm-acc-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+        </button>
+        <div class="adm-acc-panel"><div class="adm-acc-inner"><div class="adm-acc-body">
+          <div id="adm-contacto-body">
+            <div class="adm-loading">Cargando tu contacto…</div>
           </div>
         </div></div></div>
       </div>
@@ -9752,7 +9806,7 @@ function goAdmin(section){
   // Cada sección carga SOLO lo suyo. Contenido se quedó con los archivos; las
   // notas y los textos se mudaron a "Lo que dices" junto al cuestionario.
   if(s==='contenido') loadContenido();
-  if(s==='lodices'){ loadCuestionarioAdmin(); loadTextosAdmin(); loadNotasAdmin(); }
+  if(s==='lodices'){ loadCuestionarioAdmin(); loadTextosAdmin(); loadNotasAdmin(); loadContactoAdmin(); }
   if(s==='landing') loadLandingAdmin();
   // Entrar a Usuarias desde el sidebar siempre muestra la lista, no una ficha abierta.
   if(s==='usuarias') volverAUsuariasHogar();
@@ -11147,6 +11201,10 @@ async function precargarLandingHogar(){
     const imgCierre=String(data.landing_cierre_imagen||'').trim();
     const imgTrans=String(data.landing_trans_imagen||'').trim();
     const precio=_landingPrecioTxt(data.precio_centavos);
+    // El contacto de Andrea. Llega por la misma consulta con '*', así que si el SQL
+    // de SQL-CONTACTO.md no se ha corrido estos tres son undefined y no pasa nada:
+    // _landingSetContacto() conserva el correo del código.
+    _landingSetContacto(data.contacto_email, data.contacto_whatsapp, data.contacto_instagram);
 
     const h1=document.querySelector('#s-landing .hero h1');
     const desc=document.querySelector('#s-landing .hero-desc');
@@ -11259,7 +11317,33 @@ const STRIPE_CHECKOUT_FN = '/.netlify/functions/crear-checkout';
 // registrada entra directa al dashboard y no los ve nunca. Resultado: cuatro
 // mensajes decían "escríbenos" sin decir a dónde. Si algún día cambia el correo,
 // se cambia aquí y en los dos modales legales (que son texto legal aparte).
-const HOGAR_CONTACTO='andrealaso1997@hotmail.com';
+// ESTO ES UN let Y NO UN const A PROPÓSITO. El correo lo escribe Andrea desde su
+// panel y llega por la vista pública hogar_landing; este valor es solo el respaldo de
+// arranque, el que se usa mientras la consulta va en camino y el que se queda si el
+// SQL de SQL-CONTACTO.md no se ha corrido. Lo actualiza _landingSetContacto().
+let HOGAR_CONTACTO='andrealaso1997@hotmail.com';
+
+// Los dos opcionales. Vacíos = no existen, y entonces no se enseña su fila.
+let HOGAR_WHATSAPP='';
+let HOGAR_INSTAGRAM='';
+
+/** Guarda lo que venga de la base. Cada campo por separado: si el correo llega vacío
+ *  se conserva el del código en vez de dejar a la clienta sin ningún contacto. */
+function _landingSetContacto(email, whatsapp, instagram){
+  const e=String(email||'').trim();
+  if(e) HOGAR_CONTACTO=e;
+  HOGAR_WHATSAPP=String(whatsapp||'').trim();
+  HOGAR_INSTAGRAM=String(instagram||'').trim();
+}
+
+/** El número tal cual lo escriba Andrea, pero limpio para el enlace: wa.me solo
+ *  acepta dígitos, así que se quitan espacios, guiones, paréntesis y el +. */
+function _waLimpio(n){ return String(n||'').replace(/[^0-9]/g,''); }
+/** Y la cuenta de Instagram sin la arroba ni la URL, la escriba como la escriba. */
+function _igLimpio(n){
+  return String(n||'').trim().replace(/^@/,'')
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i,'').replace(/\/+$/,'');
+}
 
 /** mailto con asunto y cuerpo ya escritos. La clienta solo tiene que enviar. */
 function mailtoHogar(asunto, cuerpo){
@@ -11398,10 +11482,25 @@ function uP(){
   // Contacto. Se arma aquí y no en el HTML porque el cuerpo del correo lleva su
   // email de registro, que solo se conoce con la sesión ya cargada.
   const ay=$('perfil-ayuda');
-  if(ay) ay.innerHTML=enlaceAyudaHogar(
-    'Ayuda con HOGAR',
-    'Hola Andrea:\n\n\n\nMi correo de registro: '+_emailUsuaria()+'\n',
-    HOGAR_CONTACTO);
+  if(ay){
+    // Las tres vías, y las dos opcionales solo si Andrea las puso. El correo va
+    // primero porque es el único que siempre existe.
+    let vias=enlaceAyudaHogar(
+      'Ayuda con HOGAR',
+      'Hola Andrea:\n\n\n\nMi correo de registro: '+_emailUsuaria()+'\n',
+      HOGAR_CONTACTO);
+    const wa=_waLimpio(HOGAR_WHATSAPP);
+    if(wa){
+      vias+='<a href="https://wa.me/'+wa+'" target="_blank" rel="noopener" class="acc-ayuda-link perfil-via">'
+        +'WhatsApp '+_admEsc(HOGAR_WHATSAPP)+'</a>';
+    }
+    const ig=_igLimpio(HOGAR_INSTAGRAM);
+    if(ig){
+      vias+='<a href="https://instagram.com/'+encodeURIComponent(ig)+'" target="_blank" rel="noopener" class="acc-ayuda-link perfil-via">'
+        +'@'+_admEsc(ig)+'</a>';
+    }
+    ay.innerHTML=vias;
+  }
 }
 
 // ============================================
@@ -14192,6 +14291,98 @@ function _admNotasMsg(texto, tipo){
 // Mensaje único para cuando RLS bloquea en silencio.
 const ADM_NOTAS_SIN_PERMISO='No se pudo guardar: tu cuenta no tiene permiso de escritura en hogar_notas.';
 
+// ══════════════════════════════════════════════════════════════════════════
+// CÓMO TE CONTACTAN
+//
+// El correo de Andrea estaba escrito en el código y salía en doce sitios. Ahora vive
+// en hogar_config y ella lo cambia desde aquí, con dos vías opcionales más.
+//
+// SI EL SQL DE SQL-CONTACTO.md NO SE HA CORRIDO no se rompe nada: la consulta pide
+// las tres columnas por nombre y falla, y entonces se enseña el aviso de que falta
+// correrlo en vez de un formulario que no podría guardar.
+// ══════════════════════════════════════════════════════════════════════════
+async function loadContactoAdmin(){
+  const cont=document.getElementById('adm-contacto-body');
+  const meta=document.getElementById('adm-acc-sub-contacto');
+  if(!cont) return;
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { data, error } = await window.sb.from('hogar_config')
+      .select('contacto_email,contacto_whatsapp,contacto_instagram').eq('id',1).maybeSingle();
+    if(error) throw error;
+    const c=data||{};
+    const correo=String(c.contacto_email||'').trim();
+    const wa=String(c.contacto_whatsapp||'').trim();
+    const ig=String(c.contacto_instagram||'').trim();
+
+    const puestas=[correo&&'correo', wa&&'WhatsApp', ig&&'Instagram'].filter(Boolean);
+    if(meta) meta.textContent = puestas.length ? puestas.join(' · ') : 'Solo el correo del código';
+
+    cont.innerHTML=
+      '<div class="adm-alert" id="adm-contacto-msg"></div>'
+      +'<p class="adm-card-text" style="margin-bottom:16px;">'
+        +'Esto es lo que ve una usuaria en «¿Necesitas algo?». Los dos últimos son opcionales: '
+        +'si los dejas vacíos, no aparecen.</p>'
+      +'<div class="adm-field"><label for="adm-contacto-email">Tu correo</label>'
+        +'<input type="email" id="adm-contacto-email" placeholder="'+_admEsc(HOGAR_CONTACTO)+'" value="'+_admEsc(correo)+'"></div>'
+      +'<div class="adm-field"><label for="adm-contacto-wa">WhatsApp <span style="font-weight:400;">(opcional)</span></label>'
+        +'<input type="tel" id="adm-contacto-wa" placeholder="+52 55 1234 5678" value="'+_admEsc(wa)+'"></div>'
+      +'<div class="adm-field"><label for="adm-contacto-ig">Instagram <span style="font-weight:400;">(opcional)</span></label>'
+        +'<input type="text" id="adm-contacto-ig" placeholder="@tucuenta" value="'+_admEsc(ig)+'"></div>'
+      +'<div class="adm-cuest-guardar-bloque">'
+        +'<button type="button" class="adm-btn-mini primario" onclick="guardarContactoHogar(this)">Guardar cambios</button>'
+      +'</div>';
+  }catch(e){
+    console.warn('[HOGAR admin] contacto:',(e&&e.message)||e);
+    if(meta) meta.textContent='Falta un paso en la base';
+    cont.innerHTML='<div class="adm-card hogar-rise-in">'
+      +'<p class="adm-card-text">Para poder cambiar tu contacto desde aquí falta correr un SQL '
+      +'en Supabase, una sola vez. Está en el archivo <code>SQL-CONTACTO.md</code>.</p>'
+      +'<p class="adm-card-text" style="margin-top:10px;">Mientras tanto tus usuarias te siguen '
+      +'viendo el correo de siempre: <strong>'+_admEsc(HOGAR_CONTACTO)+'</strong>.</p>'
+      +'<div class="adm-actions" style="margin-top:18px;">'
+      +'<button type="button" class="btn btn-o" onclick="loadContactoAdmin()">Reintentar</button></div></div>';
+  }
+}
+
+async function guardarContactoHogar(btn){
+  const el=id=>document.getElementById(id);
+  const correo=(el('adm-contacto-email')||{}).value||'';
+  const wa=(el('adm-contacto-wa')||{}).value||'';
+  const ig=(el('adm-contacto-ig')||{}).value||'';
+  const aviso=(t,tipo)=>{ const m=el('adm-contacto-msg'); if(m){ m.textContent=t; m.className='adm-alert'+(t?(' '+(tipo||'ok')):''); } };
+  aviso('');
+
+  const c=String(correo).trim();
+  // El correo es el único obligatorio: es la vía que siempre tiene que existir.
+  if(!c){ aviso('Escribe al menos tu correo: es el contacto que nunca puede faltar.','error'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(c)){ aviso('Ese correo no parece válido.','error'); return; }
+
+  const previo=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+  try{
+    const { data, error } = await window.sb.from('hogar_config').update({
+      contacto_email:c,
+      contacto_whatsapp:String(wa).trim()||null,
+      contacto_instagram:String(ig).trim()||null,
+      updated_at:new Date().toISOString()
+    }).eq('id',1).select('id');
+    if(error) throw error;
+    if(!data || !data.length){ aviso(ADM_LANDING_SIN_PERMISO,'error'); return; }
+    // La app en vivo, sin recargar: lo mismo que hacen las fotos al subirlas.
+    _landingSetContacto(c, wa, ig);
+    aviso('Guardado','ok');
+    const meta=document.getElementById('adm-acc-sub-contacto');
+    const puestas=[c&&'correo', String(wa).trim()&&'WhatsApp', String(ig).trim()&&'Instagram'].filter(Boolean);
+    if(meta) meta.textContent=puestas.join(' · ');
+  }catch(e){
+    console.warn('[HOGAR admin] guardar contacto:',(e&&e.message)||e);
+    aviso('No se pudo guardar. Intenta de nuevo.','error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar cambios'; }
+  }
+}
+
 async function loadNotasAdmin(){
   const cont=document.getElementById('adm-notas-body');
   if(!cont || _admNotasCargando) return;
@@ -16280,6 +16471,75 @@ window.addEventListener('beforeinstallprompt', e=>{
 });
 window.addEventListener('appinstalled', ()=>{ pwaAvisoCerrar(); });
 document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(_pwaAvisoQuizas, 1200); });
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// CAMBIAR LA CONTRASEÑA DESDE MI CUENTA
+//
+// updateUser({password}) de Supabase cambia la clave de la sesión que está abierta,
+// así que no hace falta ningún correo de por medio.
+//
+// NO SE PIDE LA CONTRASEÑA ACTUAL, y conviene saber por qué: Supabase no ofrece
+// forma de verificarla —no hay un "comprueba esta clave" en su API—, y el único apaño
+// sería volver a iniciar sesión con ella, lo que reemplaza la sesión en curso y puede
+// dejar a medias lo que estuviera haciendo. El riesgo real que cubriría es que
+// alguien con el teléfono desbloqueado en la mano le cambie la clave; a cambio, el
+// apaño rompería el caso normal. Si algún día importa, el camino correcto es la
+// reautenticación oficial de Supabase (auth.reauthenticate + un código por correo).
+// ══════════════════════════════════════════════════════════════════════════
+const CLAVE_MIN=8;
+
+function abrirCambioClave(){
+  const a=document.getElementById('clave-abierta');
+  const c=document.getElementById('clave-cerrada');
+  if(a) a.style.display='';
+  if(c) c.style.display='none';
+  _claveMsg('');
+  const n=document.getElementById('clave-nueva');
+  if(n){ n.value=''; n.focus(); }
+  const r=document.getElementById('clave-repe'); if(r) r.value='';
+}
+function cerrarCambioClave(){
+  const a=document.getElementById('clave-abierta');
+  const c=document.getElementById('clave-cerrada');
+  if(a) a.style.display='none';
+  if(c) c.style.display='';
+  _claveMsg('');
+}
+function _claveMsg(t, tipo){
+  const m=document.getElementById('clave-msg');
+  if(!m) return;
+  m.textContent=t||'';
+  m.style.color = tipo==='error' ? '#b5432e' : (tipo==='ok' ? '#5f7d3f' : '');
+}
+
+async function guardarClaveNueva(btn){
+  const n=(document.getElementById('clave-nueva')||{}).value||'';
+  const r=(document.getElementById('clave-repe')||{}).value||'';
+  if(n.length < CLAVE_MIN){ _claveMsg('Necesita al menos '+CLAVE_MIN+' caracteres.','error'); return; }
+  if(n!==r){ _claveMsg('Las dos no coinciden.','error'); return; }
+  const previo=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { error } = await window.sb.auth.updateUser({ password:n });
+    if(error) throw error;
+    _claveMsg('Listo, tu contraseña quedó cambiada.','ok');
+    // Se cierra sola después de leerlo: dejarlo abierto con las dos casillas llenas
+    // invita a pulsar Guardar otra vez sin haber cambiado nada.
+    setTimeout(cerrarCambioClave, 2200);
+  }catch(e){
+    const msg=(e&&e.message)||'';
+    // Supabase responde en inglés; los dos casos que de verdad ocurren se traducen.
+    _claveMsg(
+      /should be different|same.*password/i.test(msg) ? 'Esa es la que ya tenías. Escribe una distinta.'
+      : /at least|weak|short/i.test(msg)              ? 'Esa contraseña es demasiado corta o demasiado sencilla.'
+      : 'No se pudo cambiar. Intenta de nuevo.', 'error');
+    console.warn('[HOGAR] cambiar contraseña:', msg||e);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
+  }
+}
 
 </script>
 </body>
