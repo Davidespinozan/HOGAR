@@ -7734,6 +7734,44 @@ html.hogar-arranque #hogar-splash img{
 @media(prefers-reduced-motion:reduce){
   html.hogar-arranque #hogar-splash img{ animation:none; }
 }
+/* ══════════════════════════════════════════════════════════════════════════
+   LOS SÍMBOLOS DEL MENÚ DE ANDREA
+
+   Los reparte _admPintarIconos() por data-adm, así que aquí solo se dice cómo se ven.
+
+   ══ EL COLOR NO SE FIJA, SE HEREDA ══
+   Los SVG van con stroke:currentColor, y eso es lo que hace que funcionen en los tres
+   estados sin una regla por estado: en reposo toman el gris del texto, al pasar por
+   encima el terracota del hover, y en la sección activa —que lleva un degradado
+   terracota de fondo— el blanco de su etiqueta. Fijarles un color habría obligado a
+   escribir los tres casos y a acordarse de los tres al cambiar la paleta.
+   ══════════════════════════════════════════════════════════════════════════ */
+#s-admin .adm-nav-ico{
+  flex-shrink:0;
+  width:20px; height:20px;
+  margin-right:12px;
+  display:inline-flex; align-items:center; justify-content:center;
+  /* Un punto por debajo del texto: el ojo pide el símbolo ligeramente más apagado que
+     la palabra, o compite con ella. En la activa sube a 1 y acompaña al blanco. */
+  opacity:.82;
+  transition:opacity .2s ease;
+}
+#s-admin .adm-nav-ico svg{ width:100%; height:100%; display:block; }
+#s-admin .adm-nav-item:hover .adm-nav-ico,
+#s-admin .adm-nav-item.active .adm-nav-ico{ opacity:1; }
+/* La etiqueta ocupa lo que sobra para que el chevron siga pegado al canto derecho:
+   sin esto, el símbolo lo empuja y cada fila lo deja en un sitio distinto. */
+#s-admin .adm-nav-label{ flex:1 1 auto; text-align:left; }
+
+/* Los dos del pie, un punto más pequeños: son acciones sueltas, no navegación. */
+#s-admin .adm-panel-link-ico{
+  width:17px; height:17px;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex-shrink:0; margin-right:10px;
+  font-size:0;                    /* mata el hueco del carácter que había antes */
+}
+#s-admin .adm-panel-link-ico svg{ width:100%; height:100%; display:block; }
+#s-admin .adm-panel-link{ display:flex; align-items:center; }
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════════════════
@@ -11563,7 +11601,63 @@ const HOGAR_ICONOS={
   instagram:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     +'<rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.1"/>'
     +'<circle cx="17.3" cy="6.7" r="1.15" fill="currentColor" stroke="none"/></svg>'
+,
+  // ── Los del menú de Andrea ──────────────────────────────────────────────
+  // Todos de trazo y en la misma retícula de 24, con el mismo grosor: es lo que hace
+  // que se lean como una familia y no como iconos sueltos de sitios distintos.
+  inicio:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<path d="M3.5 10.5 12 4l8.5 6.5"/><path d="M6 9.8V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V9.8"/></svg>',
+  usuarias:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<circle cx="9.5" cy="8.5" r="3.3"/><path d="M3.5 19.5c0-3.1 2.7-5.2 6-5.2s6 2.1 6 5.2"/>'
+    +'<path d="M16.2 6.1a3.1 3.1 0 0 1 0 5.9"/><path d="M17.6 14.7c1.9.6 3 2.2 3 4.3"/></svg>',
+  cobros:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<rect x="2.8" y="5.5" width="18.4" height="13" rx="2.4"/><path d="M2.8 10h18.4"/><path d="M6.5 14.5h3.2"/></svg>',
+  planes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<path d="M12 3.2 20 6.6v5c0 4.4-3.2 7.9-8 9.2-4.8-1.3-8-4.8-8-9.2v-5z"/><path d="m9 11.8 2.1 2.1 4-4.2"/></svg>',
+  contenido:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<rect x="2.8" y="4.8" width="18.4" height="14.4" rx="2.6"/><path d="M10.2 9.6 14.8 12l-4.6 2.4z"/></svg>',
+  lodices:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<path d="M20.5 12.4c0 3.9-3.8 7-8.5 7-1 0-2-.15-2.9-.42L4 20.5l1.7-3.4A6.6 6.6 0 0 1 3.5 12.4c0-3.9 3.8-7 8.5-7s8.5 3.1 8.5 7z"/></svg>',
+  landing:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<rect x="2.8" y="4.5" width="18.4" height="15" rx="2.4"/><path d="M2.8 9h18.4"/>'
+    +'<circle cx="6" cy="6.75" r=".75" fill="currentColor" stroke="none"/><circle cx="8.6" cy="6.75" r=".75" fill="currentColor" stroke="none"/></svg>',
+  ojo:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<path d="M2.5 12S6 6.2 12 6.2 21.5 12 21.5 12 18 17.8 12 17.8 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3.1"/></svg>',
+  salir:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    +'<path d="M14.5 4.5h3.7a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-3.7"/><path d="M9.6 8.4 6 12l3.6 3.6"/><path d="M6 12h9"/></svg>'
 };
+
+/** Reparte los símbolos por el menú del panel.
+ *
+ *  SE HACE DESDE JS Y NO EN EL MARCADO A PROPÓSITO. El menú está DUPLICADO —una copia
+ *  en la barra lateral de escritorio y otra en el cajón del móvil—, así que a mano
+ *  serían catorce ediciones que hay que acordarse de mantener emparejadas. Aquí la
+ *  relación sección→símbolo vive en un solo sitio y se aplica a las dos copias, y a
+ *  cualquier tercera que aparezca, por su data-adm.
+ *
+ *  Es idempotente: comprueba si el símbolo ya está antes de meterlo, así que llamarla
+ *  dos veces no duplica nada. */
+function _admPintarIconos(){
+  document.querySelectorAll('#s-admin .adm-nav-item[data-adm]').forEach(b=>{
+    if(b.querySelector('.adm-nav-ico')) return;
+    const svg=HOGAR_ICONOS[b.dataset.adm];
+    if(!svg) return;
+    const sp=document.createElement('span');
+    sp.className='adm-nav-ico';
+    sp.setAttribute('aria-hidden','true');
+    sp.innerHTML=svg;
+    b.insertBefore(sp, b.firstChild);
+  });
+  // Los dos del pie llevaban ◉ y →, dos caracteres de texto. El primero iOS lo pinta
+  // como emoji azul, fuera de la paleta; el segundo no dice "salir", dice "derecha".
+  document.querySelectorAll('#s-admin .adm-panel-link').forEach(b=>{
+    const ico=b.querySelector('.adm-panel-link-ico');
+    if(!ico || ico.querySelector('svg')) return;
+    ico.innerHTML = b.classList.contains('salir') ? HOGAR_ICONOS.salir : HOGAR_ICONOS.ojo;
+  });
+}
+document.addEventListener('DOMContentLoaded', _admPintarIconos);
+
 /** El símbolo envuelto, listo para poner delante de un texto. */
 function _icono(nombre){
   return '<span class="hogar-icono" aria-hidden="true">'+(HOGAR_ICONOS[nombre]||'')+'</span>';
