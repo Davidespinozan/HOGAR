@@ -7704,13 +7704,32 @@ html.hogar-arranque #hogar-splash img{
      el escritorio no se vuelva un cartel. El alto sale solo de su proporción. */
   width:66vw; max-width:340px; min-width:200px;
   height:auto; display:block;
-  animation:splashLatido 1.9s ease-in-out infinite;
+  /* DOS ANIMACIONES, Y LA DIVISIÓN ES LO QUE LO ARREGLA: la entrada mueve la escala
+     una sola vez y el latido de después toca SOLO la opacidad. */
+  animation:splashEntra .78s cubic-bezier(.22,1,.32,1) backwards,
+            splashLatido 2.4s ease-in-out .85s infinite;
 }
-/* Un latido muy corto: dice "está pasando algo" sin llamar la atención. Sin esto, una
-   espera de dos segundos parece una pantalla colgada. */
+/* ══ POR QUÉ SE VEÍA BORROSO ══
+   El latido animaba transform:scale() en bucle. Al animar un transform, el navegador
+   dibuja la imagen UNA vez en una capa aparte y luego estira ese mapa de píxeles en
+   cada fotograma; con un trazo tan fino como este logo, eso se ve como una imagen
+   sucia. Y como la escala oscilaba por debajo de 1, muchas veces el mapa estaba
+   dibujado al tamaño pequeño y se ampliaba, que es el caso que peor se ve.
+
+   Ahora la escala se mueve UNA SOLA VEZ, al entrar, y termina exactamente en scale(1).
+   Con fill-mode:backwards el estado final no se conserva, así que al acabar la
+   entrada la imagen se queda SIN transform ninguno — sin capa, sin mapa estirado y
+   nítida de verdad. El backwards es lo que evita el destello: antes de empezar ya
+   está en su estado inicial en vez de en el natural. */
+@keyframes splashEntra{
+  from{ opacity:0; transform:scale(.93); }
+  to  { opacity:1; transform:scale(1); }
+}
+/* El latido, ya sin escala: solo respira. Dice "está pasando algo" sin ensuciar nada.
+   Sin él, dos segundos parecen una pantalla colgada. */
 @keyframes splashLatido{
-  0%,100%{ opacity:1;   transform:scale(1); }
-  50%    { opacity:.72; transform:scale(.975); }
+  0%,100%{ opacity:1; }
+  50%    { opacity:.68; }
 }
 @media(prefers-reduced-motion:reduce){
   html.hogar-arranque #hogar-splash img{ animation:none; }
