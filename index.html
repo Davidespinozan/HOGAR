@@ -7653,6 +7653,19 @@ body:has(.scr.on .hnav) #pwa-aviso{
 /* Las vías de contacto de "¿Necesitas algo?", una por línea: son enlaces distintos y
    en la misma línea se leerían como uno solo partido. */
 #s-profile .perfil-via{ display:block; margin-top:6px; }
+/* "No la recuerdo" — texto suelto y subrayado bajo el campo de la contraseña actual:
+   es una salida, no una acción del formulario, y no debe competir con Guardar. */
+#s-profile .clave-olvidada{
+  align-self:flex-start;
+  margin-top:8px; padding:2px 0;
+  background:none; border:none; cursor:pointer;
+  font-family:'Montserrat',sans-serif;
+  font-size:12.5px; font-weight:400; letter-spacing:0;
+  color:var(--txt-suave-malla);
+  text-decoration:underline; text-underline-offset:3px;
+}
+#s-profile .clave-olvidada:hover{ color:var(--terracota-oscuro); }
+#s-profile .clave-olvidada[disabled]{ opacity:.6; cursor:default; }
 </style>
 </head>
 <body>
@@ -8498,18 +8511,35 @@ body:has(.scr.on .hnav) #pwa-aviso{
           <button class="perfil-field-edit" style="background:var(--terracota);color:var(--crema);" onclick="guardarPerfil('nombre')">Guardar</button>
         </div>
       </div>
-      <!-- EMAIL — solo lectura, a propósito.
-           Cambiarlo de verdad exige reverificación por correo en Supabase Auth
-           (dos correos: al viejo y al nuevo, ambos por confirmar) y, sobre todo,
-           sincronizar hogar_usuarias.email, que es una COPIA que escribe el
-           trigger de alta y de la que vive el panel de Andrea. Sin esa
-           sincronización, ella vería correos obsoletos justo donde decide sobre
-           accesos y cobros. El plan completo está en PENDIENTES.md. -->
+      <!-- EMAIL — ya se puede cambiar, y lo que lo desbloqueó fue el trigger de
+           SQL-CAMBIAR-CORREO.md. hogar_usuarias.email es una COPIA de auth.users y de
+           ella vive el panel de Andrea: la lista de usuarias y, sobre todo, la
+           pantalla donde concede o revoca accesos. Sin ese trigger que la sincronice,
+           abrir este campo la dejaría decidiendo sobre direcciones que ya no existen.
+           EL TRIGGER VA PRIMERO; este formulario, después. -->
       <div class="perfil-field" id="field-email-view">
         <div>
           <div class="perfil-field-label">Email</div>
           <div class="perfil-field-value" id="perfil-email-display">tu@email.com</div>
           <div class="perfil-field-nota" id="perfil-email-nota"></div>
+        </div>
+        <button class="perfil-field-edit" onclick="abrirCambioCorreo()">Cambiar</button>
+      </div>
+      <div class="perfil-field" id="field-email-edit" style="display:none;flex-direction:column;align-items:stretch;">
+        <div class="perfil-field-label">Correo nuevo</div>
+        <input type="email" class="perfil-input" id="input-email" autocomplete="email" placeholder="tunuevo@correo.com">
+        <!-- SE AVISA ANTES, NO DESPUÉS. Supabase trae "Secure email change" activado,
+             así que manda DOS correos y hay que confirmar los dos. Quien no lo sepa
+             confirma uno, ve que no cambió nada y cree que está roto. -->
+        <div class="perfil-field-nota" style="margin-top:8px;">
+          Te llegarán <strong>dos correos</strong>: uno al de ahora y otro al nuevo.
+          Hay que abrir los dos para que el cambio quede. Mientras tanto sigues
+          entrando con el de siempre.
+        </div>
+        <div class="perfil-field-nota" id="email-msg" style="margin-top:6px;"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+          <button class="perfil-field-edit" onclick="cerrarCambioCorreo()">Cancelar</button>
+          <button class="perfil-field-edit" style="background:var(--terracota);color:var(--crema);" onclick="guardarCorreoNuevo(this)">Mandar los correos</button>
         </div>
       </div>
     </div>
@@ -8527,6 +8557,14 @@ body:has(.scr.on .hnav) #pwa-aviso{
         <button class="perfil-field-edit" onclick="abrirCambioClave()">Cambiar</button>
       </div>
       <div id="clave-abierta" style="display:none;">
+        <div class="perfil-field" style="flex-direction:column;align-items:stretch;">
+          <div class="perfil-field-label">Contraseña actual</div>
+          <input type="password" class="perfil-input" id="clave-actual" autocomplete="current-password" placeholder="La que usas ahora">
+          <!-- La salida para quien no la recuerde: el mismo correo de recuperación
+               que ya existe desde la pantalla de entrar. Sin esto, olvidarla dentro de
+               la app obliga a cerrar sesión para poder recuperarla. -->
+          <button type="button" class="clave-olvidada" onclick="olvideMiClave(this)">No la recuerdo, mándame un correo</button>
+        </div>
         <div class="perfil-field" style="flex-direction:column;align-items:stretch;">
           <div class="perfil-field-label">Contraseña nueva</div>
           <input type="password" class="perfil-input" id="clave-nueva" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
@@ -10724,6 +10762,15 @@ async function _authInit(){
   try{
     const hash=window.location.hash||'';
     const search=window.location.search||'';
+    // EL CAMBIO DE CORREO VUELVE POR AQUÍ. Antes solo se reconocía 'recovery', así
+    // que quien pulsaba el enlace de confirmación aterrizaba en la landing sin una
+    // palabra y no tenía forma de saber si había funcionado.
+    if(hash.includes('type=email_change')){
+      try{ await window.sb.auth.getSession(); }catch(_){}
+      // Se limpia el hash para que recargar no vuelva a enseñar el aviso.
+      try{ history.replaceState(null,'',window.location.pathname); }catch(_){}
+      _correoAvisoPendiente=true;
+    }
     const isRecovery=hash.includes('type=recovery')||search.includes('reset=true');
     if(isRecovery){
       try{ await window.sb.auth.getSession(); }catch(_){}
@@ -11481,6 +11528,7 @@ function uP(){
   if(ab) ab.style.display = (STRIPE_PAGO_ACTIVO && U.acceso!==true) ? '' : 'none';
   // Contacto. Se arma aquí y no en el HTML porque el cuerpo del correo lleva su
   // email de registro, que solo se conoce con la sesión ya cargada.
+  _correoMostrarAvisoVuelta();
   const ay=$('perfil-ayuda');
   if(ay){
     // Las tres vías, y las dos opcionales solo si Andrea las puso. El correo va
@@ -16479,13 +16527,15 @@ document.addEventListener('DOMContentLoaded', ()=>{ setTimeout(_pwaAvisoQuizas, 
 // updateUser({password}) de Supabase cambia la clave de la sesión que está abierta,
 // así que no hace falta ningún correo de por medio.
 //
-// NO SE PIDE LA CONTRASEÑA ACTUAL, y conviene saber por qué: Supabase no ofrece
-// forma de verificarla —no hay un "comprueba esta clave" en su API—, y el único apaño
-// sería volver a iniciar sesión con ella, lo que reemplaza la sesión en curso y puede
-// dejar a medias lo que estuviera haciendo. El riesgo real que cubriría es que
-// alguien con el teléfono desbloqueado en la mano le cambie la clave; a cambio, el
-// apaño rompería el caso normal. Si algún día importa, el camino correcto es la
-// reautenticación oficial de Supabase (auth.reauthenticate + un código por correo).
+// SÍ SE PIDE LA CONTRASEÑA ACTUAL, como en cualquier app. Supabase no tiene un
+// "comprueba esta clave", así que se verifica de la única forma que existe: volviendo
+// a iniciar sesión con ella. La primera versión de esto no la pedía por miedo a que
+// eso rompiera la sesión abierta; se fue a mirar y NO la rompe — el único
+// onAuthStateChange que hay reacciona solo a PASSWORD_RECOVERY, así que un SIGNED_IN
+// de la misma usuaria no dispara nada. Entra la misma persona, con un token nuevo.
+//
+// Y si no la recuerda, no se queda encerrada: el botón de abajo manda el mismo correo
+// de recuperación que ya existe desde la pantalla de entrar.
 // ══════════════════════════════════════════════════════════════════════════
 const CLAVE_MIN=8;
 
@@ -16495,9 +16545,8 @@ function abrirCambioClave(){
   if(a) a.style.display='';
   if(c) c.style.display='none';
   _claveMsg('');
-  const n=document.getElementById('clave-nueva');
-  if(n){ n.value=''; n.focus(); }
-  const r=document.getElementById('clave-repe'); if(r) r.value='';
+  ['clave-actual','clave-nueva','clave-repe'].forEach(id=>{ const c=document.getElementById(id); if(c) c.value=''; });
+  const a2=document.getElementById('clave-actual'); if(a2) a2.focus();
 }
 function cerrarCambioClave(){
   const a=document.getElementById('clave-abierta');
@@ -16513,15 +16562,44 @@ function _claveMsg(t, tipo){
   m.style.color = tipo==='error' ? '#b5432e' : (tipo==='ok' ? '#5f7d3f' : '');
 }
 
+/** Manda el correo de recuperación sin salir de Mi cuenta. */
+async function olvideMiClave(btn){
+  const correo=_emailUsuaria();
+  if(!correo){ _claveMsg('No pudimos leer tu correo. Vuelve a entrar e inténtalo.','error'); return; }
+  const previo=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
+  try{
+    const { error } = await window.sb.auth.resetPasswordForEmail(correo, {
+      redirectTo: window.location.origin + window.location.pathname + '?reset=true'
+    });
+    if(error) throw error;
+    _claveMsg('Te mandamos un correo a '+correo+'. Ábrelo y ahí puedes poner una nueva.','ok');
+  }catch(e){
+    console.warn('[HOGAR] recuperar desde el perfil:',(e&&e.message)||e);
+    _claveMsg('No se pudo enviar el correo. Intenta de nuevo.','error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'No la recuerdo, mándame un correo'; }
+  }
+}
+
 async function guardarClaveNueva(btn){
+  const a=(document.getElementById('clave-actual')||{}).value||'';
   const n=(document.getElementById('clave-nueva')||{}).value||'';
   const r=(document.getElementById('clave-repe')||{}).value||'';
-  if(n.length < CLAVE_MIN){ _claveMsg('Necesita al menos '+CLAVE_MIN+' caracteres.','error'); return; }
-  if(n!==r){ _claveMsg('Las dos no coinciden.','error'); return; }
+  if(!a){ _claveMsg('Escribe tu contraseña actual.','error'); return; }
+  if(n.length < CLAVE_MIN){ _claveMsg('La nueva necesita al menos '+CLAVE_MIN+' caracteres.','error'); return; }
+  if(n!==r){ _claveMsg('Las dos nuevas no coinciden.','error'); return; }
+  if(n===a){ _claveMsg('Esa es la que ya tenías. Escribe una distinta.','error'); return; }
   const previo=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
   try{
     if(!window.sb) throw new Error('sin cliente Supabase');
+    // 1) Comprobar la actual. Es la única forma que da Supabase de verificarla.
+    const correo=_emailUsuaria();
+    if(!correo) throw new Error('sin correo en sesión');
+    const ver=await window.sb.auth.signInWithPassword({ email:correo, password:a });
+    if(ver.error){ _claveMsg('Tu contraseña actual no es ésa.','error'); return; }
+    // 2) Y ahora sí, la nueva.
     const { error } = await window.sb.auth.updateUser({ password:n });
     if(error) throw error;
     _claveMsg('Listo, tu contraseña quedó cambiada.','ok');
@@ -16539,6 +16617,86 @@ async function guardarClaveNueva(btn){
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=previo||'Guardar'; }
   }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// CAMBIAR EL CORREO DESDE MI CUENTA
+//
+// Necesita el trigger de SQL-CAMBIAR-CORREO.md: hogar_usuarias.email es una copia y
+// de ella vive el panel de Andrea. Sin sincronizarla, ella decidiría accesos sobre
+// direcciones que ya no existen.
+//
+// Supabase trae "Secure email change" activado: manda DOS correos, al viejo y al
+// nuevo, y hay que confirmar los dos. Hasta entonces la sesión sigue con el de antes.
+// Eso se avisa ANTES de pulsar, no después.
+// ══════════════════════════════════════════════════════════════════════════
+let _correoAvisoPendiente=false;
+
+function abrirCambioCorreo(){
+  const v=document.getElementById('field-email-view');
+  const e=document.getElementById('field-email-edit');
+  if(v) v.style.display='none';
+  if(e) e.style.display='flex';
+  _correoMsg('');
+  const i=document.getElementById('input-email');
+  if(i){ i.value=''; i.focus(); }
+}
+function cerrarCambioCorreo(){
+  const v=document.getElementById('field-email-view');
+  const e=document.getElementById('field-email-edit');
+  if(v) v.style.display='';
+  if(e) e.style.display='none';
+  _correoMsg('');
+}
+function _correoMsg(t, tipo){
+  const m=document.getElementById('email-msg');
+  if(!m) return;
+  m.textContent=t||'';
+  m.style.color = tipo==='error' ? '#b5432e' : (tipo==='ok' ? '#5f7d3f' : '');
+}
+
+async function guardarCorreoNuevo(btn){
+  const nuevo=String((document.getElementById('input-email')||{}).value||'').trim();
+  const actual=_emailUsuaria();
+  if(!nuevo){ _correoMsg('Escribe el correo nuevo.','error'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nuevo)){ _correoMsg('Ese correo no parece válido.','error'); return; }
+  if(nuevo.toLowerCase()===String(actual||'').toLowerCase()){
+    _correoMsg('Ése es el que ya tienes.','error'); return;
+  }
+  const previo=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Mandando…'; }
+  try{
+    if(!window.sb) throw new Error('sin cliente Supabase');
+    const { error } = await window.sb.auth.updateUser(
+      { email:nuevo },
+      { emailRedirectTo: window.location.origin + window.location.pathname }
+    );
+    if(error) throw error;
+    _correoMsg('Listo. Abre los dos correos para confirmarlo.','ok');
+  }catch(e){
+    const msg=(e&&e.message)||'';
+    _correoMsg(
+      /already (been )?registered|already in use|exists/i.test(msg)
+        ? 'Ese correo ya está usado por otra cuenta.'
+      : /rate|too many/i.test(msg)
+        ? 'Demasiados intentos seguidos. Espera unos minutos.'
+      : 'No se pudo enviar. Intenta de nuevo.', 'error');
+    console.warn('[HOGAR] cambiar correo:', msg||e);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=previo||'Mandar los correos'; }
+  }
+}
+
+/** El aviso al volver del enlace. Se enseña cuando uP() ya pintó el perfil, porque
+ *  es ahí donde ella va a mirar si su correo cambió. */
+function _correoMostrarAvisoVuelta(){
+  if(!_correoAvisoPendiente) return;
+  _correoAvisoPendiente=false;
+  const n=document.getElementById('perfil-email-nota');
+  if(!n) return;
+  n.textContent='Confirmado. Si el correo de arriba todavía es el de antes, es que falta abrir el otro enlace.';
+  n.style.color='#5f7d3f';
 }
 
 </script>
