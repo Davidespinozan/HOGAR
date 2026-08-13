@@ -7628,6 +7628,51 @@ body:has(.scr.on .hnav) #pwa-aviso{
   box-shadow:0 8px 20px rgba(140,90,60,.26);
 }
 #adm-view-landing .adm-lp-previa:active{ transform:scale(.96); }
+/* ══════════════════════════════════════════════════════════════════════════
+   RECORTE EN LAS SEIS FOTOS
+
+   ══ EL MARCO YA NO TIENE UNA PROPORCIÓN FIJA ══
+   Se la pone _admLpProporcion() en línea, sacada del tamaño de salida del recortador,
+   así que el recuadro del panel y lo que ella encuadra son la misma forma. Lo que
+   había —16/10 para las horizontales y 3/5 para las verticales— era una proporción
+   inventada que no coincidía con ninguna: encuadraba contra una forma que no existe.
+
+   ══ LA PORTADA DE CELULAR NO PUEDE MEDIRSE POR EL ANCHO ══
+   Es 9/19,5. A todo el ancho de su columna serían casi 800px de alto en el panel. El
+   max-height de antes la habría recortado y con él se pierde la proporción —alto y
+   ancho fijos a la vez hacen que aspect-ratio se ignore—. Así que aquí manda el ALTO
+   y el ancho sale solo. Va acotado a .adm-lp-foto para no tocar el retrato, que vive
+   en .adm-lp-chat con su ancho fijo de 104px.
+   ══════════════════════════════════════════════════════════════════════════ */
+#adm-view-landing .adm-lp-foto .adm-lp-marco.v{
+  height:300px; width:auto; max-width:100%;
+  max-height:none;
+  margin-left:auto; margin-right:auto;
+}
+@media(max-width:480px){
+  #adm-view-landing .adm-lp-foto .adm-lp-marco.v{ height:260px; }
+}
+
+/* "Recortar", en la esquina contraria a "Cambiar foto": son las dos cosas que se
+   pueden hacer con la foto puesta y ninguna estorba a la otra. */
+#adm-view-landing .adm-lp-recortar{
+  position:absolute; top:12px; left:12px; z-index:2;
+  cursor:pointer;
+  font-family:'Montserrat',sans-serif;
+  font-size:10px; font-weight:700; letter-spacing:1.2px;
+  text-transform:none;
+  color:#c66b41;
+  background:rgba(255,255,255,.85); border:none; border-radius:100px;
+  padding:9px 16px;
+  box-shadow:0 4px 12px rgba(61,36,24,.16);
+  transition:background .25s, transform .25s var(--ease-premium), box-shadow .25s;
+}
+#adm-view-landing .adm-lp-recortar:hover{
+  background:#fff; transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(61,36,24,.22);
+}
+/* En el marco redondo no cabe nada encima: su botón vive fuera. */
+#adm-view-landing .adm-lp-marco.redondo .adm-lp-recortar{ display:none; }
 </style>
 </head>
 <body>
@@ -14754,12 +14799,18 @@ function _admLandingHTML(c){
     '<div class="adm-lp-foto hogar-rise-in">'
       +'<div class="adm-lp-foto-tit">'+tit+'</div>'
       +'<div class="adm-lp-marco '+cls+(String(url||'').trim()?'':' sinfoto')+'"'
-        +' style="background-image:'+_admLpFondo(url)+'">'
+        // El marco se dibuja con la proporción del RECORTE, no con una fija: si el
+        // recuadro del panel y el recortador no coinciden, la previsualización miente
+        // y Andrea encuadra contra una forma que no existe.
+        +' style="'+_admLpProporcion(clave)+'background-image:'+_admLpFondo(url)+'">'
         +'<img id="'+pid+'" src="'+_admEsc(url)+'" alt="'+tit+'" data-resp="'+_admEsc(resp)+'" '
           +'onerror="_admLpFallo(this)" onload="this.style.display=\'\'">'
         +'<input type="file" id="'+fid+'" accept="image/jpeg,image/png,image/webp,image/avif" style="display:none" onchange="'+fn+'(this)">'
         +'<button type="button" class="adm-lp-cambiar" id="'+bid+'" '
           +'onclick="document.getElementById(\''+fid+'\').click()">Cambiar foto</button>'
+        // Reencuadrar la que YA está puesta, sin volver a subirla del dispositivo:
+        // es lo que hace falta cuando la foto es buena y lo que falla es el recorte.
+        +(clave?'<button type="button" class="adm-lp-recortar" onclick="recortarFotoActual(\''+clave+'\')">Recortar</button>':'')
       +'</div>'
       +'<div class="adm-lp-foto-nota">'+nota+'</div>'
       +(clave?_admHistorialHTML(clave, col):'')
@@ -14818,7 +14869,7 @@ function _admLandingHTML(c){
   html+='<div class="adm-card hogar-rise-in adm-lp-chat">'
     +'<div class="adm-lp-foto-tit">Tu retrato de la landing</div>'
     +'<div class="adm-lp-chat-fila">'
-      +'<div class="adm-lp-marco v" style="width:104px;flex-shrink:0;background-image:'+_admLpFondo(fotoPerfil)+'">'
+      +'<div class="adm-lp-marco v" style="width:104px;flex-shrink:0;'+_admLpProporcion('perfil')+'background-image:'+_admLpFondo(fotoPerfil)+'">'
         +'<img id="adm-lp-preview-perfil" src="'+_admEsc(fotoPerfil)+'" alt="Tu retrato" data-resp="'+_admEsc(FOTO_PERFIL_PREV)+'" '
           +'onerror="_admLpFallo(this)" onload="this.style.display=\'\'" style="height:140px;">'
       +'</div>'
@@ -14877,6 +14928,15 @@ function _admLandingHTML(c){
  *  Las comillas, los paréntesis y la barra invertida de la URL se porcentúan: una de
  *  Supabase no los trae, y así una pegada a mano no puede cerrar el url() ni el
  *  atributo y colar nada. Porcentuarlos —en vez de borrarlos— no cambia a qué apuntan. */
+/** La proporción del marco, sacada del tamaño de salida del recortador: una sola
+ *  fuente para las dos cosas, así no pueden separarse. Devuelve '' si esa foto no
+ *  tiene recorte, y entonces manda la proporción que traiga el CSS. */
+function _admLpProporcion(clave){
+  const r=(ADM_FOTOS[clave]||{}).recorte;
+  if(!r || !r.salida) return '';
+  return 'aspect-ratio:'+r.salida.w+'/'+r.salida.h+';';
+}
+
 function _admLpFondo(url){
   const limpia=String(url==null?'':url).trim()
     .replace(/["'()\\]/g, c=>'%'+c.charCodeAt(0).toString(16).toUpperCase());
@@ -15468,10 +15528,27 @@ function confirmarRecorte(){
 }
 
 const ADM_FOTOS={
+  // LAS PROPORCIONES NO SON A OJO: salen de medir dónde se ve cada foto en la landing.
+  //   · portada computadora → .hero ocupa el ancho entero por 100vh−100px; en un
+  //     portátil de 1440×900 eso es 1440×800, o sea 16/9 clavado.
+  //   · portada celular     → .hero pasa a 100svh; en un iPhone de 430×932 sale 0,46,
+  //     que es 9/19,5. Es muy alta a propósito: en un teléfono más corto se recorta
+  //     por arriba y por abajo, no por los lados, y la persona sigue centrada.
+  //   · "lo que empieza a cambiar" → .trans-img-box mide 420px de alto en media
+  //     columna de la rejilla (~520 en escritorio, ~360 en móvil): 5/4.
+  //   · "tu espacio te espera" → ÉSTA ES LA DIFÍCIL. La misma imagen se usa muy ancha
+  //     en computadora y casi cuadrada en celular, así que ninguna proporción sirve
+  //     para las dos. Se recorta en 4/3, el punto medio, y la nota se lo dice.
   desktop:{ col:'landing_hero_imagen',       prefijo:'hero-landing-', btn:'adm-lp-subir',
-            prev:'adm-lp-preview-img', campo:'adm-lp-img', aplicar:u=>_landingSetHeroImg(u) },
+            prev:'adm-lp-preview-img', campo:'adm-lp-img', aplicar:u=>_landingSetHeroImg(u),
+            recorte:{ salida:{w:1920,h:1080},
+                      titulo:'Encuadra la portada',
+                      nota:'Así se verá en computadora. El texto va encima, a la izquierda.' } },
   movil:  { col:'landing_hero_imagen_movil', prefijo:'hero-movil-',   btn:'adm-lp-subir-movil',
-            prev:'adm-lp-preview-movil', aplicar:u=>_landingSetHeroMovilImg(u) },
+            prev:'adm-lp-preview-movil', aplicar:u=>_landingSetHeroMovilImg(u),
+            recorte:{ salida:{w:1080,h:2340},
+                      titulo:'Encuadra la portada del celular',
+                      nota:'Así se verá en un teléfono, de arriba abajo. El texto va en la parte de abajo.' } },
   // `recorte` solo en las DOS con su cara. Su presencia es lo que activa el
   // recortador: los cuatro fondos no lo tienen y siguen subiéndose de un clic.
   // El cuadrado sale de las tres superficies del avatar —el del chat de 40px, el
@@ -15490,9 +15567,15 @@ const ADM_FOTOS={
                       titulo:'Recorta tu retrato',
                       nota:'Así se verá en la landing. Arrástralo y acércalo hasta que quede como quieres.' } },
   cierre: { col:'landing_cierre_imagen',     prefijo:'cierre-',       btn:'adm-lp-subir-cierre',
-            prev:'adm-lp-preview-cierre',aplicar:u=>_landingSetCierreImg(u) },
+            prev:'adm-lp-preview-cierre',aplicar:u=>_landingSetCierreImg(u),
+            recorte:{ salida:{w:1600,h:1200},
+                      titulo:'Encuadra el fondo del final',
+                      nota:'Ojo con ésta: se ve muy ancha en computadora y casi cuadrada en celular. Deja lo importante en el centro.' } },
   trans:  { col:'landing_trans_imagen',      prefijo:'trans-',        btn:'adm-lp-subir-trans',
-            prev:'adm-lp-preview-trans', aplicar:u=>_landingSetTransImg(u) }
+            prev:'adm-lp-preview-trans', aplicar:u=>_landingSetTransImg(u),
+            recorte:{ salida:{w:1200,h:960},
+                      titulo:'Encuadra la foto',
+                      nota:'Así se verá junto a la lista de "Lo que empieza a cambiar".' } }
 };
 
 // SUBIDA DIRECTA de una de las fotos. Andrea elige un archivo de su compu; se sube
