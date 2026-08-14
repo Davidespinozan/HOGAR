@@ -7992,9 +7992,8 @@ html.hogar-arranque #hogar-splash img{
 <!-- EL CRÉDITO DE LA PLATAFORMA. Debajo del todo y discreto: es un crédito, no una
      salida — en una página de venta, cualquier enlace que se lleve a la visitante a
      otro sitio cuesta dinero, así que se pone al final y sin llamar la atención.
-     NACE COMO TEXTO Y SE CONVIERTE EN ENLACE SOLO SI HAY DIRECCIÓN. Ver STRYV_URL: hoy
-     está vacía porque no la tengo, así que se ve el crédito sin enlace en vez de un
-     enlace roto. En cuanto se rellene, se enlaza solo y se abre en pestaña nueva. -->
+     EL ENLACE LO PONE EL JS, no el marcado, y sale de la constante STRYV_URL. Si algún
+     día se vacía, esto vuelve a ser texto en vez de un enlace roto. -->
 <p class="lft-stryv" id="lft-stryv">Powered by <strong>STRYV</strong></p>
 </footer>
 <!-- ===== MODALES LEGALES — los abre el pie de la landing ===== -->
@@ -17105,11 +17104,10 @@ function _correoMostrarAvisoVuelta(){
 // ══════════════════════════════════════════════════════════════════════════
 // EL CRÉDITO "POWERED BY STRYV" DEL PIE DE LA LANDING
 //
-// LA DIRECCIÓN VA AQUÍ Y EN NINGÚN OTRO SITIO. Con la cadena vacía el crédito se
-// queda como texto; en cuanto se rellene, se convierte en enlace solo. Es lo que
-// evita publicar un enlace roto mientras no se sepa la dirección.
+// LA DIRECCIÓN VA AQUÍ Y EN NINGÚN OTRO SITIO. Si se deja vacía, el crédito se queda
+// como texto en vez de publicar un enlace roto; con dirección, se enlaza solo.
 // ══════════════════════════════════════════════════════════════════════════
-const STRYV_URL = '';   // ej. 'https://stryv.mx'
+const STRYV_URL = 'https://stryvstudio.com';
 
 (function(){
   document.addEventListener('DOMContentLoaded', function(){
