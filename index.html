@@ -7049,6 +7049,14 @@ body{ background:transparent; }
   box-shadow:0 4px 18px rgba(140,90,60,.10);
   -webkit-backdrop-filter:var(--dash-vidrio-blur);
   backdrop-filter:var(--dash-vidrio-blur);
+  /* ══ NO SE ENCOGE, Y ESTO ES UN ARREGLO ══
+     La práctica y el cierre son columnas flexibles, y en una columna flexible todo
+     hijo se encoge por defecto cuando el contenido no cabe. En una ventana de
+     escritorio o de iPad que no da de alto, la barra se aplastaba y el logo con ella:
+     se veía chato y pegado al borde. El check-in no lo sufría porque ya lo tenía
+     puesto desde antes; ahora lo llevan las nueve. En las que no son columna
+     flexible no hace nada, así que no molesta. */
+  flex-shrink:0;
 }
 /* El logo, al mismo alto que en el panel y a su color de siempre: ni el
    brightness(.85) de la regla base ni el opacity:.5 que traían el check-in, el
@@ -7063,6 +7071,9 @@ body{ background:transparent; }
 #s-profile .app-nav-logo,
 #s-history .app-nav-logo{
   height:46px !important; opacity:1 !important;
+  /* Por lo mismo: si la barra se estrechara por cualquier otro motivo, el logo
+     mantiene su alto en vez de achatarse. */
+  flex-shrink:0;
 }
 #s-dash .app-nav-logo img,
 #s-checkin .app-nav-logo img,
