@@ -7989,12 +7989,13 @@ html.hogar-arranque #hogar-splash img{
 <section class="sect cre-sect"><div class="sect-in"><div class="cre-layout"><div class="cre-photo rv"><div class="cre-frame"><div class="cre-frame-img"><img id="cre-foto-perfil" src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/andrea-perfil.webp?width=900&resize=contain&quality=72" alt="Andrea"></div></div></div><div class="cre-text"><p class="sect-lab rv">Detrás de HOGAR</p><h2 class="sect-t rv rd1" style="text-align:left;">Andrea Labrada</h2><p class="rv rd1" style="font-size:1.1rem;color:var(--tierra);margin-bottom:1rem;text-align:left;">Creado desde la experiencia propia</p><p class="sect-d rv rd2" style="max-width:none;">HOGAR nace de la necesidad de entrenar distinto. De soltar la autoexigencia y encontrar una forma de movimiento que se sienta como cuidado, no como castigo. Un espacio donde la fuerza se entrena en calma y la constancia se construye desde adentro.</p><div class="cre-quote rv rd3" style="border-left-color:var(--terracota);color:var(--terracota);">"No se trata de perseguir un ideal. Se trata de construir una base firme desde la cual vivir."</div><p class="sect-d rv rd3" style="margin-top:1.6rem;">HOGAR nació de una búsqueda personal de bienestar y sigue evolucionando a través del aprendizaje, la experiencia y el movimiento consciente.</p></div></div></div></section>
 <section class="sect" style="background:var(--crema);" id="sec-faq"><div class="sect-in" style="text-align:center;"><h2 class="sect-t rv">Preguntas frecuentes</h2><div class="faq-w"><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Qué incluye cada sesión? <span>+</span></button><div class="faq-a"><p>Cada sesión incluye un check-in emocional, una práctica de movimiento guiada (de 15, 30 o 45 min), una lectura breve de integración y un cuestionario de registro personal.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Necesito experiencia previa? <span>+</span></button><div class="faq-a"><p>No. Las prácticas son de 15, 30 o 45 minutos y están pensadas para distintos estados del cuerpo. Puedes empezar donde estás hoy.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Esto reemplaza terapia? <span>+</span></button><div class="faq-a"><p>No. Es un complemento de autocuidado corporal y emocional. No sustituye procesos terapéuticos ni atención médica.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Qué pasa si un día no tengo ganas? <span>+</span></button><div class="faq-a"><p>Nada está mal. También hay espacio para la pausa y el descanso. Escuchar eso también es práctica.</p></div></div><div class="faq-i rv"><button class="faq-q" onclick="tF(this)">¿Es pago único? <span>+</span></button><div class="faq-a"><p>Sí. Pagas una vez y tienes acceso completo. Sin renovaciones ni cargos recurrentes.</p></div></div></div></div></section>
 <footer class="lft"><div class="lft-top"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" alt="HOGAR"><p class="lft-tag">Regulación a través del movimiento</p></div><div class="lft-bottom"><p class="lft-copy">© 2026 HOGAR</p><div class="lft-links"><a href="javascript:void(0)" onclick="abrirLegal('terminos')">Términos</a><a href="javascript:void(0)" onclick="abrirLegal('privacidad')">Privacidad</a></div></div>
-<!-- EL CRÉDITO DE LA PLATAFORMA. Debajo del todo y discreto: es un crédito, no una
-     salida — en una página de venta, cualquier enlace que se lleve a la visitante a
+<!-- EL CRÉDITO DEL ESTUDIO. En español, como el resto de la página: "Powered by" era
+     lo ÚNICO en inglés de toda la landing, y las clientas de Andrea leen en español.
+     Debajo del todo y discreto: es un crédito, no una salida — en una página de venta, cualquier enlace que se lleve a la visitante a
      otro sitio cuesta dinero, así que se pone al final y sin llamar la atención.
      EL ENLACE LO PONE EL JS, no el marcado, y sale de la constante STRYV_URL. Si algún
      día se vacía, esto vuelve a ser texto en vez de un enlace roto. -->
-<p class="lft-stryv" id="lft-stryv">Powered by <strong>STRYV</strong></p>
+<p class="lft-stryv" id="lft-stryv">Hecho por <strong>STRYV</strong></p>
 </footer>
 <!-- ===== MODALES LEGALES — los abre el pie de la landing ===== -->
 <div class="legal-ov" id="legal-terminos" role="dialog" aria-modal="true" aria-labelledby="legal-terminos-tit" onclick="cerrarLegalSiFuera(event)">
@@ -17116,7 +17117,7 @@ const STRYV_URL = 'https://stryvstudio.com';
     if(!el) return;
     // target=_blank para no sacar a nadie de la landing a mitad de compra, y
     // rel=noopener porque sin él la página de destino puede manipular la nuestra.
-    el.innerHTML='Powered by <a href="'+STRYV_URL+'" target="_blank" rel="noopener"><strong>STRYV</strong></a>';
+    el.innerHTML='Hecho por <a href="'+STRYV_URL+'" target="_blank" rel="noopener"><strong>STRYV</strong></a>';
   });
 })();
 
