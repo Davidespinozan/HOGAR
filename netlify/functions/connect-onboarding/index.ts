@@ -27,7 +27,7 @@ export const handler: Handler = async (event) => {
   if (event.httpMethod !== 'POST') return badRequest('Método no permitido');
 
   try {
-    const auth = await autenticarAdmin(event);
+    const auth = await autenticarAdmin(event, { soloDuena: true });
     if (!auth.ok) return auth.response;
 
     // Sin llave de Stripe la infraestructura existe pero no puede operar:

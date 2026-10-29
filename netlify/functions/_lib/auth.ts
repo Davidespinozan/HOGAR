@@ -6,12 +6,16 @@ import { getUserClient } from './supabase';
 /**
  * Autenticación de las funciones.
  *
- * HOGAR es single-tenant: no hay tabla de roles. "Admin" = el correo de Andrea.
- * Se puede sobreescribir con la env var ADMIN_EMAIL (útil para probar), pero
+ * HOGAR es single-tenant: no hay tabla de roles. La dueña es Andrea; su correo
+ * se puede sobreescribir con la env var ADMIN_EMAIL (útil para probar), pero
  * tiene un default para que el deploy no dependa de configurarla.
+ *
+ * ADMINS_EXTRA ven y editan el panel igual que ella, pero NO tocan los cobros
+ * (Stripe Connect): esos siguen siendo solo de la dueña.
  */
 
 const ADMIN_EMAIL_DEFAULT = 'andrealaso1997@hotmail.com';
+const ADMINS_EXTRA = ['daen97@hotmail.com'];
 
 export interface UsuarioAutenticado {
   id: string;
@@ -57,18 +61,28 @@ export async function autenticar(event: HandlerEvent): Promise<ResultadoAuth> {
  *
  * Extraerlo evita que las dos comprobaciones se separen con el tiempo.
  */
-export function esAdmin(email: string | null | undefined): boolean {
+export function esDuena(email: string | null | undefined): boolean {
   const adminEmail = optionalEnv('ADMIN_EMAIL', ADMIN_EMAIL_DEFAULT).toLowerCase().trim();
   const suyo = (email ?? '').toLowerCase().trim();
   return !!suyo && suyo === adminEmail;
 }
 
-export async function autenticarAdmin(event: HandlerEvent): Promise<ResultadoAuth> {
+export function esAdmin(email: string | null | undefined): boolean {
+  const suyo = (email ?? '').toLowerCase().trim();
+  return esDuena(suyo) || (!!suyo && ADMINS_EXTRA.includes(suyo));
+}
+
+/** `soloDuena`: para los cobros (Connect), que no abren a los ADMINS_EXTRA. */
+export async function autenticarAdmin(
+  event: HandlerEvent,
+  opts: { soloDuena?: boolean } = {},
+): Promise<ResultadoAuth> {
   const res = await autenticar(event);
   if (!res.ok) return res;
 
-  if (!esAdmin(res.user.email)) {
-    return { ok: false, response: forbidden('Solo Andrea puede administrar los cobros') };
+  const permitido = opts.soloDuena ? esDuena(res.user.email) : esAdmin(res.user.email);
+  if (!permitido) {
+    return { ok: false, response: forbidden(opts.soloDuena ? 'Solo Andrea puede administrar los cobros' : 'Solo administración') };
   }
   return res;
 }

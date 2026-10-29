@@ -10303,7 +10303,7 @@ async function cerrarSesionAdmin(){
 }
 
 // ¿La sesión es la de Andrea? (UX; la seguridad real vive en las políticas RLS)
-function esAdmin(email){ return (email||'').toLowerCase().trim()===ADMIN_EMAIL; }
+function esAdmin(email){ const e=(email||'').toLowerCase().trim(); return e===ADMIN_EMAIL || ADMINS_EXTRA.includes(e); }
 
 // Redirect por rol — patrón useRoleRedirect de EKKO/SALA adaptado a single-tenant:
 // Andrea entra directo al área administrativa, nunca al dashboard de usuaria.
@@ -13507,6 +13507,8 @@ async function refrescarHistorialYStats(){
 // PANEL ADMIN (Andrea, single-tenant) — lectura vía RLS (anon key + políticas)
 // ============================================
 const ADMIN_EMAIL='andrealaso1997@hotmail.com';
+// Ven el panel igual que Andrea; los cobros (Stripe Connect) los sigue rechazando el servidor.
+const ADMINS_EXTRA=['daen97@hotmail.com'];
 // Correos de prueba que se excluyen SIEMPRE de conteos y de la tabla de usuarias.
 // Los usan cuatro consultas de loadAdmin(): prácticas de hoy, altas del mes,
 // prácticas del mes y la lista de usuarias.

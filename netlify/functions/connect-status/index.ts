@@ -23,7 +23,7 @@ export const handler: Handler = async (event) => {
   }
 
   try {
-    const auth = await autenticarAdmin(event);
+    const auth = await autenticarAdmin(event, { soloDuena: true });
     if (!auth.ok) return auth.response;
 
     const base = {
