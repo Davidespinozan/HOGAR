@@ -7869,6 +7869,21 @@ html.hogar-arranque #hogar-splash img{
   opacity:.82;
 }
 .lft-stryv strong{ font-weight:600; letter-spacing:.1em; }
+/* Stryvi, el agente de IA de STRYV, junto al crédito: el mismo robot que usa STRYV
+   en sus productos, sobre el crema difuminado de su video (el "fondo suave") y no
+   sobre el café del pie, donde el recorte crema se perdía. */
+.lft-stryv{ display:flex; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap; }
+.lft-stryvi{
+  flex-shrink:0; width:30px; height:30px; border-radius:50%;
+  display:inline-flex; align-items:center; justify-content:center; overflow:hidden;
+  background:radial-gradient(circle at 50% 38%,#fdfbf7 0%,#f3eee6 58%,#e4dccf 100%);
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+/* "filter:none" porque .lft img vuelve blanco todo lo del pie (para el logo de HOGAR),
+   y la opacidad pasa del párrafo al texto: en el párrafo atenuaba también a Stryvi. */
+.lft-stryvi img{ display:block; width:26px; height:26px; margin-top:2px; object-fit:contain; filter:none; }
+.lft-stryv{ opacity:1; }
+#lft-stryv-txt{ opacity:.82; }
 .lft-stryv a{ color:inherit; text-decoration:none; transition:opacity .2s ease; }
 .lft-stryv a:hover{ opacity:1; text-decoration:underline; text-underline-offset:3px; }
 </style>
@@ -8026,7 +8041,7 @@ html.hogar-arranque #hogar-splash img{
      otro sitio cuesta dinero, así que se pone al final y sin llamar la atención.
      EL ENLACE LO PONE EL JS, no el marcado, y sale de la constante STRYV_URL. Si algún
      día se vacía, esto vuelve a ser texto en vez de un enlace roto. -->
-<p class="lft-stryv" id="lft-stryv">Hecho por <strong>STRYV</strong></p>
+<p class="lft-stryv" id="lft-stryv"><span class="lft-stryvi" aria-hidden="true"><img src="img/stryvi.webp" alt="" width="26" height="26" loading="lazy" decoding="async"></span><span id="lft-stryv-txt">Hecho por <strong>STRYV</strong> con IA</span></p>
 </footer>
 <!-- ===== MODALES LEGALES — los abre el pie de la landing ===== -->
 <div class="legal-ov" id="legal-terminos" role="dialog" aria-modal="true" aria-labelledby="legal-terminos-tit" onclick="cerrarLegalSiFuera(event)">
@@ -17156,11 +17171,12 @@ const STRYV_URL = 'https://stryvstudio.com';
 (function(){
   document.addEventListener('DOMContentLoaded', function(){
     if(!STRYV_URL) return;
-    const el=document.getElementById('lft-stryv');
+    // Solo el texto: el avatar de Stryvi que va al lado se queda como está.
+    const el=document.getElementById('lft-stryv-txt');
     if(!el) return;
     // target=_blank para no sacar a nadie de la landing a mitad de compra, y
     // rel=noopener porque sin él la página de destino puede manipular la nuestra.
-    el.innerHTML='Hecho por <a href="'+STRYV_URL+'" target="_blank" rel="noopener"><strong>STRYV</strong></a>';
+    el.innerHTML='Hecho por <a href="'+STRYV_URL+'" target="_blank" rel="noopener"><strong>STRYV</strong></a> con IA';
   });
 })();
 
