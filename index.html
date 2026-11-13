@@ -7854,38 +7854,30 @@ html.hogar-arranque #hogar-splash img{
 @media(min-width:901px){
   #s-admin .adm-u-lista{ grid-template-columns:1fr 1fr; gap:16px; }
 }
-/* El crédito de la plataforma, al pie de la landing. Muy por debajo del resto en
-   peso visual: tiene que estar, no que verse. */
-.lft-stryv{
-  margin:18px 0 0;
-  text-align:center;
+/* El crédito de la plataforma, al pie de la landing: la pastilla "● Operado por
+   STRYV", la misma firma que STRYV pone en SALA y en los sitios que opera (punto verde
+   "en vivo" + versalitas). Es la firma de STRYV, no de HOGAR, por eso lleva su verde.
+   Discreta: tiene que estar, no que llamar la atención. */
+.lft-stryv{ margin:22px 0 0; display:flex; justify-content:center; }
+.lft-stryv-pill{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 15px; border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+  /* Medido sobre el café del pie (#3D2418 → #5C3A28): da más de 4,5 de contraste. */
+  color:rgba(245,245,245,.72);
   font-family:'Montserrat',sans-serif;
-  font-size:11.5px; font-weight:300; letter-spacing:.06em;
-  /* EL MISMO TONO QUE EL © Y NO UN BLANCO TRANSLÚCIDO, que fue lo primero que puse:
-     el blanco al 42% sobre el #3D2418 del pie daba 3,77 de contraste y el mínimo para
-     texto pequeño es 4,5. Este #C5A88F, que ya se usa ahí al lado, da 6,40. Medido,
-     no a ojo: "discreto" no puede significar "ilegible". */
-  color:#C5A88F;
-  opacity:.82;
+  font-size:11.5px; font-weight:400; letter-spacing:.12em; text-transform:uppercase;
+  text-decoration:none;
+  transition:background .2s ease, border-color .2s ease, color .2s ease;
 }
-.lft-stryv strong{ font-weight:600; letter-spacing:.1em; }
-/* Stryvi, el agente de IA de STRYV, junto al crédito: el mismo robot que usa STRYV
-   en sus productos, sobre el crema difuminado de su video (el "fondo suave") y no
-   sobre el café del pie, donde el recorte crema se perdía. */
-.lft-stryv{ display:flex; align-items:center; justify-content:center; gap:9px; flex-wrap:wrap; }
-.lft-stryvi{
-  flex-shrink:0; width:30px; height:30px; border-radius:50%;
-  display:inline-flex; align-items:center; justify-content:center; overflow:hidden;
-  background:radial-gradient(circle at 50% 38%,#fdfbf7 0%,#f3eee6 58%,#e4dccf 100%);
-  box-shadow:0 2px 8px rgba(0,0,0,.25);
+.lft-stryv-pill b{ color:#fff; font-weight:800; letter-spacing:.18em; }
+a.lft-stryv-pill:hover{ background:rgba(255,255,255,.09); border-color:rgba(255,255,255,.35); color:#fff; }
+a.lft-stryv-pill:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
+.lft-stryv-punto{
+  flex-shrink:0; width:7px; height:7px; border-radius:50%;
+  background:#22C55E; box-shadow:0 0 8px rgba(34,197,94,.7);
 }
-/* "filter:none" porque .lft img vuelve blanco todo lo del pie (para el logo de HOGAR),
-   y la opacidad pasa del párrafo al texto: en el párrafo atenuaba también a Stryvi. */
-.lft-stryvi img{ display:block; width:26px; height:26px; margin-top:2px; object-fit:contain; filter:none; }
-.lft-stryv{ opacity:1; }
-#lft-stryv-txt{ opacity:.82; }
-.lft-stryv a{ color:inherit; text-decoration:none; transition:opacity .2s ease; }
-.lft-stryv a:hover{ opacity:1; text-decoration:underline; text-underline-offset:3px; }
 </style>
 
 <!-- ══════════════════════════════════════════════════════════════════════════
@@ -8041,7 +8033,7 @@ html.hogar-arranque #hogar-splash img{
      otro sitio cuesta dinero, así que se pone al final y sin llamar la atención.
      EL ENLACE LO PONE EL JS, no el marcado, y sale de la constante STRYV_URL. Si algún
      día se vacía, esto vuelve a ser texto en vez de un enlace roto. -->
-<p class="lft-stryv" id="lft-stryv"><span class="lft-stryvi" aria-hidden="true"><img src="img/stryvi.webp" alt="" width="26" height="26" loading="lazy" decoding="async"></span><span id="lft-stryv-txt">Hecho por <strong>STRYV</strong> con IA</span></p>
+<p class="lft-stryv"><span class="lft-stryv-pill" id="lft-stryv"><span class="lft-stryv-punto" aria-hidden="true"></span><span>Operado por <b>STRYV</b></span></span></p>
 </footer>
 <!-- ===== MODALES LEGALES — los abre el pie de la landing ===== -->
 <div class="legal-ov" id="legal-terminos" role="dialog" aria-modal="true" aria-labelledby="legal-terminos-tit" onclick="cerrarLegalSiFuera(event)">
@@ -17161,7 +17153,7 @@ function _correoMostrarAvisoVuelta(){
 
 
 // ══════════════════════════════════════════════════════════════════════════
-// EL CRÉDITO "POWERED BY STRYV" DEL PIE DE LA LANDING
+// EL CRÉDITO "OPERADO POR STRYV" DEL PIE DE LA LANDING
 //
 // LA DIRECCIÓN VA AQUÍ Y EN NINGÚN OTRO SITIO. Si se deja vacía, el crédito se queda
 // como texto en vez de publicar un enlace roto; con dirección, se enlaza solo.
@@ -17171,12 +17163,20 @@ const STRYV_URL = 'https://stryvstudio.com';
 (function(){
   document.addEventListener('DOMContentLoaded', function(){
     if(!STRYV_URL) return;
-    // Solo el texto: el avatar de Stryvi que va al lado se queda como está.
-    const el=document.getElementById('lft-stryv-txt');
+    // La pastilla entera se vuelve el enlace (mismo contenido, misma clase).
+    const el=document.getElementById('lft-stryv');
     if(!el) return;
+    const a=document.createElement('a');
+    a.className=el.className;
+    a.id=el.id;
+    a.innerHTML=el.innerHTML;
+    a.href=STRYV_URL;
+    a.setAttribute('aria-label','Operado por STRYV · stryvstudio.com');
     // target=_blank para no sacar a nadie de la landing a mitad de compra, y
     // rel=noopener porque sin él la página de destino puede manipular la nuestra.
-    el.innerHTML='Hecho por <a href="'+STRYV_URL+'" target="_blank" rel="noopener"><strong>STRYV</strong></a> con IA';
+    a.target='_blank';
+    a.rel='noopener';
+    el.replaceWith(a);
   });
 })();
 
