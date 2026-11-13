@@ -12377,17 +12377,37 @@ function qHead(eyebrow, pregunta){
     +'</div>';
 }
 
-// Helper: grid de opciones simples (solo título)
+// Helper: grid de opciones simples (pasos 2, 3 y 4-D)
+//
+// EL BOTÓN LLEVA EL NÚMERO DE LA OPCIÓN, NO SU TEXTO. Antes el texto iba metido
+// dentro del onclick como cadena de JS, y bastaba un salto de línea para romperlo:
+// Andrea escribe varias opciones como "Título.⏎Explicación" en el editor, el
+// navegador descartaba el onclick por error de sintaxis y la tarjeta no respondía
+// a nada, en compu y en celular (noviembre de 2026: pasos 2, 3 y 4 de Sensible y
+// Tensa). Con el índice no hay texto que escapar: funciona escriba lo que escriba.
+//
+// Lo que se guarda como respuesta sigue siendo o.titulo tal cual, igual que antes.
+let _qOpcionesActuales=[];
 function qOptsSimple(opciones){
+  _qOpcionesActuales=opciones.map(o=>String(o.titulo||''));
   let h='<div class="opciones-grid">';
-  opciones.forEach(o=>{
-    const safe=o.titulo.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
-    h+='<div class="estado-card opcion-suave" onclick="qPick(this,\''+safe+'\')">'
-      +'<div class="estado-name">'+o.titulo+'</div>'
+  opciones.forEach((o,i)=>{
+    // "Título.⏎Explicación" se pinta como en la pregunta 1: título y, debajo, la
+    // explicación. Sin salto de línea queda solo el título, como siempre.
+    const lineas=String(o.titulo||'').trim().split(/\r?\n/);
+    const nombre=lineas.shift();
+    const desc=lineas.join(' ').trim();
+    h+='<div class="estado-card opcion-suave" onclick="qPickOpcion(this,'+i+')">'
+      +'<div class="estado-name">'+nombre+'</div>'
+      +(desc?'<div class="estado-desc">'+desc+'</div>':'')
       +'</div>';
   });
   h+='</div>';
   return h;
+}
+function qPickOpcion(card, i){
+  if(i<0 || i>=_qOpcionesActuales.length) return;
+  qPick(card, _qOpcionesActuales[i]);
 }
 
 // MOTOR: renderea el nodo del árbol según curQ + answers.path
