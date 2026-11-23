@@ -361,6 +361,19 @@
 .legal-body p:last-child{margin-bottom:0;}
 .legal-body strong{font-weight:600;color:#3a2820;}
 .legal-body a{color:#c66b41;text-decoration:underline;text-underline-offset:2px;}
+/* Listas de Términos y Aviso. Con id y no .legal-body ul a secas: el diálogo de
+   borrar cuenta también usa .legal-body y su .bc-lista tiene viñetas propias. */
+#legal-terminos .legal-body ul,#legal-privacidad .legal-body ul{margin:0 0 12px;padding-left:1.2rem;}
+#legal-terminos .legal-body li,#legal-privacidad .legal-body li{font-family:'Montserrat',sans-serif;font-size:.88rem;
+  font-weight:300;line-height:1.7;color:#5a4636;margin-bottom:6px;}
+/* Los modales legales se abren encima de cualquier pantalla (también del registro):
+   abrirLegal() los saca al <body>, así que necesitan quedar por encima de todo. */
+#legal-terminos,#legal-privacidad{z-index:10050;}
+/* Consentimiento al crear la cuenta */
+.sign-consent{display:flex;align-items:flex-start;gap:10px;text-align:left;margin:.4rem 0 1rem;
+  font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:300;line-height:1.55;color:var(--texto-medio);cursor:pointer;}
+.sign-consent input{flex-shrink:0;width:18px;height:18px;margin:2px 0 0;accent-color:var(--terracota);cursor:pointer;}
+.sign-consent a{color:var(--terracota);text-decoration:underline;text-underline-offset:2px;}
 @media(max-width:480px){
   .legal-ov{padding:0;align-items:flex-end;}
   .legal-modal{max-width:none;max-height:92vh;border-radius:22px 22px 0 0;}
@@ -8041,40 +8054,78 @@ a.lft-stryv-pill:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
     <div class="legal-head">
       <div class="legal-head-txt">
         <h3 class="legal-tit" id="legal-terminos-tit">Términos y condiciones</h3>
-        <div class="legal-fecha">Última actualización: 5 de agosto de 2026</div>
+        <div class="legal-fecha">Última actualización: 23 de noviembre de 2026</div>
       </div>
       <button type="button" class="legal-x" onclick="cerrarLegal()" aria-label="Cerrar">&times;</button>
     </div>
     <div class="legal-body">
-      <p class="legal-intro">Al comprar y usar HOGAR aceptas lo siguiente.</p>
+      <p class="legal-intro">Estos términos explican qué incluye HOGAR, cómo funciona la compra y qué puedes esperar de nosotras. Al crear tu cuenta o comprar el acceso los aceptas. Si algo no está claro, escríbenos antes de comprar.</p>
 
-      <h4>Quién ofrece este servicio</h4>
-      <p>HOGAR es un producto digital creado por Andrea Labrada. Para cualquier duda o aclaración puedes escribir a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a>.</p>
+      <h4>1. Quién ofrece HOGAR</h4>
+      <p>HOGAR es un producto digital de <strong>⟦FALTA: nombre completo de Andrea⟧</strong> (en estos términos, «Andrea» o «HOGAR»), quien es la responsable de la venta y del servicio.</p>
+      <p>Domicilio: ⟦FALTA: domicilio⟧<br>Correo: <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a></p>
+      <p>La plataforma tecnológica la desarrolla y la mantiene STRYV por encargo de Andrea.</p>
 
-      <h4>Qué estás comprando</h4>
-      <p>Un acceso personal y de por vida a las prácticas de HOGAR: sesiones de movimiento en video de 15, 30 o 45 minutos, con sus lecturas de integración y tu registro privado.</p>
-      <p>El acceso es <strong>individual e intransferible</strong>. La cuenta es tuya y solo tuya.</p>
+      <h4>2. Qué incluye tu compra</h4>
+      <p>Un acceso personal a HOGAR, que incluye las prácticas de movimiento guiadas en video (de 15, 30 o 45 minutos), la pregunta inicial antes de cada práctica, las preguntas de reflexión al terminar y tu registro personal.</p>
+      <p>Las prácticas se ven en línea, desde el navegador: necesitas conexión a internet y no se descargan. El contenido puede actualizarse para mejorarlo; ningún cambio reducirá de forma sustancial lo que compraste.</p>
+      <p>El acceso es <strong>individual e intransferible</strong>: la cuenta es solo tuya.</p>
 
-      <h4>Pago</h4>
-      <p>El pago es único: pagas una vez y no hay cargos recurrentes ni renovaciones.</p>
-      <p><strong>No hay devoluciones.</strong> Al tratarse de contenido digital al que accedes de inmediato tras la compra, la venta es final. Si tienes dudas sobre si HOGAR es para ti, escríbenos antes de comprar y con gusto te ayudamos a decidir.</p>
+      <h4>3. Precio y pago</h4>
+      <p>El precio que ves al pagar es el precio total, en pesos mexicanos. Es un <strong>pago único</strong>: no hay cargos recurrentes ni renovaciones.</p>
+      <p>El pago lo procesa Stripe. HOGAR no ve ni guarda los datos de tu tarjeta. Tu acceso se activa en cuanto Stripe confirma el pago, normalmente en unos minutos.</p>
 
-      <h4>Borrar tu cuenta</h4>
-      <p>Puedes borrar tu cuenta cuando quieras desde tu perfil. Se elimina de inmediato y no se puede deshacer: tu cuenta, tu historial de prácticas y todo lo que escribiste en tus cuestionarios.</p>
-      <p>Si compraste el acceso, borrar tu cuenta <strong>no te devuelve el dinero</strong> y pierdes el acceso de por vida que pagaste. Si vuelves más adelante, tendrías que comprarlo otra vez.</p>
-      <p>Guardamos una sola excepción: un registro mínimo de tu compra —el importe, la fecha y los identificadores del pago, <strong>sin tu nombre ni tu correo</strong>— durante 180 días. Es el plazo en que un banco puede reclamar un cargo, y lo necesitamos para poder responder. Pasado ese plazo, se borra también.</p>
-      <p>El registro del pago queda además en Stripe, que es quien lo procesa, durante el tiempo que su ley le obliga. Eso no depende de nosotros.</p>
+      <h4>4. Qué significa «acceso de por vida»</h4>
+      <p>Significa que tu acceso <strong>no tiene fecha de vencimiento</strong> ni pagos adicionales. Lo conservas mientras:</p>
+      <ul>
+        <li>tu cuenta exista (si la borras, el acceso termina), y</li>
+        <li>uses HOGAR conforme a estos términos.</li>
+      </ul>
+      <p>«De por vida» se refiere a la vida del servicio. Si algún día HOGAR dejara de operar, te avisaremos por correo con al menos ⟦30⟧ días de anticipación para que puedas consultar tu historial antes del cierre.</p>
 
-      <h4>Esto no es terapia ni consejo médico</h4>
+      <h4>5. Devoluciones</h4>
+      <p>Por tratarse de contenido digital al que accedes de inmediato, <strong>no hacemos devoluciones por cambio de opinión</strong> una vez que tu acceso se activó.</p>
+      <p>Sí te devolvemos el importe completo cuando:</p>
+      <ul>
+        <li>pagaste y no pudiste acceder por una falla de HOGAR que no resolvimos dentro de los 5 días hábiles siguientes a tu reporte;</li>
+        <li>se te cobró dos veces, o hubo un cargo que no reconoces;</li>
+        <li>el servicio no corresponde a lo que se ofreció al momento de tu compra.</li>
+      </ul>
+      <p>Para pedirlo, escribe a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a> desde el correo de tu cuenta, con la fecha del pago y el motivo. Te respondemos en un máximo de 10 días hábiles. El reembolso se hace al mismo medio de pago y el banco puede tardar algunos días más en reflejarlo.</p>
+      <p>Nada de lo anterior limita los derechos que te reconoce la Ley Federal de Protección al Consumidor. Puedes acudir a la Procuraduría Federal del Consumidor (Profeco).</p>
+
+      <h4>6. Tu cuenta y cómo borrarla</h4>
+      <p>Eres responsable de cuidar tu contraseña. Puedes borrar tu cuenta cuando quieras desde tu perfil; el borrado es inmediato y no se puede deshacer. Se elimina:</p>
+      <ul>
+        <li>tu cuenta y tu forma de entrar;</li>
+        <li>tu nombre y tu correo;</li>
+        <li>tu historial de prácticas, tus respuestas y tus reflexiones;</li>
+        <li>tu ficha de cliente en Stripe.</li>
+      </ul>
+      <p>Borrar la cuenta termina tu acceso y <strong>no genera un reembolso</strong>, salvo en los casos del punto 5. Si quieres volver después, tendrías que comprar el acceso otra vez. Si crees que tu caso amerita una devolución, escríbenos antes de borrarla.</p>
+      <p><strong>Lo que se conserva si compraste:</strong> un registro mínimo de la compra (el importe, la fecha, el identificador de cliente en Stripe y un identificador interno de la cuenta), <strong>sin tu nombre ni tu correo</strong>, hasta que se cumplan 180 días desde la fecha de compra. Es el plazo en que un banco puede reclamar un cargo, y lo necesitamos para poder responder. Después se borra automáticamente; si borras tu cuenta cuando ese plazo ya pasó, no se conserva.</p>
+      <p>Además, el registro del cobro permanece en Stripe, y la información de la venta que la ley fiscal obliga a conservar se guarda durante el plazo que esa ley establece.</p>
+
+      <h4>7. Uso correcto</h4>
+      <p>No está permitido compartir tus datos de acceso, descargar o grabar el contenido, revenderlo, publicarlo ni intentar vulnerar la plataforma. Si esto ocurre, podemos suspender o cancelar la cuenta. Antes te avisaremos por correo para que puedas aclararlo, salvo que el caso ponga en riesgo la plataforma o a otras personas. Una cancelación por estas causas no genera reembolso.</p>
+
+      <h4>8. Esto no es terapia ni consejo médico</h4>
       <p>HOGAR es una práctica de movimiento y autocuidado. <strong>No sustituye atención médica, psicológica ni terapéutica de ningún tipo.</strong></p>
-      <p>Escucha tu cuerpo. Si tienes alguna condición médica, lesión o estás embarazada, consulta con un profesional de la salud antes de empezar. Practicas a tu propio ritmo y bajo tu responsabilidad.</p>
+      <p>Escucha tu cuerpo. Si tienes alguna condición médica o una lesión, o si estás embarazada, consulta con un profesional de la salud antes de empezar. Practicas a tu propio ritmo y bajo tu responsabilidad.</p>
 
-      <h4>El contenido es de HOGAR</h4>
-      <p>Los videos, audios, textos e imágenes son propiedad de Andrea Labrada. No están permitidos: descargarlos, copiarlos, compartirlos, revenderlos ni usarlos con fines comerciales.</p>
-      <p>Compartir tus datos de acceso o el contenido puede resultar en la cancelación de tu cuenta sin devolución.</p>
+      <h4>9. Propiedad intelectual</h4>
+      <p><strong>Materiales originales de HOGAR:</strong> los videos y audios de las prácticas, los textos, las preguntas y las reflexiones, el diseño de las prácticas, y el nombre y el logotipo de HOGAR. Pertenecen a Andrea o se usan con su autorización.</p>
+      <p><strong>Recursos de terceros:</strong> las tipografías, la música, las imágenes, el software y los servicios que usamos para operar HOGAR pertenecen a sus titulares y se usan conforme a sus licencias. Estos términos no te dan ningún derecho sobre ellos.</p>
+      <p>Tu compra te da una licencia personal, no exclusiva e intransferible para usar el contenido con fines personales y no comerciales. No te transfiere su propiedad. Lo que tú escribes en HOGAR es tuyo.</p>
 
-      <h4>Cambios</h4>
-      <p>Podemos actualizar el contenido de HOGAR para mejorarlo. Si estos términos cambian, encontrarás la fecha de actualización arriba.</p>
+      <h4>10. Tus datos</h4>
+      <p>Tratamos tus datos personales conforme al <a href="javascript:void(0)" onclick="abrirLegal('privacidad')">aviso de privacidad</a>, que forma parte de estos términos.</p>
+
+      <h4>11. Cambios a estos términos</h4>
+      <p>Si estos términos cambian, actualizaremos la fecha de arriba. Si el cambio afecta lo que compraste, te avisaremos por correo antes de que entre en vigor. Ningún cambio reduce el acceso que ya pagaste.</p>
+
+      <h4>12. Ley aplicable</h4>
+      <p>Estos términos se rigen por las leyes de los Estados Unidos Mexicanos. Para cualquier controversia puedes acudir a la Profeco o a los tribunales competentes conforme a la ley.</p>
     </div>
   </div>
 </div>
@@ -8084,33 +8135,88 @@ a.lft-stryv-pill:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
     <div class="legal-head">
       <div class="legal-head-txt">
         <h3 class="legal-tit" id="legal-privacidad-tit">Aviso de privacidad</h3>
-        <div class="legal-fecha">Última actualización: 5 de agosto de 2026</div>
+        <div class="legal-fecha">Última actualización: 23 de noviembre de 2026</div>
       </div>
       <button type="button" class="legal-x" onclick="cerrarLegal()" aria-label="Cerrar">&times;</button>
     </div>
     <div class="legal-body">
-      <h4>Qué datos guardamos</h4>
-      <p>Tu nombre, tu correo electrónico, y el registro de tus prácticas: cuándo practicaste, qué elegiste y lo que respondiste en tus cuestionarios.</p>
+      <h4>1. Quién es responsable de tus datos</h4>
+      <p><strong>⟦FALTA: nombre completo de Andrea⟧</strong> («Andrea» o «HOGAR»), con domicilio en ⟦FALTA: domicilio⟧, es la responsable del tratamiento de tus datos personales. Contacto: <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a>.</p>
 
-      <h4>Para qué los usamos</h4>
-      <p>Para darte acceso a tu cuenta, mostrarte tu historial y tu progreso, y para entender de forma general cómo se usa HOGAR y poder mejorarlo.</p>
-      <p><strong>No vendemos tus datos ni los compartimos con terceros con fines publicitarios.</strong></p>
+      <h4>2. Qué datos guardamos</h4>
+      <ul>
+        <li><strong>Identificación y contacto:</strong> tu nombre y tu correo electrónico.</li>
+        <li><strong>Tu cuenta:</strong> tu contraseña (cifrada: nadie puede leerla, ni siquiera nosotras), la fecha en que creaste la cuenta y la de tu último acceso.</li>
+        <li><strong>Tu compra:</strong> si compraste, la fecha, el importe, el estado de tu acceso y tu identificador de cliente en Stripe. Si se te concedió acceso sin pago (por ejemplo, de cortesía), cuándo y quién lo concedió. Los datos de tu tarjeta no los recibimos nunca.</li>
+        <li><strong>Tus prácticas:</strong> qué práctica hiciste, de cuántos minutos, en qué fecha, y la opción con la que respondiste a la pregunta inicial sobre cómo se siente tu cuerpo al empezar (por ejemplo, «En calma» o «Tensa»).</li>
+        <li><strong>Tus respuestas y reflexiones:</strong> las opciones que eliges en las preguntas sobre tu experiencia de movimiento al terminar cada práctica, y lo que escribes libremente.</li>
+        <li><strong>Datos técnicos:</strong> por seguridad y funcionamiento, nuestros proveedores registran automáticamente datos como tu dirección IP, tu navegador y la fecha y hora de acceso.</li>
+      </ul>
+      <p>Tu navegador también guarda en tu dispositivo algunos datos para que HOGAR funcione (por ejemplo, tu sesión iniciada o el minuto en que dejaste una práctica). No usamos cookies de publicidad ni herramientas de analítica o rastreo de terceros.</p>
 
-      <h4>Tus datos de pago</h4>
-      <p>El pago lo procesa Stripe. HOGAR no ve, no recibe ni guarda los datos de tu tarjeta en ningún momento.</p>
+      <h4>3. Datos sensibles</h4>
+      <p>Tu respuesta a la pregunta inicial y tus reflexiones pueden revelar aspectos de tu bienestar físico o emocional, por lo que las tratamos como <strong>datos personales sensibles</strong>: con mayor protección y solo para las finalidades de este aviso. Nos das tu consentimiento expreso para tratarlos al marcar la casilla correspondiente cuando creas tu cuenta.</p>
 
-      <h4>Lo que escribes es solo tuyo</h4>
-      <p>Las reflexiones que dejas en tus cuestionarios son tu espacio privado. Andrea no puede leerlas: nadie más que tú tiene acceso a ellas.</p>
+      <h4>4. Para qué los usamos</h4>
+      <p>Usamos tus datos únicamente para:</p>
+      <ul>
+        <li>crear y administrar tu cuenta;</li>
+        <li>procesar tu compra, activar tu acceso y atender aclaraciones, reembolsos o reclamaciones de cargos;</li>
+        <li>mostrarte las prácticas, tu historial y tus reflexiones;</li>
+        <li>dar seguimiento al uso de las prácticas y mejorar el contenido de HOGAR (ver el punto 6);</li>
+        <li>responder tus mensajes y solicitudes;</li>
+        <li>proteger la seguridad de la plataforma y cumplir obligaciones legales.</li>
+      </ul>
+      <p>Todas son necesarias para darte el servicio. <strong>No usamos tus datos para publicidad ni mercadotecnia, no los vendemos y no los compartimos con terceros con esos fines.</strong></p>
 
-      <h4>Tu actividad sí la ve Andrea</h4>
-      <p>Andrea ve qué práctica hiciste, qué emoción elegiste y cuándo, para poder acompañarte. Lo que ve es tu recorrido, no lo que escribiste.</p>
+      <h4>5. Tus respuestas y reflexiones son privadas</h4>
+      <p>Lo que respondes en las preguntas de reflexión y lo que escribes se guardan aparte, en un espacio de la base de datos que <strong>solo tu cuenta tiene permiso de leer</strong>. Ni Andrea ni las personas que administran HOGAR tienen acceso a su contenido, ni desde su panel ni con sus permisos.</p>
+      <p>Como en cualquier servicio en línea, el equipo técnico que da mantenimiento a la plataforma (STRYV) y la infraestructura de nuestros proveedores tienen capacidad técnica de acceso a la base de datos. Solo intervienen en ella cuando es necesario para mantenimiento o seguridad, o por requerimiento de una autoridad competente, y siempre conforme a este aviso.</p>
 
-      <h4>Tus derechos</h4>
-      <p>Puedes borrar tu cuenta y todos tus datos tú misma, desde tu perfil, en cualquier momento. Es inmediato y no hace falta pedírnoslo.</p>
-      <p>Si prefieres que te enviemos una copia de tus datos, escribe a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a> y te la mandamos.</p>
+      <h4>6. Qué información de tus prácticas ve Andrea</h4>
+      <p>Andrea, y quien ella autorice para administrar HOGAR, pueden ver en su panel:</p>
+      <ul>
+        <li>tu nombre, tu correo y la fecha en que creaste tu cuenta;</li>
+        <li>el estado de tu compra: si pagaste, la fecha y el importe, o si tienes acceso de cortesía;</li>
+        <li>de cada práctica: cuál hiciste, de cuántos minutos, en qué fecha y tu respuesta a la pregunta inicial sobre cómo se siente tu cuerpo.</li>
+      </ul>
+      <p>Lo usan para acompañarte, atender tus solicitudes, revisar que tu acceso funcione y conocer qué prácticas se usan más para mejorar el contenido. No ven tus respuestas a las preguntas de reflexión ni lo que escribes.</p>
 
-      <h4>Contacto</h4>
-      <p><a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a></p>
+      <h4>7. Proveedores que intervienen</h4>
+      <p>Para operar HOGAR nos apoyamos en estos proveedores. Tratan tus datos por nuestra cuenta y solo para darnos su servicio:</p>
+      <ul>
+        <li><strong>STRYV:</strong> desarrollo, mantenimiento y operación técnica de la plataforma.</li>
+        <li><strong>Supabase:</strong> base de datos, cuentas de acceso, envío de los correos de confirmación y recuperación de contraseña, y almacenamiento de los videos.</li>
+        <li><strong>Netlify:</strong> alojamiento del sitio y de sus funciones de servidor.</li>
+        <li><strong>Stripe:</strong> procesamiento de pagos. Recibe los datos que capturas al pagar, incluida tu tarjeta, y los trata también conforme a su propio aviso de privacidad (por ejemplo, para prevenir fraudes).</li>
+        <li><strong>Google Fonts:</strong> sirve la tipografía de la página, por lo que recibe tu dirección IP al cargarla.</li>
+      </ul>
+      <p>Algunos de estos proveedores tienen sus servidores fuera de México. Solo compartimos tus datos con otras personas cuando una ley o una autoridad competente lo exige.</p>
+
+      <h4>8. Cuánto tiempo los guardamos</h4>
+      <ul>
+        <li><strong>Tu cuenta, tu historial, tus respuestas y tus reflexiones:</strong> mientras tengas tu cuenta. Al borrarla se eliminan de inmediato.</li>
+        <li><strong>Registro mínimo de tu compra</strong> (importe, fecha, identificador de cliente en Stripe y un identificador interno, sin tu nombre ni tu correo): hasta que se cumplan 180 días desde la fecha de compra, el plazo en que un banco puede reclamar un cargo. Después se borra automáticamente.</li>
+        <li><strong>Registro del cobro en Stripe:</strong> el tiempo que la ley obliga a Stripe a conservarlo.</li>
+        <li><strong>Información fiscal de la venta:</strong> el plazo que establece la legislación fiscal.</li>
+        <li><strong>Copias de seguridad y registros técnicos de los proveedores:</strong> pueden permanecer por un tiempo limitado, hasta que se renuevan automáticamente. No se usan para ningún otro fin.</li>
+      </ul>
+
+      <h4>9. Tus derechos (ARCO) y cómo ejercerlos</h4>
+      <p>Tienes derecho a <strong>acceder</strong> a tus datos, <strong>rectificarlos</strong>, <strong>cancelarlos</strong> u <strong>oponerte</strong> a su tratamiento (derechos ARCO), así como a <strong>revocar tu consentimiento</strong> y a <strong>limitar el uso o la divulgación</strong> de tus datos.</p>
+      <ul>
+        <li><strong>Tú misma, desde tu perfil:</strong> puedes cambiar tu nombre y borrar tu cuenta con todos tus datos en cualquier momento. El borrado es inmediato.</li>
+        <li><strong>Por correo, para todo lo demás</strong> (por ejemplo, recibir una copia de tus datos o corregir tu correo): escribe a <a href="mailto:andrealaso1997@hotmail.com">andrealaso1997@hotmail.com</a> desde el correo de tu cuenta. Indica tu nombre, el derecho que quieres ejercer y una descripción clara de lo que pides. Si escribes desde otro correo, te pediremos confirmar tu identidad.</li>
+      </ul>
+      <p>Te responderemos en un máximo de 20 días hábiles y, si tu solicitud procede, la haremos efectiva dentro de los 15 días hábiles siguientes. Es gratuito.</p>
+      <p>Si revocas tu consentimiento o te opones al tratamiento de los datos necesarios para el servicio, ya no podremos darte acceso a HOGAR; en ese caso borraremos tu cuenta, con lo que se describe en el punto 8.</p>
+      <p>Si consideras que tu derecho a la protección de datos fue vulnerado, puedes acudir a la autoridad de protección de datos personales competente (actualmente, la Secretaría Anticorrupción y Buen Gobierno).</p>
+
+      <h4>10. Menores de edad</h4>
+      <p>HOGAR está dirigido a personas mayores de 18 años. Si eres menor de edad, no crees una cuenta.</p>
+
+      <h4>11. Cambios a este aviso</h4>
+      <p>Si este aviso cambia, actualizaremos la fecha de arriba. Si el cambio afecta los datos que tratamos o sus finalidades, te avisaremos por correo o al entrar a HOGAR y, cuando la ley lo pida, te pediremos de nuevo tu consentimiento.</p>
     </div>
   </div>
 </div>
@@ -8257,9 +8363,9 @@ a.lft-stryv-pill:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
            crea la fila en hogar_bajas. Anunciarle una retención a quien no va a
            tener ninguna es lo contrario de lo que busca este diálogo. -->
       <p class="bc-nota" id="bc-nota-retencion" style="display:none;">Guardamos un registro mínimo de tu compra —el importe, la
-      fecha y los identificadores del pago, sin tu nombre ni tu correo— durante 180
-      días, que es el plazo en que un banco puede reclamar un cargo. Pasado ese
-      plazo se borra también.</p>
+      fecha y los identificadores del pago, sin tu nombre ni tu correo— hasta que se
+      cumplan 180 días desde la fecha de compra, que es el plazo en que un banco puede
+      reclamar un cargo. Después se borra también.</p>
 
       <div class="bc-label">Para confirmar, escribe <strong>BORRAR</strong></div>
       <input type="text" class="bc-input" id="bc-confirmacion" placeholder="BORRAR"
@@ -8277,7 +8383,7 @@ a.lft-stryv-pill:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
 
 
 <!-- SIGNUP -->
-<div id="s-signup" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:440px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">¡Bienvenida a HOGAR!</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Crea tu cuenta para empezar.</p><div style="text-align:left;"><div class="fg"><label>Tu nombre</label><input type="text" id="sN" placeholder="¿Cómo te llamas?"></div><div class="fg"><label>Email</label><input type="email" id="sE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="sP" placeholder="Mínimo 8 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="sP2" placeholder="Repite tu contraseña"></div></div><div id="signup-msg" class="auth-msg"></div><div id="signup-dup" class="signup-dup"><p>Ya tienes una cuenta con este correo. ¿Quieres iniciar sesión o recuperar tu contraseña?</p><div class="signup-dup-acts"><button type="button" class="btn btn-r" onclick="goToLoginFromSignup()">Iniciar sesión</button><button type="button" class="btn btn-o" onclick="goToRecoverFromSignup()">Recuperar contraseña</button></div></div><button class="btn btn-r btn-full" id="signupBtn" onclick="doSign()">Crear mi cuenta</button></div></div></div>
+<div id="s-signup" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:440px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" style="height:40px;margin:0 auto 1rem;" alt=""><h2 style="font-size:1.4rem;">¡Bienvenida a HOGAR!</h2><p style="font-size:.88rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;">Crea tu cuenta para empezar.</p><div style="text-align:left;"><div class="fg"><label>Tu nombre</label><input type="text" id="sN" placeholder="¿Cómo te llamas?"></div><div class="fg"><label>Email</label><input type="email" id="sE" placeholder="tu@email.com"></div><div class="fg"><label>Contraseña</label><input type="password" id="sP" placeholder="Mínimo 8 caracteres"></div><div class="fg"><label>Confirmar</label><input type="password" id="sP2" placeholder="Repite tu contraseña"></div></div><label class="sign-consent" for="sConsent"><input type="checkbox" id="sConsent"><span>Acepto los <a href="javascript:void(0)" onclick="event.preventDefault();abrirLegal('terminos')">términos y condiciones</a> y, conforme al <a href="javascript:void(0)" onclick="event.preventDefault();abrirLegal('privacidad')">aviso de privacidad</a>, consiento el tratamiento de mis datos, incluidas mis respuestas sobre cómo se siente mi cuerpo, que pueden ser datos sensibles.</span></label><div id="signup-msg" class="auth-msg"></div><div id="signup-dup" class="signup-dup"><p>Ya tienes una cuenta con este correo. ¿Quieres iniciar sesión o recuperar tu contraseña?</p><div class="signup-dup-acts"><button type="button" class="btn btn-r" onclick="goToLoginFromSignup()">Iniciar sesión</button><button type="button" class="btn btn-o" onclick="goToRecoverFromSignup()">Recuperar contraseña</button></div></div><button class="btn btn-r btn-full" id="signupBtn" onclick="doSign()">Crear mi cuenta</button></div></div></div>
 
 <!-- RECOVER PASSWORD -->
 <div id="s-recover" class="scr"><div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;"><div style="max-width:420px;width:100%;background:var(--white);border-radius:24px;padding:2.5rem;box-shadow:0 20px 60px rgba(216,135,102,.1);text-align:center;"><img src="https://lxpgqhghxfqsahwrdmzo.supabase.co/storage/v1/render/image/public/hogar-publico/LOGOHOGAR_qasyyc.png?width=320&resize=contain&quality=80" style="height:40px;margin:0 auto 1.2rem;" alt=""><div id="recover-form"><h2 class="auth-title-italic">Recuperar acceso</h2><p style="font-size:.85rem;color:var(--texto-medio);font-weight:300;margin:.7rem 0 1.5rem;line-height:1.55;">Te enviaremos un enlace a tu correo para que vuelvas a entrar.</p><div style="text-align:left;"><div class="fg"><label>Email</label><input type="email" id="rE" placeholder="tu@email.com"></div></div><div id="recover-msg" class="auth-msg"></div><button class="btn btn-r btn-full" id="recoverBtn" onclick="doRecover()">Enviar enlace</button><p style="margin-top:1.2rem;"><a href="javascript:void(0)" onclick="go('login')" style="font-size:.78rem;color:var(--texto-medio);text-decoration:none;">← Volver al inicio de sesión</a></p></div><div id="recover-sent" style="display:none;"><h2 class="auth-title-italic">Revisa tu correo</h2><p style="font-size:.88rem;color:var(--texto-oscuro);font-weight:300;margin:1rem 0 .4rem;line-height:1.6;">Te enviamos un correo a <strong id="recover-sent-email" style="font-weight:600;color:var(--terracota-oscuro);"></strong>.</p><p style="font-size:.82rem;color:var(--texto-medio);font-weight:300;margin-bottom:1.5rem;line-height:1.6;">Revisa tu bandeja (y la carpeta de spam).</p><button class="btn btn-r btn-full" onclick="go('login')">Volver al inicio</button></div></div></div></div>
@@ -10266,6 +10372,10 @@ let _legalAbierto=null;
 function abrirLegal(cual){
   const el=document.getElementById('legal-'+cual);
   if(!el) return;
+  // Los modales viven dentro de la landing; si se abren desde otra pantalla (el
+  // registro), la landing está oculta y ellos con ella. Al <body> y listo: mover
+  // el nodo conserva sus onclick.
+  if(el.parentElement!==document.body) document.body.appendChild(el);
   cerrarLegal();                       // nunca dos abiertos a la vez
   el.classList.add('open');
   _legalAbierto=el;
@@ -10511,6 +10621,8 @@ function hideSignupDuplicate(){
 }
 
 // REGISTRO REAL
+// Fecha de la versión vigente de Términos y Aviso. Cambiarla cuando cambien.
+const LEGAL_VERSION='2026-11-23';
 async function doSign(){
   const n=document.getElementById('sN').value.trim(),
         e=document.getElementById('sE').value.trim(),
@@ -10521,12 +10633,17 @@ async function doSign(){
   if(!n||!e||!p){ authMsg('signup-msg','Completa todos los campos.','error'); return; }
   if(p!==p2){ authMsg('signup-msg','Las contraseñas no coinciden.','error'); return; }
   if(p.length<8){ authMsg('signup-msg','La contraseña debe tener al menos 8 caracteres.','error'); return; }
+  const cons=document.getElementById('sConsent');
+  if(cons && !cons.checked){ authMsg('signup-msg','Para crear tu cuenta necesitamos que aceptes los términos y el aviso de privacidad.','error'); return; }
   if(!window.sb){ authMsg('signup-msg','Conectando con el servidor… espera un momento e intenta de nuevo.','info'); scheduleConnTimeout('signup-msg'); return; }
   const btn=document.getElementById('signupBtn'); const btnTxt=btn?btn.textContent:'';
   if(btn){ btn.disabled=true; btn.textContent='Creando cuenta…'; }
   try{
     const { data, error } = await window.sb.auth.signUp({
-      email:e, password:p, options:{ data:{ full_name:n } }
+      // El consentimiento queda como constancia en la cuenta (metadatos de Auth):
+      // qué versión de los documentos aceptó y cuándo. Se borra con la cuenta.
+      email:e, password:p, options:{ data:{ full_name:n,
+        consentimiento:{ terminos:LEGAL_VERSION, privacidad:LEGAL_VERSION, fecha:new Date().toISOString() } } }
     });
     if(error){
       if(_isDuplicateEmail(error.message, null)){ showSignupDuplicate(); return; }
@@ -13508,7 +13625,10 @@ async function guardarSesionNube(ses){
       p_emo_name: ses.emoName,
       p_practica: ses.practica,
       p_ritmo: ses.ritmo,
-      p_path: ses.path,
+      // null a propósito: path es la respuesta a la 1.ª pregunta de reflexión, y
+      // hogar_sesiones la puede leer Andrea. La reflexión ya la lleva en p_answers
+      // (answers.p1), que es privada; el historial la toma de ahí (h.path||a.p1).
+      p_path: null,
       p_answers: ses.answers || null
     };
 
