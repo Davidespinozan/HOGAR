@@ -369,6 +369,11 @@
 /* Los modales legales se abren encima de cualquier pantalla (también del registro):
    abrirLegal() los saca al <body>, así que necesitan quedar por encima de todo. */
 #legal-terminos,#legal-privacidad{z-index:10050;}
+/* Consentimiento pendiente (cuentas anteriores a la casilla). Por debajo de los
+   modales legales (10050) para que sus enlaces se abran ENCIMA de este aviso. */
+#consent-modal{z-index:10040;}
+#consent-modal .legal-modal{max-width:520px;}
+.consent-acts{display:flex;flex-direction:column;gap:10px;margin-top:6px;}
 /* Consentimiento al crear la cuenta */
 .sign-consent{display:flex;align-items:flex-start;gap:10px;text-align:left;margin:.4rem 0 1rem;
   font-family:'Montserrat',sans-serif;font-size:.78rem;font-weight:300;line-height:1.55;color:var(--texto-medio);cursor:pointer;}
@@ -8214,6 +8219,31 @@ a.lft-stryv-pill:focus-visible{ outline:2px solid #fff; outline-offset:3px; }
 
 </div>
 
+<!-- ===== CONSENTIMIENTO PENDIENTE =====
+     Para las cuentas creadas antes de la casilla del registro (23-nov-2026): al
+     entrar se les pide aceptar Términos y Aviso. No se cierra con la X ni con el
+     fondo, a propósito: o acepta, o sale. Lo abre irTrasAuth(). -->
+<div class="legal-ov" id="consent-modal" role="dialog" aria-modal="true" aria-labelledby="consent-tit">
+  <div class="legal-modal">
+    <div class="legal-head">
+      <div class="legal-head-txt">
+        <h3 class="legal-tit" id="consent-tit">Actualizamos nuestros documentos</h3>
+        <div class="legal-fecha">Términos y aviso de privacidad · 23 de noviembre de 2026</div>
+      </div>
+    </div>
+    <div class="legal-body">
+      <p class="legal-intro">Para seguir usando HOGAR necesitamos que los revises y nos des tu consentimiento.</p>
+      <p>Explican con más claridad qué datos guardamos, qué puede ver Andrea y qué no, y cómo ejercer tus derechos. Tus reflexiones siguen siendo solo tuyas.</p>
+      <label class="sign-consent" for="consentChk"><input type="checkbox" id="consentChk"><span>Acepto los <a href="javascript:void(0)" onclick="event.preventDefault();abrirLegal('terminos')">términos y condiciones</a> y, conforme al <a href="javascript:void(0)" onclick="event.preventDefault();abrirLegal('privacidad')">aviso de privacidad</a>, consiento el tratamiento de mis datos, incluidas mis respuestas sobre cómo se siente mi cuerpo, que pueden ser datos sensibles.</span></label>
+      <div id="consent-msg" class="auth-msg"></div>
+      <div class="consent-acts">
+        <button type="button" class="btn btn-r btn-full" id="consentBtn" onclick="aceptarConsentimiento()">Aceptar y continuar</button>
+        <button type="button" class="btn btn-o btn-full" onclick="salirSinConsentimiento()">Ahora no, cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== ACCESO MANUAL (solo Andrea) =====
      Reusa el patrón .legal-ov/.legal-modal, que es el bueno del panel: overlay
      con desenfoque, tarjeta centrada, cabecera fija y cuerpo con scroll propio.
@@ -10486,6 +10516,54 @@ async function irTrasAuth(){
   }catch(_){}
   if(U && esAdmin(U.email)){ goAdmin('inicio'); return; }
   go('dash');
+  // Las administradoras no: ellas son la responsable, no titulares de estos datos.
+  if(U && !consentimientoVigente()) abrirConsentimiento();
+}
+
+// ── CONSENTIMIENTO PENDIENTE ────────────────────────────────────────────────
+// Vigente = aceptó la versión LEGAL_VERSION o una posterior. Las fechas ISO
+// (AAAA-MM-DD) se comparan bien como texto. Si algún día los documentos cambian
+// de forma que haya que volver a pedirlo, basta con subir LEGAL_VERSION.
+function consentimientoVigente(){
+  const c=U && U.consentimiento;
+  return !!(c && typeof c.privacidad==='string' && c.privacidad>=LEGAL_VERSION);
+}
+function abrirConsentimiento(){
+  const m=document.getElementById('consent-modal');
+  if(!m) return;
+  const chk=document.getElementById('consentChk'); if(chk) chk.checked=false;
+  authMsg('consent-msg','');
+  m.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function cerrarConsentimiento(){
+  const m=document.getElementById('consent-modal');
+  if(m) m.classList.remove('open');
+  document.body.style.overflow='';
+}
+// Queda como constancia en los metadatos de la cuenta, igual que en el registro.
+async function aceptarConsentimiento(){
+  const chk=document.getElementById('consentChk');
+  if(!chk || !chk.checked){ authMsg('consent-msg','Marca la casilla para continuar.','error'); return; }
+  if(!window.sb){ authMsg('consent-msg','Conectando con el servidor… intenta de nuevo en un momento.','info'); return; }
+  const btn=document.getElementById('consentBtn'); const txt=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Guardando…'; }
+  try{
+    const consentimiento={ terminos:LEGAL_VERSION, privacidad:LEGAL_VERSION, fecha:new Date().toISOString() };
+    const { error } = await window.sb.auth.updateUser({ data:{ consentimiento } });
+    if(error) throw error;
+    if(U) U.consentimiento=consentimiento;
+    cerrarConsentimiento();
+  }catch(e){
+    console.warn('[HOGAR] no se pudo guardar el consentimiento:', (e&&e.message)||e);
+    authMsg('consent-msg','No pudimos guardarlo. Revisa tu conexión e intenta de nuevo.','error');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=txt; }
+  }
+}
+async function salirSinConsentimiento(){
+  cerrarConsentimiento();
+  await doOut();
 }
 
 // Abre la landing pública en otra pestaña, tal como la ve una visitante. No cierra
@@ -10588,7 +10666,8 @@ function applyUser(supaUser){
   // acabar diciéndole "Buenas tardes, andrealaso1997".
   const fullName=(meta.full_name||'').trim();
   const nombre=fullName || (supaUser.email? supaUser.email.split('@')[0] : 'tu HOGAR');
-  U={ name:nombre, fullName:fullName, email:supaUser.email||'', sessions:0, streak:0, days:0 };
+  U={ name:nombre, fullName:fullName, email:supaUser.email||'', sessions:0, streak:0, days:0,
+      consentimiento: meta.consentimiento||null };
   apagarReconocimientoHoy();
 }
 
